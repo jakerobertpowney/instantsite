@@ -1,10 +1,4 @@
 <script setup lang="ts">
-
-import { inject } from 'vue';
-import { Instagram, Facebook, Twitter, Linkedin } from 'lucide-vue-next';
-
-const form = inject('form')
-
 </script>
 
 <template>

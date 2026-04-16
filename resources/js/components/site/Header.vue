@@ -25,12 +25,22 @@
 
         return countryComponent?.longText || '';
     })
+
+    const logoSrc = computed(() => {
+        if (!props.logo) return '';
+
+        if (props.logo.startsWith('http://') || props.logo.startsWith('https://') || props.logo.startsWith('/')) {
+            return props.logo;
+        }
+
+        return `/${props.logo}`;
+    })
 </script>
 
 <template>
     <section class="flex flex-row gap-4 justify-between">
         <div>
-            <img v-if="logo" :src="'/' + logo" class="rounded-full max-w-32 mb-6" :alt="name">
+            <img v-if="logoSrc" :src="logoSrc" class="rounded-full max-w-32 mb-6" :alt="name">
             <h1 class="text-3xl font-semibold text-gray-800">{{ name }}</h1>
             <p class="text-gray-600">{{ businessType }} in {{ town }}, {{ country }}</p>
         </div>

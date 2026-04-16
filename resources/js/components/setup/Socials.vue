@@ -1,74 +1,62 @@
 <script setup lang="ts">
-
 import { inject } from 'vue';
 import { Instagram, Facebook, Twitter, Linkedin } from 'lucide-vue-next';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 
 const form = inject('form')
-
 </script>
 
 <template>
     <div class="flex flex-col gap-4">
-        <div class="sm:col-span-2">
-            <label for="name" class="mb-2 text-sm font-medium text-gray-900 dark:text-white flex flex-row items-center gap-1.5">
-                <Instagram class="h-4 w-4"/>
-                Instagram
-            </label>
-            <input
+        <div class="flex flex-col gap-2">
+            <Label for="instagram" class="flex items-center gap-1.5">
+                <Instagram class="h-4 w-4" /> Instagram
+            </Label>
+            <Input
                 type="text"
                 name="instagram"
                 id="instagram"
-                class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
                 placeholder="https://www.instagram.com/yourcompanyname"
-                required
                 v-model="form.socials.instagram"
             />
         </div>
 
-        <div class="sm:col-span-2">
-            <label for="name" class="mb-2 text-sm font-medium text-gray-900 dark:text-white flex flex-row items-center gap-1.5">
-                <Facebook class="h-4 w-4"/>
-                Facebook
-            </label>
-            <input
+        <div class="flex flex-col gap-2">
+            <Label for="facebook" class="flex items-center gap-1.5">
+                <Facebook class="h-4 w-4" /> Facebook
+            </Label>
+            <Input
                 type="text"
                 name="facebook"
                 id="facebook"
-                class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
                 placeholder="https://www.facebook.com/yourcompanyname"
-                required
                 v-model="form.socials.facebook"
             />
         </div>
 
-        <div class="sm:col-span-2">
-            <label for="name" class="mb-2 text-sm font-medium text-gray-900 dark:text-white flex flex-row items-center gap-1.5">
-                <Twitter class="h-4 w-4"/>
-                X (Twitter)
-            </label>
-            <input
+        <div class="flex flex-col gap-2">
+            <Label for="x" class="flex items-center gap-1.5">
+                <Twitter class="h-4 w-4" /> X (Twitter)
+            </Label>
+            <Input
                 type="text"
                 name="x"
                 id="x"
-                class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
                 placeholder="https://x.com/yourcompanyname"
-                required
                 v-model="form.socials.x"
             />
         </div>
 
-        <div class="sm:col-span-2">
-            <label for="name" class="mb-2 text-sm font-medium text-gray-900 dark:text-white flex flex-row items-center gap-1.5">
-                <Linkedin class="h-4 w-4"/>
-                LinkedIn
-            </label>
-            <input
+        <div class="flex flex-col gap-2">
+            <Label for="linkedin" class="flex items-center gap-1.5">
+                <Linkedin class="h-4 w-4" /> LinkedIn
+            </Label>
+            <Input
                 type="text"
                 name="linkedin"
                 id="linkedin"
-                class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
                 placeholder="https://www.linkedin.com/in/yourcompanyname/"
-                required
                 v-model="form.socials.linkedin"
             />
         </div>

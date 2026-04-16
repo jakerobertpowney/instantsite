@@ -14,7 +14,12 @@ class Site extends Model
     protected $fillable = [
         'user_id',
         'places_id',
+        'domain_type',
+        'subdomain',
+        'custom_domain',
         'data',
+        'meta_title',
+        'meta_description',
     ];
 
     /**

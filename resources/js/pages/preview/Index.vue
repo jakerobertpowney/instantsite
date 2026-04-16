@@ -7,6 +7,7 @@ import Contact from '@/components/site/Contact.vue';
 import Reviews from '@/components/site/Reviews.vue';
 import { ArrowRight } from 'lucide-vue-next';
 import { router } from '@inertiajs/vue3';
+import { Button } from '@/components/ui/button';
 
 const props = defineProps({
     id: String,
@@ -24,13 +25,9 @@ const nextStep = () => {
 
         <div class="fixed bottom-0 left-0 right-0 z-10 bg-white px-5 py-3">
             <div class="flex flex-row gap-4 w-full max-w-sm mx-auto">
-                <button
-                    @click="nextStep"
-                    type="button"
-                    class="flex flex-grow cursor-pointer items-center justify-center gap-2 rounded-lg bg-black px-5 py-3 text-white"
-                >
+                <Button @click="nextStep" type="button" class="flex-1" size="lg">
                     Continue <ArrowRight class="h-4 w-4" />
-                </button>
+                </Button>
             </div>
         </div>
 

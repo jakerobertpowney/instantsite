@@ -53,6 +53,11 @@ class PreviewController extends Controller
     {
         $site = TemporarySite::where('places_id', $id)->latest()->first();
 
+        if (!$site) {
+            return redirect()->route('preview.discover', $id);
+        }
+
+        $logo = null;
         if($request->hasFile('logo')) {
             // Store uploaded logo in the public logos folder.
             $logo = $request->file('logo')->store(
@@ -63,7 +68,7 @@ class PreviewController extends Controller
 
         $site->update([
            'data' => array_merge($site->data, [
-               'logo' => $logo ?? null,
+               'logo' => $logo,
                'description' => $request->get('description'),
                'socials' => $request->get('socials'),
                'premium' => $request->get('premium'),

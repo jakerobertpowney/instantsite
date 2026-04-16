@@ -1,19 +1,41 @@
 <script setup lang="ts">
-
-import { inject } from 'vue';
+import { inject, ref } from 'vue';
+import { Label } from '@/components/ui/label';
+import { Button } from '@/components/ui/button';
+import { Upload } from 'lucide-vue-next';
 
 const form = inject('form')
+const fileInput = ref<HTMLInputElement | null>(null)
+const fileName = ref<string | null>(null)
 
+const triggerUpload = () => {
+    fileInput.value?.click()
+}
+
+const handleFile = (event: Event) => {
+    const file = (event.target as HTMLInputElement).files?.[0]
+    if (file) {
+        form.logo = file
+        fileName.value = file.name
+    }
+}
 </script>
 
 <template>
-    <div class="sm:col-span-2">
-        <label for="logo" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Please upload your logo</label>
-        <input type="file"
-               name="logo"
-               id="logo"
-               class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
-               @input="form.logo = $event.target.files[0]"
-        >
+    <div class="flex flex-col gap-2">
+        <Label for="logo">Please upload your logo</Label>
+        <input
+            ref="fileInput"
+            type="file"
+            name="logo"
+            id="logo"
+            class="hidden"
+            accept="image/*"
+            @change="handleFile"
+        />
+        <Button type="button" variant="outline" @click="triggerUpload" class="w-full justify-start gap-2">
+            <Upload class="h-4 w-4" />
+            {{ fileName ?? 'Choose file…' }}
+        </Button>
     </div>
 </template>
