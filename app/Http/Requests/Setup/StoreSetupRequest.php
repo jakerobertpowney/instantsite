@@ -14,8 +14,9 @@ class StoreSetupRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'logo' => ['nullable', 'file', 'mimes:jpg,png'],
-            'description' => ['required', 'string'],
+            'logo' => ['nullable', 'file', 'mimes:jpg,png,gif,webp'],
+            'suggested_logo_url' => ['nullable', 'url:https'],
+            'description' => ['nullable', 'string', 'max:2000'],
             'socials' => [
                 'required',
                 'array'
@@ -33,15 +34,15 @@ class StoreSetupRequest extends FormRequest
                 'string',
                 'email'
             ],
-            'quicklinks' => [
+            'quickLinks' => [
                 'nullable',
                 'array'
             ],
-            'quicklinks.*.label' => [
+            'quickLinks.*.label' => [
                 'required',
                 'string'
             ],
-            'quicklinks.*.link' => [
+            'quickLinks.*.link' => [
                 'required',
                 'url:http,https'
             ]

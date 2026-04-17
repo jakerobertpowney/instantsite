@@ -29,7 +29,7 @@ class FetchPlaceDetails implements ShouldQueue
         $response = Http::withHeaders([
             'Content-Type' => 'application/json',
             'X-Goog-Api-Key' => env('GOOGLE_API_KEY'),
-            'X-Goog-FieldMask' => 'id,displayName,photos,addressComponents,formattedAddress,regularOpeningHours,nationalPhoneNumber,editorialSummary,reviews,reviewSummary,rating,primaryTypeDisplayName'
+            'X-Goog-FieldMask' => 'id,displayName,photos,addressComponents,formattedAddress,regularOpeningHours,nationalPhoneNumber,editorialSummary,reviews,reviewSummary,rating,userRatingCount,primaryTypeDisplayName,websiteUri'
         ])->get('https://places.googleapis.com/v1/places/' . $this->id);
 
         $response->throw();
@@ -47,9 +47,15 @@ class FetchPlaceDetails implements ShouldQueue
         /**
          * Loop through photos to fetch URL
          */
-
-        foreach($data['photos'] as $photo) {
+        foreach($data['photos'] ?? [] as $photo) {
             $this->batch()->add(new FetchPlacePhoto($photo, $site));
+        }
+
+        /**
+         * If the business has a website, scrape it for social media links
+         */
+        if (!empty($data['websiteUri'])) {
+            $this->batch()->add(new FetchSocialLinks($site, $data['websiteUri']));
         }
 
     }

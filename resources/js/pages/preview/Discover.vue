@@ -4,9 +4,11 @@ import { onMounted, onUnmounted, ref } from 'vue';
 import { router } from '@inertiajs/vue3';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Progress } from '@/components/ui/progress';
+import { poll as discoverPoll } from '@/routes/search/discover';
+import { setup as previewSetup } from '@/routes/preview';
 
 const props = defineProps({
-    id: Number,
+    id: [Number, String],
     batchId: String
 })
 
@@ -14,10 +16,10 @@ const poll = ref(0)
 const progress = ref(10)
 
 const checkBatch = () => {
-    axios.get(route('search.discover.poll', props.batchId)).then(response => {
+    axios.get(discoverPoll.url(props.batchId!)).then(response => {
         if (response.data) {
             progress.value = 100
-            router.visit(route('preview.setup', props.id))
+            router.visit(previewSetup.url(props.id!))
         } else {
             progress.value = Math.min(progress.value + 15, 90)
         }

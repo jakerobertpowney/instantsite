@@ -80,11 +80,56 @@ class DashboardController extends Controller
         $existingOverrides = $data['overrides'] ?? [];
         if ($request->has('overrides')) {
             $existingOverrides['description'] = $request->input('overrides.description', $existingOverrides['description'] ?? '');
+
+            // Contact email override — empty string means "use Google email"
+            if ($request->has('overrides.contact_email')) {
+                $email = trim($request->input('overrides.contact_email', ''));
+                if ($email) {
+                    $existingOverrides['contact_email'] = $email;
+                } else {
+                    unset($existingOverrides['contact_email']);
+                }
+            }
+
+            // Save hidden review indices (nullable — absence means no reviews are hidden)
+            if ($request->has('overrides.hidden_reviews')) {
+                $existingOverrides['hidden_reviews'] = array_values(
+                    array_map('intval', $request->input('overrides.hidden_reviews', []))
+                );
+            }
         }
 
         // Merge social links
         if ($request->has('socials')) {
             $data['socials'] = array_merge($data['socials'] ?? [], array_filter($request->input('socials', []), fn($v) => $v !== null));;
+        }
+
+        // Save WhatsApp number
+        if ($request->has('whatsapp_number')) {
+            $data['whatsapp_number'] = preg_replace('/\D/', '', $request->input('whatsapp_number', ''));
+        }
+
+        // Save custom quick links (full replace — order matters)
+        if ($request->has('quickLinks')) {
+            $data['quickLinks'] = collect($request->input('quickLinks', []))
+                ->filter(fn($l) => !empty($l['label']) && !empty($l['link']))
+                ->values()
+                ->map(fn($l) => ['label' => $l['label'], 'link' => $l['link']])
+                ->all();
+        }
+
+        // Save custom colour palette
+        if ($request->has('palette_primary')) {
+            $primary = $request->input('palette_primary', '');
+            if ($primary) {
+                $existingOverrides['palette'] = [
+                    'primary'   => $primary,
+                    'secondary' => $request->input('palette_secondary', '') ?: null,
+                ];
+            } else {
+                // Empty primary = revert to auto palette
+                unset($existingOverrides['palette']);
+            }
         }
 
         // Handle logo upload
@@ -98,6 +143,42 @@ class DashboardController extends Controller
                 'public'
             );
             $existingOverrides['logo_path'] = Storage::disk('public')->url($path);
+        }
+
+        // Handle header background
+        if ($request->has('header_bg_type')) {
+            $bgType = $request->input('header_bg_type', 'auto');
+
+            if ($bgType === 'auto') {
+                unset($existingOverrides['header_bg']);
+            } elseif ($bgType === 'custom_image' && $request->hasFile('header_bg_image')) {
+                $placesId = $site->places_id;
+                $file     = $request->file('header_bg_image');
+                $ext      = $file->getClientOriginalExtension();
+                $path     = $file->storeAs("images/{$placesId}", "header_bg.{$ext}", 'public');
+                $existingOverrides['header_bg'] = [
+                    'type'  => 'custom_image',
+                    'value' => Storage::disk('public')->url($path),
+                ];
+            } elseif ($bgType === 'google_image') {
+                $existingOverrides['header_bg'] = [
+                    'type'  => 'google_image',
+                    'value' => $request->input('header_bg_value', ''),
+                ];
+            } elseif ($bgType === 'color') {
+                $existingOverrides['header_bg'] = [
+                    'type'  => 'color',
+                    'value' => $request->input('header_bg_value', ''),
+                ];
+            } elseif ($bgType === 'stock') {
+                $existingOverrides['header_bg'] = [
+                    'type'        => 'stock',
+                    'value'       => $request->input('header_bg_value', ''),
+                    'thumb'       => $request->input('header_bg_thumb', ''),
+                    'credit'      => $request->input('header_bg_credit', ''),
+                    'credit_url'  => $request->input('header_bg_credit_url', ''),
+                ];
+            }
         }
 
         $data['overrides'] = $existingOverrides;

@@ -8,6 +8,7 @@ import Reviews from '@/components/site/Reviews.vue';
 import { ArrowRight } from 'lucide-vue-next';
 import { router } from '@inertiajs/vue3';
 import { Button } from '@/components/ui/button';
+import { complete as previewComplete } from '@/routes/preview';
 
 const props = defineProps({
     id: String,
@@ -15,7 +16,7 @@ const props = defineProps({
 })
 
 const nextStep = () => {
-    router.post(route('preview.complete', props.id))
+    router.post(previewComplete.url(props.id!))
 }
 
 </script>
@@ -47,7 +48,7 @@ const nextStep = () => {
                     <QuickActions
                         :phone-number="props.data.nationalPhoneNumber"
                         :contact="props.data.contact"
-                        :quick-links="props.data.quicklinks"
+                        :quick-links="props.data.quickLinks"
                         :preview="true"
                     />
 

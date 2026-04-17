@@ -1,49 +1,78 @@
 <script setup lang="ts">
-    import { computed } from 'vue';
+import { computed } from 'vue';
+import { MapPin } from 'lucide-vue-next';
 
-    const props = defineProps({
-        logo: String,
-        name: String,
-        businessType: String,
-        addressComponents: Array
-    })
+const props = defineProps({
+    logo: String,
+    name: String,
+    businessType: String,
+    addressComponents: Array
+});
 
-    const town = computed(() => {
-        // Find town (locality)
-        const townComponent = props.addressComponents.find(component =>
-            component.types && component.types.includes('locality')
-        );
+const town = computed(() => {
+    const c = props.addressComponents?.find((c: any) =>
+        c.types && c.types.includes('locality')
+    );
+    return (c as any)?.longText || '';
+});
 
-        return townComponent?.longText || '';
-    })
+const region = computed(() => {
+    const c = props.addressComponents?.find((c: any) =>
+        c.types && c.types.includes('administrative_area_level_1')
+    );
+    return (c as any)?.longText || '';
+});
 
-    const country = computed(() => {
-        // Find country (administrative_area_level_1)
-        const countryComponent = props.addressComponents.find(component =>
-            component.types && component.types.includes('administrative_area_level_1')
-        );
+const locationLabel = computed(() => {
+    const parts = [town.value, region.value].filter(Boolean);
+    return parts.join(', ');
+});
 
-        return countryComponent?.longText || '';
-    })
-
-    const logoSrc = computed(() => {
-        if (!props.logo) return '';
-
-        if (props.logo.startsWith('http://') || props.logo.startsWith('https://') || props.logo.startsWith('/')) {
-            return props.logo;
-        }
-
-        return `/${props.logo}`;
-    })
+const logoSrc = computed(() => {
+    if (!props.logo) return '';
+    if (props.logo.startsWith('http://') || props.logo.startsWith('https://') || props.logo.startsWith('/')) {
+        return props.logo;
+    }
+    return `/${props.logo}`;
+});
 </script>
 
 <template>
-    <section class="flex flex-row gap-4 justify-between">
-        <div>
-            <img v-if="logoSrc" :src="logoSrc" class="rounded-full max-w-32 mb-6" :alt="name">
-            <h1 class="text-3xl font-semibold text-gray-800">{{ name }}</h1>
-            <p class="text-gray-600">{{ businessType }} in {{ town }}, {{ country }}</p>
+    <!-- Renders inside the hero section — parent provides the bg context -->
+    <div class="flex flex-col gap-4">
+
+        <!-- Logo -->
+        <div v-if="logoSrc" class="shrink-0">
+            <img
+                :src="logoSrc"
+                :alt="name"
+                class="h-16 w-16 md:h-20 md:w-20 rounded-2xl object-contain bg-white/90 shadow-lg ring-2 ring-white/40 p-1.5"
+            />
         </div>
-        <slot />
-    </section>
+
+        <!-- Business name + type / location -->
+        <div>
+            <!-- Primary type badge -->
+            <div
+                v-if="businessType"
+                class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium mb-3"
+                style="background-color: var(--site-primary); color: var(--site-primary-fg); opacity: 0.92"
+            >
+                {{ businessType }}
+            </div>
+
+            <h1 class="text-3xl md:text-5xl font-bold text-white leading-tight tracking-tight drop-shadow-sm">
+                {{ name }}
+            </h1>
+
+            <p
+                v-if="locationLabel"
+                class="mt-2 flex items-center gap-1.5 text-sm md:text-base text-white/80"
+            >
+                <MapPin class="h-4 w-4 shrink-0 text-white/60" />
+                {{ locationLabel }}
+            </p>
+        </div>
+
+    </div>
 </template>

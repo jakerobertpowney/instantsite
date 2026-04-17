@@ -2,6 +2,7 @@
 import { useForm, usePage } from '@inertiajs/vue3';
 import { computed, ref, watch } from 'vue';
 import { components as dashboardComponents } from '@/routes/dashboard';
+import { suggestLabelForUrl, getFaviconUrl, detectPlatformBrand } from '@/lib/platformBrands';
 import { toast } from 'vue-sonner';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
@@ -11,14 +12,17 @@ import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Input } from '@/components/ui/input';
-import { CheckCircle2, ExternalLink, Loader2, Upload, XCircle } from 'lucide-vue-next';
+import { CheckCircle2, Eye, EyeOff, ExternalLink, Loader2, MessageCircle, Palette, Plus, Trash2, Upload, XCircle } from 'lucide-vue-next';
+import HeaderBackgroundPicker from '@/components/dashboard/HeaderBackgroundPicker.vue';
+import { COLOUR_THEMES, buildPaletteFromPrimary, getRecommendedThemeId } from '@/lib/palette';
 
-type ComponentKey = 'header' | 'description' | 'gallery' | 'quick_actions' | 'reviews' | 'contact';
+type ComponentKey = 'header' | 'description' | 'gallery' | 'quick_actions' | 'reviews' | 'contact' | 'contact_form';
 type ComponentState = Record<ComponentKey, { enabled: boolean }>;
 type Socials = { instagram: string; facebook: string; x: string; linkedin: string };
+type QuickLink = { label: string; link: string };
 type SiteData = Record<string, any>;
 
-const componentKeys: ComponentKey[] = ['header', 'description', 'gallery', 'quick_actions', 'reviews', 'contact'];
+const componentKeys: ComponentKey[] = ['header', 'description', 'gallery', 'quick_actions', 'reviews', 'contact', 'contact_form'];
 const page = usePage();
 const site = computed(() => (page.props.site as { data?: SiteData } | undefined) ?? {});
 
@@ -85,28 +89,154 @@ function buildInitialSocials(): Socials {
     };
 }
 
+const siteQuickLinks = computed<QuickLink[]>(() => siteData.value.quickLinks ?? []);
+
+function buildInitialQuickLinks(): QuickLink[] {
+    return siteQuickLinks.value.map((l) => ({ label: l.label ?? '', link: l.link ?? '' }));
+}
+
+function addQuickLink() {
+    form.quickLinks.push({ label: '', link: '' });
+}
+
+function removeQuickLink(index: number) {
+    form.quickLinks.splice(index, 1);
+}
+
+// Auto-suggest a button label when a known URL is pasted
+function onLinkBlur(index: number) {
+    const link = form.quickLinks[index];
+    if (!link || link.label.trim()) return; // don't overwrite an existing label
+    const suggested = suggestLabelForUrl(link.link);
+    if (suggested) link.label = suggested;
+}
+
+// Brand preview for a quick link row in the editor
+function linkBrandStyle(url: string): Record<string, string> {
+    const brand = detectPlatformBrand(url);
+    return brand ? { backgroundColor: brand.bgColor, color: brand.textColor } : {};
+}
+
+function linkFavicon(url: string): string | null {
+    return url ? getFaviconUrl(url) : null;
+}
+
+// ─── Colour palette ───────────────────────────────────────────────────────────
+const existingPalette = computed(() => siteOverrides.value.palette ?? {});
+const recommendedThemeId = computed(() => getRecommendedThemeId(siteData.value.primaryType));
+const customPrimaryInput = ref('');
+const customSecondaryInput = ref('');
+const selectedThemeId = ref<string>(
+    existingPalette.value.primary
+        ? COLOUR_THEMES.find(t => t.palette.primary === existingPalette.value.primary)?.id ?? 'custom'
+        : recommendedThemeId.value
+);
+
+// Live palette preview for the colour picker
+const previewPalette = computed(() => {
+    if (selectedThemeId.value === 'custom') {
+        const p = customPrimaryInput.value || '#1e293b';
+        const s = customSecondaryInput.value || undefined;
+        return buildPaletteFromPrimary(p, s);
+    }
+    return COLOUR_THEMES.find(t => t.id === selectedThemeId.value)?.palette
+        ?? COLOUR_THEMES[0].palette;
+});
+
+function selectTheme(id: string) {
+    selectedThemeId.value = id;
+    if (id !== 'custom') {
+        const theme = COLOUR_THEMES.find(t => t.id === id);
+        if (theme) {
+            customPrimaryInput.value   = theme.palette.primary;
+            customSecondaryInput.value = theme.palette.secondary;
+            form.palette_primary       = theme.palette.primary;
+            form.palette_secondary     = theme.palette.secondary;
+        }
+    }
+}
+
+// Keep form fields in sync with the live hex inputs (for custom mode)
+watch(customPrimaryInput, v => { form.palette_primary = v; });
+watch(customSecondaryInput, v => { form.palette_secondary = v; });
+
+const existingBg = computed(() => siteOverrides.value.header_bg ?? { type: 'auto', value: '' });
+
+// Derive initial palette form values from saved custom or auto theme
+const initPaletteValues = () => {
+    if (existingPalette.value.primary) {
+        return { primary: existingPalette.value.primary, secondary: existingPalette.value.secondary ?? '' };
+    }
+    const theme = COLOUR_THEMES.find(t => t.id === recommendedThemeId.value) ?? COLOUR_THEMES[0];
+    return { primary: theme.palette.primary, secondary: theme.palette.secondary };
+};
+const initPalette = initPaletteValues();
+customPrimaryInput.value   = initPalette.primary;
+customSecondaryInput.value = initPalette.secondary;
+
 const form = useForm<{
     components: ComponentState;
-    overrides: { description: string };
+    overrides: { description: string; hidden_reviews: number[]; contact_email: string };
     socials: Socials;
+    quickLinks: QuickLink[];
+    whatsapp_number: string;
     logo: File | null;
+    palette_primary: string;
+    palette_secondary: string;
+    header_bg_type: string;
+    header_bg_value: string;
+    header_bg_thumb: string;
+    header_bg_credit: string;
+    header_bg_credit_url: string;
+    header_bg_image: File | null;
 }>({
     components: buildInitialComponents(),
     overrides: {
-        description: siteOverrides.value.description ?? '',
+        description:   siteOverrides.value.description ?? '',
+        hidden_reviews: (siteOverrides.value.hidden_reviews as number[] | undefined) ?? [],
+        contact_email: (siteOverrides.value.contact_email as string | undefined) ?? '',
     },
     socials: buildInitialSocials(),
+    quickLinks: buildInitialQuickLinks(),
+    whatsapp_number: siteData.value.whatsapp_number ?? '',
     logo: null,
+    palette_primary:   initPalette.primary,
+    palette_secondary: initPalette.secondary,
+    header_bg_type:      existingBg.value.type       ?? 'auto',
+    header_bg_value:     existingBg.value.value      ?? '',
+    header_bg_thumb:     existingBg.value.thumb      ?? '',
+    header_bg_credit:    existingBg.value.credit     ?? '',
+    header_bg_credit_url: existingBg.value.credit_url ?? '',
+    header_bg_image: null,
 });
 
 watch(
     () => page.props.site,
     () => {
         form.components = buildInitialComponents();
-        form.overrides.description = siteOverrides.value.description ?? '';
+        form.overrides.description    = siteOverrides.value.description ?? '';
+        form.overrides.hidden_reviews = (siteOverrides.value.hidden_reviews as number[] | undefined) ?? [];
+        form.overrides.contact_email  = (siteOverrides.value.contact_email as string | undefined) ?? '';
         form.socials = buildInitialSocials();
+        form.quickLinks = buildInitialQuickLinks();
+        form.whatsapp_number = siteData.value.whatsapp_number ?? '';
         form.logo = null;
         logoPreview.value = siteOverrides.value.logo_path ?? null;
+        const reinitPalette = initPaletteValues();
+        form.palette_primary   = reinitPalette.primary;
+        form.palette_secondary = reinitPalette.secondary;
+        customPrimaryInput.value   = reinitPalette.primary;
+        customSecondaryInput.value = reinitPalette.secondary;
+        selectedThemeId.value = existingPalette.value.primary
+            ? COLOUR_THEMES.find(t => t.palette.primary === existingPalette.value.primary)?.id ?? 'custom'
+            : recommendedThemeId.value;
+        const bg = siteOverrides.value.header_bg ?? { type: 'auto', value: '' };
+        form.header_bg_type      = bg.type       ?? 'auto';
+        form.header_bg_value     = bg.value      ?? '';
+        form.header_bg_thumb     = bg.thumb      ?? '';
+        form.header_bg_credit    = bg.credit     ?? '';
+        form.header_bg_credit_url = bg.credit_url ?? '';
+        form.header_bg_image = null;
     },
     { deep: true },
 );
@@ -153,14 +283,34 @@ const photoCount = computed(() => siteData.value.photos?.length ?? 0);
 const phoneNumber = computed(
     () => siteData.value.nationalPhoneNumber ?? siteData.value.internationalPhoneNumber ?? '',
 );
-const quickLinks = computed<Array<{ label: string }>>(() => siteData.value.quickLinks ?? []);
 
 // Reviews
 const rating = computed(() => siteData.value.rating ?? null);
-const reviewCount = computed(() => siteData.value.userRatingCount ?? null);
+const reviewCount = computed(() =>
+    siteData.value.userRatingCount ?? siteData.value.reviews?.length ?? null,
+);
+const siteReviews = computed<Array<{ author: string; rating: number; text: string; time: string }>>(() =>
+    ((siteData.value.reviews ?? []) as Array<Record<string, any>>).map((r) => ({
+        author: r.authorAttribution?.displayName ?? 'Anonymous',
+        rating: r.rating ?? 0,
+        text:   r.text?.text ?? '',
+        time:   r.publishTime ?? '',
+    })),
+);
+
+function toggleReviewHidden(index: number) {
+    const hidden = form.overrides.hidden_reviews;
+    const pos = hidden.indexOf(index);
+    if (pos === -1) {
+        hidden.push(index);
+    } else {
+        hidden.splice(pos, 1);
+    }
+}
 
 // Contact Info
 const formattedAddress = computed(() => siteData.value.formattedAddress ?? '');
+const googleEmail      = computed(() => (siteData.value.contact as string | undefined) ?? '');
 const openingHoursPeriods = computed(
     () => siteData.value.regularOpeningHours?.periods?.length ?? null,
 );
@@ -174,8 +324,12 @@ const currentSocials = computed(() => siteData.value.socials ?? {});
             <p class="mt-1 text-base text-muted-foreground">Turn sections on or off, and customise your content.</p>
         </div>
 
-        <Tabs default-value="header">
+        <Tabs default-value="design">
             <TabsList class="flex-wrap h-auto gap-1">
+                <TabsTrigger value="design" class="gap-2 py-2 px-3 text-sm">
+                    <Palette class="h-4 w-4" />
+                    Design
+                </TabsTrigger>
                 <TabsTrigger value="header" class="gap-2 py-2 px-3 text-sm">
                     <CheckCircle2
                         v-if="form.components.header.enabled"
@@ -243,6 +397,139 @@ const currentSocials = computed(() => siteData.value.socials ?? {});
                     Contact
                 </TabsTrigger>
             </TabsList>
+
+            <!-- ── 0. Design / Colours ───────────────────────────────────── -->
+            <TabsContent value="design">
+                <Card>
+                    <CardHeader class="pb-3">
+                        <CardTitle class="text-lg">Brand colours</CardTitle>
+                        <p class="text-sm text-muted-foreground mt-0.5">Choose a colour theme that matches your business. It'll be used for buttons, accents, and highlights across your site.</p>
+                    </CardHeader>
+                    <CardContent class="flex flex-col gap-5">
+
+                        <!-- Recommended badge -->
+                        <div class="flex items-center gap-2 text-sm text-muted-foreground">
+                            <span class="inline-flex items-center gap-1.5 rounded-full bg-amber-50 dark:bg-amber-950 px-3 py-1 text-xs font-medium text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800">
+                                ✦ Recommended for your business type
+                            </span>
+                            <span class="font-medium text-foreground">{{ COLOUR_THEMES.find(t => t.id === recommendedThemeId)?.name }}</span>
+                        </div>
+
+                        <!-- Colour theme grid -->
+                        <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                            <button
+                                v-for="theme in COLOUR_THEMES"
+                                :key="theme.id"
+                                type="button"
+                                class="group relative rounded-xl border-2 p-3 text-left transition-all focus:outline-none focus-visible:ring-2"
+                                :class="selectedThemeId === theme.id
+                                    ? 'border-foreground ring-1 ring-foreground'
+                                    : 'border-transparent bg-muted/40 hover:bg-muted hover:border-muted-foreground/30'"
+                                @click="selectTheme(theme.id)"
+                            >
+                                <!-- Colour swatch strip -->
+                                <div class="flex gap-1 mb-2">
+                                    <div class="h-5 w-5 rounded-full shrink-0" :style="{ backgroundColor: theme.palette.primary }" />
+                                    <div class="h-5 w-5 rounded-full shrink-0" :style="{ backgroundColor: theme.palette.secondary }" />
+                                    <div class="h-5 w-5 rounded-full shrink-0" :style="{ backgroundColor: theme.palette.primaryMuted }" />
+                                </div>
+                                <p class="text-xs font-semibold text-foreground">{{ theme.name }}</p>
+                                <!-- Recommended star -->
+                                <span
+                                    v-if="theme.id === recommendedThemeId"
+                                    class="absolute top-2 right-2 text-amber-500 text-xs"
+                                    title="Recommended for your business type"
+                                >✦</span>
+                                <!-- Selected check -->
+                                <div v-if="selectedThemeId === theme.id" class="absolute bottom-2 right-2">
+                                    <CheckCircle2 class="h-4 w-4 text-foreground" />
+                                </div>
+                            </button>
+
+                            <!-- Custom option -->
+                            <button
+                                type="button"
+                                class="group relative rounded-xl border-2 p-3 text-left transition-all focus:outline-none focus-visible:ring-2"
+                                :class="selectedThemeId === 'custom'
+                                    ? 'border-foreground ring-1 ring-foreground'
+                                    : 'border-transparent bg-muted/40 hover:bg-muted hover:border-muted-foreground/30'"
+                                @click="selectTheme('custom')"
+                            >
+                                <div class="flex gap-1 mb-2">
+                                    <div class="h-5 w-5 rounded-full shrink-0 border border-dashed border-muted-foreground/50" />
+                                    <div class="h-5 w-5 rounded-full shrink-0 border border-dashed border-muted-foreground/50" />
+                                </div>
+                                <p class="text-xs font-semibold text-foreground">Custom</p>
+                                <div v-if="selectedThemeId === 'custom'" class="absolute bottom-2 right-2">
+                                    <CheckCircle2 class="h-4 w-4 text-foreground" />
+                                </div>
+                            </button>
+                        </div>
+
+                        <!-- Custom hex inputs (shown when Custom is selected) -->
+                        <div v-if="selectedThemeId === 'custom'" class="flex flex-col gap-3 rounded-lg border p-4 bg-muted/30">
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <div class="flex flex-col gap-1.5">
+                                    <Label for="palette-primary" class="text-sm font-medium">Primary colour</Label>
+                                    <div class="flex items-center gap-2">
+                                        <div class="h-9 w-9 rounded-md border shrink-0" :style="{ backgroundColor: customPrimaryInput || '#1e293b' }" />
+                                        <Input
+                                            id="palette-primary"
+                                            v-model="customPrimaryInput"
+                                            placeholder="#1e40af"
+                                            class="h-9 font-mono text-sm flex-1"
+                                            maxlength="7"
+                                        />
+                                    </div>
+                                    <p class="text-xs text-muted-foreground">Buttons, accents, and highlights</p>
+                                </div>
+                                <div class="flex flex-col gap-1.5">
+                                    <Label for="palette-secondary" class="text-sm font-medium">Secondary colour <span class="text-muted-foreground">(optional)</span></Label>
+                                    <div class="flex items-center gap-2">
+                                        <div class="h-9 w-9 rounded-md border shrink-0" :style="{ backgroundColor: customSecondaryInput || previewPalette.secondary }" />
+                                        <Input
+                                            id="palette-secondary"
+                                            v-model="customSecondaryInput"
+                                            :placeholder="previewPalette.secondary"
+                                            class="h-9 font-mono text-sm flex-1"
+                                            maxlength="7"
+                                        />
+                                    </div>
+                                    <p class="text-xs text-muted-foreground">Leave blank to auto-generate from primary</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Live palette preview strip -->
+                        <div class="flex flex-col gap-2">
+                            <p class="text-sm font-medium">Preview</p>
+                            <div class="flex gap-3 items-center rounded-xl border p-4">
+                                <div class="flex gap-2">
+                                    <div class="h-8 w-8 rounded-full" :style="{ backgroundColor: previewPalette.primary }" :title="previewPalette.primary" />
+                                    <div class="h-8 w-8 rounded-full" :style="{ backgroundColor: previewPalette.secondary }" :title="previewPalette.secondary" />
+                                    <div class="h-8 w-8 rounded-lg border" :style="{ backgroundColor: previewPalette.primaryMuted }" :title="previewPalette.primaryMuted" />
+                                </div>
+                                <div class="flex gap-2 ml-2">
+                                    <span
+                                        class="inline-flex items-center rounded-full px-3 py-1 text-sm font-semibold"
+                                        :style="{ backgroundColor: previewPalette.primary, color: previewPalette.primaryFg }"
+                                    >
+                                        Call us
+                                    </span>
+                                    <span
+                                        class="inline-flex items-center rounded-full border-2 px-3 py-1 text-sm font-semibold"
+                                        :style="{ borderColor: previewPalette.primary, color: previewPalette.primary }"
+                                    >
+                                        Message
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <p v-if="form.errors.palette_primary" class="text-sm text-destructive">{{ form.errors.palette_primary }}</p>
+                    </CardContent>
+                </Card>
+            </TabsContent>
 
             <!-- ── 1. Header ──────────────────────────────────────────────── -->
             <TabsContent value="header">
@@ -320,6 +607,23 @@ const currentSocials = computed(() => siteData.value.socials ?? {});
                                 {{ form.errors.logo }}
                             </p>
                         </div>
+                        <Separator />
+                        <HeaderBackgroundPicker
+                            :bg-type="(form.header_bg_type as any)"
+                            :bg-value="form.header_bg_value"
+                            :bg-thumb="form.header_bg_thumb"
+                            :bg-credit="form.header_bg_credit"
+                            :bg-credit-url="form.header_bg_credit_url"
+                            :google-images="(siteData.images ?? [])"
+                            :business-name="businessName"
+                            :business-type="businessType"
+                            @update:bg-type="(v) => form.header_bg_type = v"
+                            @update:bg-value="(v) => form.header_bg_value = v"
+                            @update:bg-thumb="(v) => form.header_bg_thumb = v"
+                            @update:bg-credit="(v) => form.header_bg_credit = v"
+                            @update:bg-credit-url="(v) => form.header_bg_credit_url = v"
+                            @update:image-file="(v) => form.header_bg_image = v"
+                        />
                     </CardContent>
                 </Card>
             </TabsContent>
@@ -422,24 +726,122 @@ const currentSocials = computed(() => siteData.value.socials ?? {});
                         </div>
                     </CardHeader>
                     <CardContent class="flex flex-col gap-4">
+                        <!-- Phone number — read-only from Google -->
                         <p class="flex items-center gap-1.5 text-sm text-muted-foreground">
                             <ExternalLink class="h-3.5 w-3.5 shrink-0" />
                             Phone number is pulled from your Google Business Profile
                         </p>
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                            <div class="rounded-lg bg-muted/50 px-4 py-3 flex flex-col gap-1">
-                                <p class="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Phone number</p>
-                                <p class="text-sm font-medium">{{ phoneNumber || 'No phone number found' }}</p>
+                        <div class="rounded-lg bg-muted/50 px-4 py-3 flex flex-col gap-1">
+                            <p class="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Phone number</p>
+                            <p class="text-sm font-medium">{{ phoneNumber || 'No phone number found on Google' }}</p>
+                        </div>
+
+                        <Separator />
+
+                        <!-- WhatsApp -->
+                        <div class="flex flex-col gap-2">
+                            <Label for="whatsapp-number" class="text-base font-semibold flex items-center gap-2">
+                                <MessageCircle class="h-4 w-4 text-[#25D366]" />
+                                WhatsApp number
+                            </Label>
+                            <Input
+                                id="whatsapp-number"
+                                v-model="form.whatsapp_number"
+                                placeholder="447911123456"
+                                class="h-11 text-base max-w-xs"
+                            />
+                            <p class="text-sm text-muted-foreground">
+                                Adds a WhatsApp button so customers can message you instantly. Include your country code without the + sign — UK numbers start with 44, e.g. <span class="font-mono text-xs bg-muted px-1 py-0.5 rounded">447911123456</span>.
+                            </p>
+                            <p v-if="form.errors.whatsapp_number" class="text-sm text-destructive">{{ form.errors.whatsapp_number }}</p>
+                        </div>
+
+                        <Separator />
+
+                        <!-- Custom quick links editor -->
+                        <div class="flex flex-col gap-3">
+                            <div>
+                                <Label class="text-base font-semibold">Custom buttons</Label>
+                                <p class="text-sm text-muted-foreground mt-1">
+                                    Add buttons that link to booking pages, menus, price lists, or anywhere else.
+                                </p>
                             </div>
-                            <div class="rounded-lg bg-muted/50 px-4 py-3 flex flex-col gap-1">
-                                <p class="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Custom links</p>
-                                <template v-if="quickLinks.length > 0">
-                                    <p v-for="(link, index) in quickLinks" :key="index" class="text-sm font-medium">
-                                        {{ link.label }}
-                                    </p>
-                                </template>
-                                <p v-else class="text-sm text-muted-foreground">None added</p>
+
+                            <div v-if="form.quickLinks.length > 0" class="flex flex-col gap-3">
+                                <div
+                                    v-for="(link, index) in form.quickLinks"
+                                    :key="index"
+                                    class="flex flex-col gap-3 rounded-lg border p-3"
+                                >
+                                    <div class="flex flex-col sm:flex-row gap-2">
+                                        <div class="flex flex-col gap-1.5 flex-1">
+                                            <Label :for="`ql-label-${index}`" class="text-sm font-medium">Button label</Label>
+                                            <Input
+                                                :id="`ql-label-${index}`"
+                                                v-model="link.label"
+                                                placeholder="e.g. Book a quote"
+                                                class="h-10 text-base"
+                                            />
+                                        </div>
+                                        <div class="flex flex-col gap-1.5 flex-1">
+                                            <Label :for="`ql-link-${index}`" class="text-sm font-medium">Link (web address)</Label>
+                                            <Input
+                                                :id="`ql-link-${index}`"
+                                                v-model="link.link"
+                                                placeholder="https://..."
+                                                type="url"
+                                                class="h-10 text-base"
+                                                @blur="onLinkBlur(index)"
+                                            />
+                                        </div>
+                                        <div class="flex items-end">
+                                            <Button
+                                                type="button"
+                                                variant="ghost"
+                                                size="icon"
+                                                class="text-muted-foreground hover:text-destructive h-10 w-10 shrink-0 mt-auto"
+                                                @click="removeQuickLink(index)"
+                                                :aria-label="`Remove button ${index + 1}`"
+                                            >
+                                                <Trash2 class="h-4 w-4" />
+                                            </Button>
+                                        </div>
+                                    </div>
+
+                                    <!-- Live button preview -->
+                                    <div v-if="link.label || link.link" class="flex items-center gap-2">
+                                        <span class="text-xs text-muted-foreground shrink-0">Preview:</span>
+                                        <span
+                                            :style="linkBrandStyle(link.link)"
+                                            class="inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium"
+                                            :class="!detectPlatformBrand(link.link) ? 'bg-black text-white' : ''"
+                                        >
+                                            {{ link.label || 'Button label' }}
+                                            <img
+                                                v-if="linkFavicon(link.link)"
+                                                :src="linkFavicon(link.link)!"
+                                                class="h-3.5 w-3.5 rounded-sm object-contain"
+                                                aria-hidden="true"
+                                            />
+                                        </span>
+                                    </div>
+                                </div>
                             </div>
+
+                            <p v-else class="text-sm text-muted-foreground italic">
+                                No custom buttons yet. Click below to add one.
+                            </p>
+
+                            <Button
+                                type="button"
+                                variant="outline"
+                                size="lg"
+                                class="w-full sm:w-auto text-base h-11 gap-2"
+                                @click="addQuickLink"
+                            >
+                                <Plus class="h-5 w-5" />
+                                Add a button
+                            </Button>
                         </div>
                     </CardContent>
                 </Card>
@@ -478,6 +880,49 @@ const currentSocials = computed(() => siteData.value.socials ?? {});
                                 </p>
                             </div>
                         </div>
+
+                        <!-- Per-review visibility toggles -->
+                        <div v-if="siteReviews.length > 0" class="flex flex-col gap-2">
+                            <Separator />
+                            <div>
+                                <p class="text-base font-semibold">Individual reviews</p>
+                                <p class="text-sm text-muted-foreground mt-0.5">
+                                    Hide any reviews you don't want to show on your site. Hidden reviews are not deleted from Google — only from your site.
+                                </p>
+                            </div>
+                            <div class="flex flex-col gap-2">
+                                <div
+                                    v-for="(review, i) in siteReviews"
+                                    :key="i"
+                                    class="flex items-start gap-3 rounded-lg border p-3 transition-colors"
+                                    :class="form.overrides.hidden_reviews.includes(i) ? 'bg-muted/60 opacity-60' : 'bg-background'"
+                                >
+                                    <!-- Stars + author -->
+                                    <div class="flex-1 min-w-0">
+                                        <div class="flex items-center gap-1.5 mb-1">
+                                            <span class="text-sm font-semibold truncate">{{ review.author }}</span>
+                                            <span class="text-xs text-amber-500 shrink-0">{{ '★'.repeat(review.rating) }}{{ '☆'.repeat(5 - review.rating) }}</span>
+                                        </div>
+                                        <p class="text-xs text-muted-foreground line-clamp-2">{{ review.text || 'No text' }}</p>
+                                    </div>
+                                    <!-- Toggle button -->
+                                    <button
+                                        type="button"
+                                        class="shrink-0 flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-medium transition-colors"
+                                        :class="form.overrides.hidden_reviews.includes(i)
+                                            ? 'border-muted-foreground/30 text-muted-foreground hover:bg-muted'
+                                            : 'border-transparent bg-muted/50 text-foreground hover:bg-muted'"
+                                        @click="toggleReviewHidden(i)"
+                                        :aria-label="form.overrides.hidden_reviews.includes(i) ? `Show review from ${review.author}` : `Hide review from ${review.author}`"
+                                    >
+                                        <EyeOff v-if="form.overrides.hidden_reviews.includes(i)" class="h-3.5 w-3.5" />
+                                        <Eye v-else class="h-3.5 w-3.5" />
+                                        {{ form.overrides.hidden_reviews.includes(i) ? 'Hidden' : 'Visible' }}
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        <p v-else class="text-sm text-muted-foreground italic">No reviews imported yet.</p>
                     </CardContent>
                 </Card>
             </TabsContent>
@@ -527,6 +972,48 @@ const currentSocials = computed(() => siteData.value.socials ?? {});
                             <p v-if="currentSocials.facebook" class="text-sm">Facebook: {{ currentSocials.facebook }}</p>
                             <p v-if="currentSocials.x" class="text-sm">X (Twitter): {{ currentSocials.x }}</p>
                             <p v-if="currentSocials.linkedin" class="text-sm">LinkedIn: {{ currentSocials.linkedin }}</p>
+                        </div>
+
+                        <Separator />
+
+                        <!-- Contact email -->
+                        <div class="flex flex-col gap-2">
+                            <Label for="contact-email" class="text-base font-semibold">Contact email</Label>
+                            <div class="rounded-lg bg-muted/50 px-4 py-3 flex flex-col gap-1">
+                                <p class="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Email from Google</p>
+                                <p v-if="googleEmail" class="text-sm font-medium">{{ googleEmail }}</p>
+                                <p v-else class="text-sm italic text-muted-foreground">No email found on your Google Business Profile.</p>
+                            </div>
+                            <Input
+                                id="contact-email"
+                                v-model="form.overrides.contact_email"
+                                type="email"
+                                placeholder="hello@yourbusiness.com"
+                                class="h-11 text-base"
+                            />
+                            <p class="text-sm text-muted-foreground">
+                                Used for the contact form and Message button. Leave blank to use the email from your Google Business Profile.
+                            </p>
+                            <p v-if="form.errors['overrides.contact_email']" class="text-sm text-destructive">
+                                {{ form.errors['overrides.contact_email'] }}
+                            </p>
+                        </div>
+
+                        <Separator />
+
+                        <!-- Contact form toggle -->
+                        <div class="flex items-center justify-between rounded-lg border bg-muted/30 px-4 py-3">
+                            <div class="flex flex-col gap-0.5">
+                                <p class="text-sm font-semibold">Contact form</p>
+                                <p class="text-xs text-muted-foreground">Show a "Send us a message" form on your site so visitors can email you directly.</p>
+                            </div>
+                            <div class="flex items-center gap-2 shrink-0 ml-4">
+                                <span class="text-sm text-muted-foreground">{{ form.components['contact_form'].enabled ? 'Visible' : 'Hidden' }}</span>
+                                <Switch
+                                    id="toggle-contact_form"
+                                    v-model="form.components['contact_form'].enabled"
+                                />
+                            </div>
                         </div>
 
                         <Separator />

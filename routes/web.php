@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Admin\DashboardController;
+use App\Http\Controllers\Api\StockPhotoController;
 use App\Http\Controllers\BillingController;
 use App\Http\Controllers\PreviewController;
 use App\Http\Controllers\SiteController;
@@ -24,6 +25,7 @@ Route::post('setup/{id}/complete', [PreviewController::class, 'complete'])->name
 
 Route::middleware(['auth', 'verified'])->group(function() {
     Route::get('dashboard', [DashboardController::class, 'index'])->name('dashboard');
+    Route::get('dashboard/stock-photos', StockPhotoController::class)->name('dashboard.stock-photos');
     Route::post('dashboard/site', [DashboardController::class, 'site'])->name('dashboard.site');
     Route::post('dashboard/settings', [DashboardController::class, 'settings'])->name('dashboard.settings');
     Route::post('dashboard/components', [DashboardController::class, 'components'])->name('dashboard.components');
