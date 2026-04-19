@@ -32,7 +32,7 @@ class FetchSocialLinks implements ShouldQueue
     {
         try {
             $response = Http::timeout($this->timeout)
-                ->withUserAgent('Mozilla/5.0 (compatible; InstantSite/1.0)')
+                ->withUserAgent('Mozilla/5.0 (compatible; 321Sites/1.0)')
                 ->get($this->websiteUri);
 
             if (!$response->successful()) {

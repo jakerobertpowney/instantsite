@@ -9,7 +9,7 @@ defineProps<{ checkoutUrl: string; portalUrl: string }>();
     <div class="rounded-xl border bg-gradient-to-br from-neutral-950 to-neutral-800 text-white p-6 flex flex-col gap-5">
         <div class="flex items-center gap-2">
             <Sparkles class="h-5 w-5 text-yellow-400" />
-            <span class="text-sm font-semibold tracking-wide uppercase text-yellow-400">InstantSite Premium</span>
+            <span class="text-sm font-semibold tracking-wide uppercase text-yellow-400">321Sites Premium</span>
         </div>
 
         <div>

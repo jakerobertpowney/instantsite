@@ -1,8 +1,8 @@
-# InstantSite — Project Instructions
+# 321Sites — Project Instructions
 
 ## Project Overview
 
-**InstantSite** is a full-stack web application that lets small businesses create a professional one-page website in minutes. The user searches for their Google Business listing, selects it, optionally adds a logo and extra details, then gets a hosted website at a subdomain (e.g. `mybusiness.instantsite.test`) — similar to how Google Sites used to work.
+**321Sites** is a full-stack web application that lets small businesses create a professional one-page website in minutes. The user searches for their Google Business listing, selects it, optionally adds a logo and extra details, then gets a hosted website at a subdomain (e.g. `mybusiness.321sites.test`) — similar to how Google Sites used to work.
 
 ---
 
@@ -100,7 +100,7 @@ The `Site.data` and `TemporarySite.data` columns are JSON blobs containing the f
 | POST | `/dashboard/settings` | Update global site settings |
 
 ### Dynamic (Multi-tenant)
-Subdomains like `{slug}.instantsite.test` are resolved by `SiteController@index`, which looks up the matching `Site` record and renders the public one-page site.
+Subdomains like `{slug}.321sites.test` are resolved by `SiteController@index`, which looks up the matching `Site` record and renders the public one-page site.
 
 ---
 
@@ -126,8 +126,8 @@ php artisan queue:listen
 Key variables in `.env` (see `.env.example` for the full list):
 
 ```dotenv
-APP_URL=https://instantsite.test
-APP_DOMAIN=instantsite.test          # Root domain used to build subdomains
+APP_URL=https://321sites.test
+APP_DOMAIN=321sites.test          # Root domain used to build subdomains
 
 GOOGLE_API_KEY=...                   # Google Places API v1 key
 
@@ -166,7 +166,7 @@ npm run lint
 ## Domain / Multi-tenancy Notes
 
 - The root domain is set by `APP_DOMAIN` in `.env`.
-- Subdomains are stored in `sites.subdomain` and served via wildcard DNS / host-file entry pointing `*.instantsite.test` to `127.0.0.1` in development.
+- Subdomains are stored in `sites.subdomain` and served via wildcard DNS / host-file entry pointing `*.321sites.test` to `127.0.0.1` in development.
 - Domain types: `subdomain` | `custom` | `draft`. Draft sites are unpublished.
 
 ---

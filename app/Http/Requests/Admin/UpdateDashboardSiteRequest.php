@@ -22,16 +22,6 @@ class UpdateDashboardSiteRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'meta_title' => [
-                'required',
-                'string',
-                'max:60'
-            ],
-            'meta_description' => [
-                'required',
-                'string',
-                'max:158'
-            ],
             'domain_type' => [
                 'required',
                 'in:subdomain,custom,draft'
@@ -46,7 +36,14 @@ class UpdateDashboardSiteRequest extends FormRequest
                 'required_if:domain_type,custom',
                 'nullable',
                 'string'
-            ]
+            ],
+            'is_private' => [
+                'boolean',
+            ],
+            // Favicon
+            'favicon_type' => ['nullable', 'string', 'in:upload,logo,initials,clear'],
+            'favicon'      => ['nullable', 'file', 'image', 'max:512'],
+            'favicon_data' => ['nullable', 'string', 'max:200000'], // base64 PNG data URL or logo URL
         ];
     }
 }

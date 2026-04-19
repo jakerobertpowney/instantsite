@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import AppLogo from '@/components/AppLogo.vue';
 import { useForm } from '@inertiajs/vue3';
 import { computed, provide, shallowRef } from 'vue';
 import { ArrowRight, ArrowLeft } from 'lucide-vue-next';
@@ -8,7 +9,9 @@ import Description from '@/components/setup/Description.vue';
 import Socials from '@/components/setup/Socials.vue';
 import Contact from '@/components/setup/Contact.vue';
 import Buttons from '@/components/setup/Buttons.vue';
+import Services from '@/components/setup/Services.vue';
 import { Button } from '@/components/ui/button';
+import { Head } from '@inertiajs/vue3';
 
 const props = defineProps({
     id: String,
@@ -32,6 +35,15 @@ const form = useForm({
     },
     contact: props.site.data?.contact ?? '',
     quickLinks: props.site.data?.quickLinks ?? [],
+    // Services — pre-populated from FetchBusinessServices job if available
+    services: (props.site.data?.services ?? []) as Array<{
+        id: string;
+        name: string;
+        description: string | null;
+        price: string | null;
+        show_price: boolean;
+        featured: boolean;
+    }>,
 });
 
 provide('form', form);
@@ -42,6 +54,8 @@ interface Step {
     component: any;
     title: string;
     subtitle: string;
+    skippableTitle?: string;
+    skippableSubtitle?: string;
     skippable: boolean;
 }
 
@@ -76,13 +90,33 @@ const steps: Step[] = [
         subtitle: 'Make it easy for people to book, order, or get a quote directly from your website.',
         skippable: true,
     },
+    {
+        component: Services,
+        title: 'What services do you offer?',
+        subtitle: 'We\'ve found some services to get you started — check the prices and remove anything that doesn\'t apply.',
+        skippableTitle: 'Do you want to list your services?',
+        skippableSubtitle: 'Adding your services helps customers know what you offer and what to expect to pay.',
+        skippable: true,
+    },
 ];
 
 const currentIndex = computed(() =>
     steps.findIndex((step) => step.component === currentStep.value)
 );
 
-const currentStepDef = computed(() => steps[currentIndex.value]);
+const hasSuggestedServices = computed(() =>
+    (props.site.data?.suggested_services ?? []).length > 0
+);
+
+const currentStepDef = computed(() => {
+    const step = steps[currentIndex.value];
+    // For the Services step, swap to the "no suggestions" copy when there's nothing pre-filled
+    if (step.component === Services && !hasSuggestedServices.value && step.skippableTitle) {
+        return { ...step, title: step.skippableTitle, subtitle: step.skippableSubtitle ?? step.subtitle };
+    }
+    return step;
+});
+
 const businessName = computed(() => props.site.data?.displayName?.text ?? null);
 const isLastStep = computed(() => currentIndex.value === steps.length - 1);
 
@@ -108,17 +142,46 @@ const complete = () => {
 </script>
 
 <template>
-    <div class="min-h-screen bg-background text-foreground flex flex-col items-center px-6 py-10 lg:justify-center lg:py-16">
+    <Head>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="" />
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+    </Head>
+
+    <!--
+        CSS variable overrides:  --primary → brand blue, --radius → 10px buttons
+        Font-family declared here is applied to all text in this subtree.
+        Shadcn inputs/buttons read --primary / --radius and will pick up the overrides.
+    -->
+    <div
+        class="min-h-screen flex flex-col items-center px-6 py-10 lg:justify-center lg:py-16"
+        style="
+            background: #F6F5F1;
+            font-family: 'Inter', ui-sans-serif, system-ui, sans-serif;
+            color: #111418;
+            --primary: #1E66F5;
+            --primary-foreground: #ffffff;
+            --radius: 0.75rem;
+        "
+    >
         <div class="w-full max-w-md flex flex-col gap-8">
 
-            <!-- Top bar: business name + subtle counter -->
+            <!-- Brand mark + top bar -->
             <div class="flex items-center justify-between">
-                <p v-if="businessName" class="text-sm font-medium truncate text-muted-foreground max-w-[70%]">
-                    {{ businessName }}
-                </p>
-                <p class="text-sm text-muted-foreground ml-auto">
-                    {{ currentIndex + 1 }} / {{ steps.length }}
-                </p>
+                <!-- Logo -->
+                <a href="/">
+                    <AppLogo />
+                </a>
+
+                <!-- Business name + step counter -->
+                <div class="flex items-center gap-3 ml-auto">
+                    <p v-if="businessName" class="text-sm font-medium truncate max-w-[160px]" style="color: #6B727D;">
+                        {{ businessName }}
+                    </p>
+                    <p class="text-sm flex-shrink-0" style="color: #6B727D;">
+                        {{ currentIndex + 1 }} / {{ steps.length }}
+                    </p>
+                </div>
             </div>
 
             <!-- Progress bar -->
@@ -127,16 +190,16 @@ const complete = () => {
                     v-for="(step, i) in steps"
                     :key="i"
                     class="h-1 flex-1 rounded-full transition-all duration-300"
-                    :class="i <= currentIndex ? 'bg-primary' : 'bg-muted'"
+                    :style="i <= currentIndex ? 'background: #1E66F5;' : 'background: #D9D6CE;'"
                 />
             </div>
 
             <!-- Step question + subtitle -->
             <div class="flex flex-col gap-2">
-                <h1 class="text-2xl font-bold leading-snug">
+                <h1 class="text-2xl font-bold leading-snug" style="color: #111418;">
                     {{ currentStepDef.title }}
                 </h1>
-                <p class="text-muted-foreground leading-relaxed">
+                <p class="leading-relaxed" style="color: #6B727D;">
                     {{ currentStepDef.subtitle }}
                 </p>
             </div>
@@ -160,7 +223,7 @@ const complete = () => {
                         <Button
                             @click="goToNext"
                             type="button"
-                            class="flex-1 h-12 text-base font-semibold"
+                            class="flex-1 h-12 text-[15px] font-bold"
                             :disabled="form.processing"
                         >
                             {{ isLastStep ? 'Build my website' : 'Continue' }}
@@ -172,7 +235,8 @@ const complete = () => {
                     <button
                         v-if="currentStepDef.skippable"
                         type="button"
-                        class="text-sm text-muted-foreground hover:text-foreground text-center w-full py-1 transition-colors"
+                        class="text-sm text-center w-full py-1 transition-opacity hover:opacity-60"
+                        style="color: #6B727D;"
                         @click="skip"
                     >
                         Skip for now →

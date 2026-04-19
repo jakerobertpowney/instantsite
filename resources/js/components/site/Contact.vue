@@ -24,6 +24,10 @@ const props = defineProps({
         type: Boolean,
         default: false
     },
+    businessType: {
+        type: String,
+        default: ''
+    },
     preview: {
         type: Boolean,
         default: false
@@ -34,6 +38,8 @@ const props = defineProps({
 const formEmail   = ref('');
 const formSubject = ref('');
 const formMessage = ref('');
+const preferredContactTime = ref('');
+const honeypot = ref('');
 const submitting  = ref(false);
 const submitted   = ref(false);
 const submitError = ref('');
@@ -60,6 +66,8 @@ const submitForm = async () => {
                 email:   formEmail.value,
                 subject: formSubject.value,
                 message: formMessage.value,
+                preferred_contact_time: preferredContactTime.value.trim(),
+                website: honeypot.value,
             }),
         });
 
@@ -70,6 +78,11 @@ const submitForm = async () => {
         }
 
         submitted.value = true;
+        formEmail.value = '';
+        formSubject.value = '';
+        formMessage.value = '';
+        preferredContactTime.value = '';
+        honeypot.value = '';
     } catch {
         submitError.value = 'Failed to send your message. Please try again.';
     } finally {
@@ -106,6 +119,38 @@ const weekdayDescriptions = computed(() => {
 const hasSocials = computed(() =>
     !!(props.socials?.instagram || props.socials?.facebook || props.socials?.x || props.socials?.linkedin)
 );
+
+const sectionLabel = computed(() => props.formattedAddress ? 'Find us' : 'Contact');
+
+const appointmentBusinessKeywords = [
+    'barber',
+    'hair',
+    'salon',
+    'beauty',
+    'nail',
+    'spa',
+    'massage',
+    'tattoo',
+    'physio',
+    'therapy',
+    'trainer',
+    'fitness',
+    'gym',
+    'clinic',
+    'dental',
+];
+
+const prefersAppointmentRequests = computed(() => {
+    const businessType = props.businessType?.toLowerCase() ?? '';
+
+    return appointmentBusinessKeywords.some((keyword) => businessType.includes(keyword));
+});
+
+const preferredTimePlaceholder = computed(() =>
+    prefersAppointmentRequests.value
+        ? 'e.g. Tuesday afternoon'
+        : 'Optional — e.g. weekday mornings'
+);
 </script>
 
 <template>
@@ -113,7 +158,7 @@ const hasSocials = computed(() =>
         <div class="max-w-5xl mx-auto px-6 md:px-14">
 
             <p class="text-xs font-semibold uppercase tracking-widest mb-8" style="color: var(--site-secondary)">
-                Find us
+                {{ sectionLabel }}
             </p>
 
             <div class="grid grid-cols-1 md:grid-cols-3 gap-10">
@@ -246,6 +291,17 @@ const hasSocials = computed(() =>
                     </div>
 
                     <form v-else id="contact-form" @submit.prevent="submitForm" novalidate class="space-y-5">
+                        <div class="sr-only" aria-hidden="true">
+                            <label for="contact-website">Website</label>
+                            <input
+                                id="contact-website"
+                                v-model="honeypot"
+                                type="text"
+                                name="website"
+                                tabindex="-1"
+                                autocomplete="off"
+                            />
+                        </div>
 
                         <!-- Inline error -->
                         <div
@@ -288,6 +344,24 @@ const hasSocials = computed(() =>
                                     style="background-color: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2)"
                                 />
                             </div>
+                        </div>
+
+                        <div>
+                            <label
+                                for="contact-preferred-time"
+                                class="mb-1.5 block text-sm font-medium text-white"
+                            >
+                                Preferred date &amp; time
+                                <span class="text-white/55">(optional)</span>
+                            </label>
+                            <input
+                                id="contact-preferred-time"
+                                v-model="preferredContactTime"
+                                type="text"
+                                :placeholder="preferredTimePlaceholder"
+                                class="cf-input w-full rounded-xl border px-4 py-3 text-sm transition focus:outline-none"
+                                style="border-color: rgba(255,255,255,0.14); background-color: rgba(255,255,255,0.08); color: white"
+                            />
                         </div>
 
                         <div>

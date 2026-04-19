@@ -13,7 +13,7 @@ defineProps<{
 </script>
 
 <template>
-    <AuthLayout title="Verify email" description="Please verify your email address by clicking on the link we just emailed to you.">
+    <AuthLayout title="Check your email" description="Confirm your email address to publish your site and start receiving enquiries.">
         <Head title="Email verification" />
 
         <div v-if="status === 'verification-link-sent'" class="mb-4 text-center text-sm font-medium text-green-600">

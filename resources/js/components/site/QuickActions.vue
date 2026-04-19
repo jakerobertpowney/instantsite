@@ -8,6 +8,7 @@ const props = defineProps({
     whatsappNumber: String,
     quickLinks: Array as () => Array<{ label: string; link: string }>,
     contact: String,
+    showForm: Boolean,
     preview: Boolean,
 });
 
@@ -32,6 +33,10 @@ function scrollToContactForm() {
         el.scrollIntoView({ behavior: 'smooth' });
     }
 }
+
+const mailtoUrl = computed(() =>
+    props.contact ? `mailto:${props.contact}` : null,
+);
 </script>
 
 <template>
@@ -51,9 +56,9 @@ function scrollToContactForm() {
         <!-- Secondary actions row on mobile -->
         <div class="flex gap-2 sm:contents">
 
-            <!-- Send message — scrolls to inline contact form -->
+            <!-- Message — scrolls to contact form (premium) or opens mailto (free) -->
             <button
-                v-if="contact"
+                v-if="contact && showForm"
                 type="button"
                 class="flex-1 inline-flex items-center justify-center gap-2 rounded-full border-2 px-5 py-3 text-sm font-semibold transition-colors hover:bg-gray-50 focus:outline-none focus-visible:ring-2 sm:flex-none sm:py-2"
                 style="border-color: var(--site-primary); color: var(--site-primary)"
@@ -62,6 +67,15 @@ function scrollToContactForm() {
                 <Mail class="h-4 w-4" />
                 Message
             </button>
+            <a
+                v-else-if="contact && mailtoUrl"
+                :href="mailtoUrl"
+                class="flex-1 inline-flex items-center justify-center gap-2 rounded-full border-2 px-5 py-3 text-sm font-semibold transition-colors hover:bg-gray-50 focus:outline-none focus-visible:ring-2 sm:flex-none sm:py-2"
+                style="border-color: var(--site-primary); color: var(--site-primary)"
+            >
+                <Mail class="h-4 w-4" />
+                Message
+            </a>
 
             <!-- WhatsApp -->
             <a

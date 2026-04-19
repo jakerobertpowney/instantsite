@@ -4,13 +4,14 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Laravel\Cashier\Checkout;
 
 class BillingController extends Controller
 {
     /**
      * Redirect the user to Stripe Checkout to start a subscription.
      */
-    public function checkout(Request $request): RedirectResponse
+    public function checkout(Request $request): Checkout
     {
         $priceId = config('cashier.price_id');
 

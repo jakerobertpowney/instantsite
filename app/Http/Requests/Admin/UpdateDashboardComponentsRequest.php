@@ -33,6 +33,7 @@ class UpdateDashboardComponentsRequest extends FormRequest
             'components.reviews.enabled' => ['nullable', 'boolean'],
             'components.contact.enabled' => ['nullable', 'boolean'],
             'components.contact_form.enabled' => ['nullable', 'boolean'],
+            'components.services.enabled'     => ['nullable', 'boolean'],
             'overrides.description' => [
                 'nullable',
                 'string',
@@ -63,6 +64,18 @@ class UpdateDashboardComponentsRequest extends FormRequest
             // Custom colour palette
             'palette_primary'   => ['nullable', 'string', 'regex:/^#[0-9a-fA-F]{6}$/'],
             'palette_secondary' => ['nullable', 'string', 'regex:/^#[0-9a-fA-F]{6}$/'],
+            // Services
+            'services'                    => ['nullable', 'array', 'max:50'],
+            'services.*.id'               => ['nullable', 'string', 'max:40'],
+            'services.*.name'             => ['required_with:services.*', 'string', 'max:120'],
+            'services.*.description'      => ['nullable', 'string', 'max:500'],
+            'services.*.price'            => ['nullable', 'string', 'max:60'],
+            'services.*.currency'         => ['nullable', 'string', 'size:3'],
+            'services.*.show_price'       => ['nullable', 'boolean'],
+            'services.*.featured'         => ['nullable', 'boolean'],
+            'services_heading'            => ['nullable', 'string', 'max:80'],
+            'services_cta_label'          => ['nullable', 'string', 'max:60'],
+            'services_cta_link'           => ['nullable', 'string', 'url', 'max:255'],
             // Header background fields
             'header_bg_type'       => ['nullable', 'string', 'in:auto,google_image,custom_image,color,stock'],
             'header_bg_value'      => ['nullable', 'string', 'max:500'],
@@ -70,6 +83,12 @@ class UpdateDashboardComponentsRequest extends FormRequest
             'header_bg_credit'     => ['nullable', 'string', 'max:255'],
             'header_bg_credit_url' => ['nullable', 'string', 'url', 'max:500'],
             'header_bg_image'      => ['nullable', 'file', 'image', 'max:5120'],
+            // Favicon
+            'favicon_type' => ['nullable', 'string', 'in:upload,logo,initials,clear'],
+            'favicon'      => ['nullable', 'file', 'image', 'max:512'],
+            // Photo reorder
+            'images_order'   => ['nullable', 'array'],
+            'images_order.*' => ['nullable', 'string', 'max:500'],
         ];
     }
 }

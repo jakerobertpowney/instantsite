@@ -20,13 +20,18 @@
         <div class="value">{{ $senderEmail }}</div>
 
         <div class="label">Subject</div>
-        <div class="value">{{ $subject }}</div>
+        <div class="value">{{ $mailSubject }}</div>
+
+        @if ($preferredContactTime)
+            <div class="label">Preferred date &amp; time</div>
+            <div class="value">{{ $preferredContactTime }}</div>
+        @endif
 
         <div class="label">Message</div>
         <div class="message-body">{{ $messageBody }}</div>
 
         <div class="footer">
-            Sent via the contact form on your InstantSite website.
+            Sent via the contact form on your 321Sites website.
             Reply directly to this email to respond to {{ $senderEmail }}.
         </div>
     </div>

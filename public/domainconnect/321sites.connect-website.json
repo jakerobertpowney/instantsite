@@ -1,0 +1,34 @@
+{
+    "providerId":           "321sites",
+    "providerName":         "321Sites",
+    "serviceId":            "connect-website",
+    "serviceName":          "Connect Website to 321Sites",
+    "version":              1,
+    "logoUrl":              "https://321sites.test/favicon.ico",
+    "description":          "Connects your domain to your 321Sites website by adding the required DNS A records.",
+    "variableDescription":  "Adds A records for your apex domain and www subdomain pointing to the 321Sites server.",
+    "syncPubKeyDomain":     "321sites.test",
+    "warnPhishing":         false,
+    "hostRequired":         false,
+    "records": [
+        {
+            "type":     "A",
+            "host":     "@",
+            "pointsTo": "%IP%",
+            "ttl":      3600
+        },
+        {
+            "type":     "A",
+            "host":     "www",
+            "pointsTo": "%IP%",
+            "ttl":      3600
+        }
+    ],
+    "variables": [
+        {
+            "name":        "IP",
+            "dataType":    "STRING",
+            "description": "The IP address of your 321Sites server"
+        }
+    ]
+}

@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import AppLogo from '@/components/AppLogo.vue';
-import AppLogoIcon from '@/components/AppLogoIcon.vue';
 import Breadcrumbs from '@/components/Breadcrumbs.vue';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
@@ -10,11 +9,12 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/co
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import UserMenuContent from '@/components/UserMenuContent.vue';
 import { getInitials } from '@/composables/useInitials';
-import { dashboard } from '@/routes';
+import { dashboard, submissions } from '@/routes';
 import type { BreadcrumbItem, NavItem } from '@/types';
 import { InertiaLinkProps, Link, usePage } from '@inertiajs/vue3';
-import { BookOpen, Folder, LayoutGrid, Menu, Search } from 'lucide-vue-next';
+import { Globe, Inbox, LayoutGrid, LifeBuoy, Menu, Search } from 'lucide-vue-next';
 import { computed } from 'vue';
+
 
 interface Props {
     breadcrumbs?: BreadcrumbItem[];
@@ -34,24 +34,32 @@ const activeItemStyles = computed(
         isCurrentRoute.value(typeof url === 'string' ? url : url.url) ? 'text-neutral-900 dark:bg-neutral-800 dark:text-neutral-100' : '',
 );
 
-const mainNavItems: NavItem[] = [
+const unread = computed(() => (page.props.unreadSubmissionsCount as number) || 0);
+
+const mainNavItems = computed<NavItem[]>(() => [
     {
-        title: 'Dashboard',
+        title: 'My Site',
         href: dashboard(),
         icon: LayoutGrid,
     },
-];
+    {
+        title: 'Messages',
+        href: submissions(),
+        icon: Inbox,
+        badge: unread.value || undefined,
+    },
+]);
 
 const rightNavItems: NavItem[] = [
     {
-        title: 'Repository',
-        href: 'https://github.com/laravel/vue-starter-kit',
-        icon: Folder,
+        title: 'Website',
+        href: '/',
+        icon: Globe,
     },
     {
-        title: 'Documentation',
-        href: 'https://laravel.com/docs/starter-kits#vue',
-        icon: BookOpen,
+        title: 'Help',
+        href: '/help',
+        icon: LifeBuoy,
     },
 ];
 </script>
@@ -71,7 +79,7 @@ const rightNavItems: NavItem[] = [
                         <SheetContent side="left" class="w-[300px] p-6">
                             <SheetTitle class="sr-only">Navigation Menu</SheetTitle>
                             <SheetHeader class="flex justify-start text-left">
-                                <AppLogoIcon class="size-6 fill-current text-black dark:text-white" />
+                                <AppLogo />
                             </SheetHeader>
                             <div class="flex h-full flex-1 flex-col justify-between space-y-4 py-6">
                                 <nav class="-mx-3 space-y-1">
@@ -84,6 +92,10 @@ const rightNavItems: NavItem[] = [
                                     >
                                         <component v-if="item.icon" :is="item.icon" class="h-5 w-5" />
                                         {{ item.title }}
+                                        <span
+                                            v-if="item.badge"
+                                            class="ml-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-destructive px-1.5 text-[11px] font-semibold text-destructive-foreground"
+                                        >{{ item.badge }}</span>
                                     </Link>
                                 </nav>
                                 <div class="flex flex-col space-y-4">
@@ -119,6 +131,10 @@ const rightNavItems: NavItem[] = [
                                 >
                                     <component v-if="item.icon" :is="item.icon" class="mr-2 h-4 w-4" />
                                     {{ item.title }}
+                                    <span
+                                        v-if="item.badge"
+                                        class="ml-1.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-destructive px-1.5 text-[11px] font-semibold text-destructive-foreground"
+                                    >{{ item.badge }}</span>
                                 </Link>
                                 <div
                                     v-if="isCurrentRoute(item.href)"

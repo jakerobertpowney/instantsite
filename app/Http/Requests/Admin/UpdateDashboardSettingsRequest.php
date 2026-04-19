@@ -22,6 +22,8 @@ class UpdateDashboardSettingsRequest extends FormRequest
     public function rules(): array
     {
         return [
+            'meta_title' => ['required', 'string', 'max:60'],
+            'meta_description' => ['required', 'string', 'max:158'],
             'google_analytics_id' => ['nullable', 'string', 'max:50'],
             'allow_indexing' => ['nullable', 'boolean'],
         ];

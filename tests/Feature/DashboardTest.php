@@ -54,3 +54,33 @@ test('dashboard component logo uploads are stored on the public disk', function 
     expect($site->fresh()->data['overrides']['logo_path'])
         ->toBe("/storage/images/{$site->places_id}/logo.png");
 });
+
+test('seo and visibility settings update meta fields and indexing preferences', function () {
+    $user = User::factory()->create();
+    $site = Site::create([
+        'user_id' => $user->id,
+        'places_id' => 'place-seo-settings',
+        'domain_type' => 'subdomain',
+        'subdomain' => 'seo-settings-site',
+        'meta_title' => 'Old title',
+        'meta_description' => 'Old description',
+        'data' => [
+            'allow_indexing' => true,
+        ],
+    ]);
+
+    $response = $this
+        ->actingAs($user)
+        ->from(route('dashboard'))
+        ->post(route('dashboard.settings'), [
+            'meta_title' => 'Painter and Decorator in Stockport',
+            'meta_description' => 'Professional painting and decorating in Stockport. Free quotes and reliable local service.',
+            'allow_indexing' => false,
+        ]);
+
+    $response->assertRedirect(route('dashboard'));
+
+    expect($site->fresh()->meta_title)->toBe('Painter and Decorator in Stockport')
+        ->and($site->fresh()->meta_description)->toBe('Professional painting and decorating in Stockport. Free quotes and reliable local service.')
+        ->and($site->fresh()->data['allow_indexing'])->toBeFalse();
+});

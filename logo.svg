@@ -1,0 +1,66 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 80" fill="none">
+  <defs>
+    <linearGradient id="bgGrad" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#6366f1"/>
+      <stop offset="100%" stop-color="#8b5cf6"/>
+    </linearGradient>
+    <linearGradient id="boltGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#fde68a"/>
+      <stop offset="100%" stop-color="#f59e0b"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Icon: rounded square background -->
+  <rect x="0" y="8" width="64" height="64" rx="14" fill="url(#bgGrad)"/>
+
+  <!-- Browser chrome bar -->
+  <rect x="8" y="16" width="48" height="36" rx="5" fill="white" fill-opacity="0.15"/>
+  <rect x="8" y="16" width="48" height="8" rx="5" fill="white" fill-opacity="0.25"/>
+  <!-- Browser dots -->
+  <circle cx="14" cy="20" r="1.5" fill="white" fill-opacity="0.8"/>
+  <circle cx="19" cy="20" r="1.5" fill="white" fill-opacity="0.8"/>
+  <circle cx="24" cy="20" r="1.5" fill="white" fill-opacity="0.8"/>
+  <!-- Browser URL bar suggestion -->
+  <rect x="28" y="17.5" width="22" height="5" rx="2.5" fill="white" fill-opacity="0.2"/>
+
+  <!-- Lightning bolt overlapping the browser (instant!) -->
+  <polygon
+    points="36,25  27,40  33,40  28,55  41,36  35,36"
+    fill="url(#boltGrad)"
+    filter="drop-shadow(0 1px 3px rgba(0,0,0,0.3))"
+  />
+
+  <!-- Wordmark -->
+  <!-- "instant" in bold indigo-700 -->
+  <text
+    x="76"
+    y="47"
+    font-family="'Inter', 'Segoe UI', 'Helvetica Neue', Arial, sans-serif"
+    font-size="26"
+    font-weight="700"
+    letter-spacing="-0.5"
+    fill="#4338ca"
+  >instant</text>
+
+  <!-- "site" in lighter purple -->
+  <text
+    x="196"
+    y="47"
+    font-family="'Inter', 'Segoe UI', 'Helvetica Neue', Arial, sans-serif"
+    font-size="26"
+    font-weight="400"
+    letter-spacing="-0.5"
+    fill="#7c3aed"
+  >site</text>
+
+  <!-- Tagline -->
+  <text
+    x="76"
+    y="63"
+    font-family="'Inter', 'Segoe UI', 'Helvetica Neue', Arial, sans-serif"
+    font-size="10"
+    font-weight="400"
+    letter-spacing="1.5"
+    fill="#6b7280"
+  >YOUR WEBSITE IN MINUTES</text>
+</svg>

@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#6366f1"/>
+      <stop offset="100%" stop-color="#8b5cf6"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Background -->
+  <rect width="64" height="64" rx="16" fill="url(#bg)"/>
+
+  <!-- Globe: outer circle -->
+  <circle cx="32" cy="32" r="18" stroke="white" stroke-width="2.5" fill="none"/>
+
+  <!-- Globe: vertical centre ellipse -->
+  <ellipse cx="32" cy="32" rx="8" ry="18" stroke="white" stroke-width="2.5" fill="none"/>
+
+  <!-- Globe: horizontal equator -->
+  <line x1="14" y1="32" x2="50" y2="32" stroke="white" stroke-width="2.5"/>
+</svg>

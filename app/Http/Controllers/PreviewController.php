@@ -74,14 +74,29 @@ class PreviewController extends Controller
             );
         }
 
+        // Sanitise and store the confirmed services list from the wizard step.
+        $services = collect($request->get('services', []))
+            ->filter(fn($s) => !empty($s['name']))
+            ->values()
+            ->map(fn($s) => [
+                'id'          => $s['id'] ?? (string) \Illuminate\Support\Str::uuid(),
+                'name'        => $s['name'],
+                'description' => $s['description'] ?? null,
+                'price'       => $s['price'] ?? null,
+                'show_price'  => filter_var($s['show_price'] ?? true, FILTER_VALIDATE_BOOLEAN),
+                'featured'    => filter_var($s['featured'] ?? false, FILTER_VALIDATE_BOOLEAN),
+            ])
+            ->all();
+
         $site->update([
            'data' => array_merge($site->data, [
-               'logo' => $logo,
+               'logo'        => $logo,
                'description' => $request->get('description'),
-               'socials' => $request->get('socials'),
-               'premium' => $request->get('premium'),
-               'contact' => $request->get('contact'),
-               'quickLinks' => $request->get('quickLinks'),
+               'socials'     => $request->get('socials'),
+               'premium'     => $request->get('premium'),
+               'contact'     => $request->get('contact'),
+               'quickLinks'  => $request->get('quickLinks'),
+               'services'    => $services,
            ])
         ]);
 

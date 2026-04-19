@@ -17,6 +17,12 @@ class Site extends Model
         'domain_type',
         'subdomain',
         'custom_domain',
+        'domain_verified',
+        'is_private',
+        'connected_provider',
+        'provider_token',
+        'provider_zone_id',
+        'dns_auto_configured',
         'data',
         'meta_title',
         'meta_description',
@@ -28,11 +34,30 @@ class Site extends Model
      * @var array<string, string>
      */
     protected $casts = [
-        'data' => 'array',
+        'data'                => 'array',
+        'domain_verified'     => 'boolean',
+        'is_private'          => 'boolean',
+        'dns_auto_configured' => 'boolean',
     ];
 
     /**
      * Indicates if the model should be timestamped.
      */
     public $timestamps = true;
+
+    /**
+     * The user who owns this site.
+     */
+    public function user(): \Illuminate\Database\Eloquent\Relations\BelongsTo
+    {
+        return $this->belongsTo(User::class);
+    }
+
+    /**
+     * Contact form submissions received by this site.
+     */
+    public function submissions(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(ContactSubmission::class);
+    }
 }

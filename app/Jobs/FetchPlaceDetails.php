@@ -58,5 +58,11 @@ class FetchPlaceDetails implements ShouldQueue
             $this->batch()->add(new FetchSocialLinks($site, $data['websiteUri']));
         }
 
+        /**
+         * Always attempt to fetch services — FetchBusinessServices handles
+         * the 3-tier fallback (own website → internet scan → AI generation).
+         */
+        $this->batch()->add(new FetchBusinessServices($site));
+
     }
 }

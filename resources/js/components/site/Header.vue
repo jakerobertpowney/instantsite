@@ -6,7 +6,7 @@ const props = defineProps({
     logo: String,
     name: String,
     businessType: String,
-    addressComponents: Array
+    addressComponents: Array,
 });
 
 const town = computed(() => {
@@ -72,6 +72,8 @@ const logoSrc = computed(() => {
                 <MapPin class="h-4 w-4 shrink-0 text-white/60" />
                 {{ locationLabel }}
             </p>
+
+
         </div>
 
     </div>

@@ -39,4 +39,13 @@ return [
         'key' => env('PEXELS_API_KEY'),
     ],
 
+    // ── Domain provider OAuth / API ────────────────────────────────────────────
+    // Register a Cloudflare OAuth app at: https://dash.cloudflare.com/profile/api-tokens
+    // Set the redirect URI to: {APP_URL}/dashboard/domain/cloudflare/callback
+    'cloudflare' => [
+        'client_id'     => env('CLOUDFLARE_CLIENT_ID'),
+        'client_secret' => env('CLOUDFLARE_CLIENT_SECRET'),
+        'redirect'      => env('CLOUDFLARE_REDIRECT_URI'),
+    ],
+
 ];

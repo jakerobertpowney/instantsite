@@ -10,6 +10,7 @@ defineProps({
 const formEmail   = ref('');
 const formSubject = ref('');
 const formMessage = ref('');
+const honeypot    = ref('');
 const submitting  = ref(false);
 const submitted   = ref(false);
 const submitError = ref('');
@@ -36,6 +37,7 @@ const submit = async (preview: boolean | undefined) => {
                 email:   formEmail.value,
                 subject: formSubject.value,
                 message: formMessage.value,
+                website: honeypot.value,
             }),
         });
 
@@ -87,6 +89,17 @@ const submit = async (preview: boolean | undefined) => {
                 </div>
 
                 <form v-else @submit.prevent="submit(preview)" novalidate class="space-y-4">
+                    <div class="sr-only" aria-hidden="true">
+                        <label for="cf-website">Website</label>
+                        <input
+                            id="cf-website"
+                            v-model="honeypot"
+                            type="text"
+                            name="website"
+                            tabindex="-1"
+                            autocomplete="off"
+                        />
+                    </div>
 
                     <!-- Inline error -->
                     <div

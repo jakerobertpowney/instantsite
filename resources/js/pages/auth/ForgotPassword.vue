@@ -16,8 +16,8 @@ defineProps<{
 </script>
 
 <template>
-    <AuthLayout title="Forgot password" description="Enter your email to receive a password reset link">
-        <Head title="Forgot password" />
+    <AuthLayout title="Reset your password" description="Enter your email address and we will send you a reset link.">
+        <Head title="Reset your password" />
 
         <div v-if="status" class="mb-4 text-center text-sm font-medium text-green-600">
             {{ status }}

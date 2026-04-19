@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Models\Site;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
@@ -46,6 +47,14 @@ class HandleInertiaRequests extends Middleware
                 'user' => $request->user(),
             ],
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
+            'unreadSubmissionsCount' => $request->user()
+                ? fn () => Site::where('user_id', $request->user()->id)
+                    ->latest()
+                    ->first()
+                    ?->submissions()
+                    ->whereNull('read_at')
+                    ->count() ?? 0
+                : 0,
         ];
     }
 }

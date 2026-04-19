@@ -12,7 +12,7 @@ import { LoaderCircle } from 'lucide-vue-next';
 </script>
 
 <template>
-    <AuthBase title="Create an account" description="Enter your details below to create your account">
+    <AuthBase title="Create your free account" description="Your site is ready - create your free account to publish it and start getting enquiries.">
         <Head title="Register" />
 
         <Form
@@ -38,6 +38,7 @@ import { LoaderCircle } from 'lucide-vue-next';
                     <Label for="password">Password</Label>
                     <Input id="password" type="password" required :tabindex="3" autocomplete="new-password" name="password" placeholder="Password" />
                     <InputError :message="errors.password" />
+                    <p class="text-xs text-muted-foreground">At least 8 characters.</p>
                 </div>
 
                 <div class="grid gap-2">

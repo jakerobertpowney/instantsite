@@ -35,7 +35,7 @@ return [
     |--------------------------------------------------------------------------
     | Stripe Price ID
     |--------------------------------------------------------------------------
-    | The Stripe Price ID for the InstantSite Premium monthly plan.
+    | The Stripe Price ID for the 321Sites Premium monthly plan.
     | Create a Product + Price in the Stripe dashboard and paste the
     | price_XXXXXXX ID here.
     */

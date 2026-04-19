@@ -6,17 +6,18 @@ const props = defineProps({
     photos: Array as () => string[],
 });
 
-// Up to 7 photos — first is featured, rest fill a grid
-const allPhotos = computed(() => (props.photos?.slice(0, 7) ?? []) as string[]);
-const featured  = computed(() => allPhotos.value[0] ?? null);
-const remaining = computed(() => allPhotos.value.slice(1));
-const hasPhotos = computed(() => allPhotos.value.length > 0);
+// Grid shows up to 7 photos — first is featured, rest fill a grid
+const gridPhotos = computed(() => (props.photos?.slice(0, 7) ?? []) as string[]);
+const featured = computed(() => gridPhotos.value[0] ?? null);
+const remaining = computed(() => gridPhotos.value.slice(1));
+const hasPhotos = computed(() => gridPhotos.value.length > 0);
+
+// Lightbox navigates through ALL available photos (not capped at 7)
+const allPhotos = computed(() => (props.photos ?? []) as string[]);
 
 // ── Lightbox ──────────────────────────────────────────────────────────────────
 const lightboxIndex = ref<number | null>(null);
-const lightboxPhoto = computed(() =>
-    lightboxIndex.value !== null ? allPhotos.value[lightboxIndex.value] ?? null : null,
-);
+const lightboxPhoto = computed(() => (lightboxIndex.value !== null ? (allPhotos.value[lightboxIndex.value] ?? null) : null));
 
 function openLightbox(index: number) {
     lightboxIndex.value = index;
@@ -28,8 +29,7 @@ function closeLightbox() {
 
 function prevPhoto() {
     if (lightboxIndex.value === null) return;
-    lightboxIndex.value =
-        (lightboxIndex.value - 1 + allPhotos.value.length) % allPhotos.value.length;
+    lightboxIndex.value = (lightboxIndex.value - 1 + allPhotos.value.length) % allPhotos.value.length;
 }
 
 function nextPhoto() {
@@ -39,9 +39,9 @@ function nextPhoto() {
 
 function handleKeydown(e: KeyboardEvent) {
     if (lightboxIndex.value === null) return;
-    if (e.key === 'Escape')      closeLightbox();
-    if (e.key === 'ArrowLeft')   prevPhoto();
-    if (e.key === 'ArrowRight')  nextPhoto();
+    if (e.key === 'Escape') closeLightbox();
+    if (e.key === 'ArrowLeft') prevPhoto();
+    if (e.key === 'ArrowRight') nextPhoto();
 }
 
 onMounted(() => window.addEventListener('keydown', handleKeydown));
@@ -49,49 +49,34 @@ onUnmounted(() => window.removeEventListener('keydown', handleKeydown));
 </script>
 
 <template>
-    <section v-if="hasPhotos" class="pt-0 pb-14" style="border-bottom: 1px solid var(--site-primary-muted)">
-        <p
-            class="text-xs font-semibold uppercase tracking-widest mb-6"
-            style="color: var(--site-primary)"
-        >
-            Our work
-        </p>
+    <section v-if="hasPhotos" class="pt-0 pb-8">
+        <p class="mb-6 text-xs font-semibold tracking-widest uppercase" style="color: var(--site-primary)">Our work</p>
 
         <div class="flex flex-col gap-2">
-
             <!-- Featured photo — full width, 16:9 -->
-            <div
-                v-if="featured"
-                class="overflow-hidden rounded-2xl cursor-zoom-in"
-                @click="openLightbox(0)"
-            >
+            <div v-if="featured" class="cursor-zoom-in overflow-hidden rounded-2xl" @click="openLightbox(0)">
                 <img
                     :src="'/' + featured"
                     alt="Featured photo"
-                    class="w-full aspect-video object-cover transition-transform duration-300 hover:scale-105"
+                    class="aspect-video w-full object-cover transition-transform duration-300 hover:scale-105"
                 />
             </div>
 
             <!-- Supporting grid — up to 6 smaller squares -->
-            <div
-                v-if="remaining.length"
-                class="grid gap-2"
-                :class="remaining.length === 1 ? 'grid-cols-1' : 'grid-cols-3'"
-            >
+            <div v-if="remaining.length" class="grid gap-2" :class="remaining.length === 1 ? 'grid-cols-1' : 'grid-cols-3'">
                 <div
                     v-for="(photo, index) in remaining"
                     :key="index"
-                    class="overflow-hidden rounded-xl cursor-zoom-in"
+                    class="cursor-zoom-in overflow-hidden rounded-xl"
                     @click="openLightbox(index + 1)"
                 >
                     <img
                         :src="'/' + photo"
                         :alt="`Photo ${index + 2}`"
-                        class="w-full aspect-square object-cover transition-transform duration-300 hover:scale-105"
+                        class="aspect-square w-full object-cover transition-transform duration-300 hover:scale-105"
                     />
                 </div>
             </div>
-
         </div>
     </section>
 
@@ -105,10 +90,7 @@ onUnmounted(() => window.removeEventListener('keydown', handleKeydown));
             aria-label="Photo lightbox"
         >
             <!-- Backdrop -->
-            <div
-                class="absolute inset-0 bg-black/90 backdrop-blur-sm"
-                @click="closeLightbox"
-            />
+            <div class="absolute inset-0 bg-black/90 backdrop-blur-sm" @click="closeLightbox" />
 
             <!-- Close button -->
             <button
@@ -123,7 +105,7 @@ onUnmounted(() => window.removeEventListener('keydown', handleKeydown));
             <!-- Photo counter -->
             <div
                 v-if="allPhotos.length > 1"
-                class="absolute top-4 left-1/2 -translate-x-1/2 z-10 rounded-full bg-black/50 px-3 py-1 text-xs font-medium text-white/80"
+                class="absolute top-4 left-1/2 z-10 -translate-x-1/2 rounded-full bg-black/50 px-3 py-1 text-xs font-medium text-white/80"
             >
                 {{ (lightboxIndex ?? 0) + 1 }} / {{ allPhotos.length }}
             </div>
@@ -162,10 +144,7 @@ onUnmounted(() => window.removeEventListener('keydown', handleKeydown));
             </div>
 
             <!-- Dot strip (thumbnail row) -->
-            <div
-                v-if="allPhotos.length > 1"
-                class="absolute bottom-4 left-1/2 -translate-x-1/2 z-10 flex gap-1.5"
-            >
+            <div v-if="allPhotos.length > 1" class="absolute bottom-4 left-1/2 z-10 flex -translate-x-1/2 gap-1.5">
                 <button
                     v-for="(_, i) in allPhotos"
                     :key="i"

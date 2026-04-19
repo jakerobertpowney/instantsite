@@ -5,15 +5,26 @@ import QuickActions from '@/components/site/QuickActions.vue';
 import Description from '@/components/site/Description.vue';
 import Header from '@/components/site/Header.vue';
 import Reviews from '@/components/site/Reviews.vue';
+import Services from '@/components/site/Services.vue';
 import { Head } from '@inertiajs/vue3';
 import { computed, onMounted } from 'vue';
 import { getEffectivePalette, paletteToCssVars } from '@/lib/palette';
 
 const props = defineProps({
-    data: Object
+    data: Object,
+    isPremium: Boolean,
+    metaTitle: String,
+    metaDescription: String,
+    siteUrl: String,
+    canonicalUrl: String,
+    sitemapUrl: String,
+    isOwner: Boolean,
+    dashboardUrl: String,
 })
 
-// Resolve component visibility flags — default to true when absent (legacy sites)
+// Resolve component visibility flags — default to true when absent (legacy sites).
+// contact_form is additionally gated behind isPremium so sites that had it enabled
+// before premium enforcement was introduced are not affected retroactively.
 const components = computed(() => {
     const flags = props.data?.components ?? {};
     return {
@@ -23,7 +34,8 @@ const components = computed(() => {
         quick_actions: flags.quick_actions?.enabled !== false,
         reviews:       flags.reviews?.enabled       !== false,
         contact:       flags.contact?.enabled       !== false,
-        contact_form:  flags.contact_form?.enabled  !== false,
+        contact_form:  props.isPremium === true && flags.contact_form?.enabled !== false,
+        services:      flags.services?.enabled      !== false,
     };
 });
 
@@ -31,6 +43,53 @@ const components = computed(() => {
 const description   = computed(() => props.data?.overrides?.description || props.data?.editorialSummary?.text || props.data?.description);
 const logo          = computed(() => props.data?.overrides?.logo_path || props.data?.logo);
 const contactEmail  = computed(() => props.data?.overrides?.contact_email || props.data?.contact);
+
+// Services
+const services         = computed(() => props.data?.services ?? []);
+const servicesHeading  = computed(() => props.data?.services_heading || 'Our Services');
+const servicesCtaLabel = computed(() => props.data?.services_cta_label || '');
+const servicesCtaLink  = computed(() => props.data?.services_cta_link || '');
+const hasServices      = computed(() => services.value.length > 0);
+
+// Schema.org JSON-LD for services (injected into <head> via Inertia Head)
+const schemaOrgJson = computed(() => {
+    const name    = props.data?.displayName?.text ?? '';
+    const address = props.data?.formattedAddress ?? '';
+    const phone   = props.data?.nationalPhoneNumber ?? '';
+    const payload: Record<string, unknown> = {
+        '@context':    'https://schema.org',
+        '@type':       'LocalBusiness',
+        'name':         name,
+        'address':      address,
+        'telephone':    phone || undefined,
+    };
+
+    if (hasServices.value) {
+        const items = services.value.map((s: any) => ({
+            '@type':        'Offer',
+            'name':         s.name,
+            'description':  s.description ?? undefined,
+            'price':        s.price ?? undefined,
+            'priceCurrency': 'GBP',
+        }));
+
+        payload.hasOfferCatalog = {
+            '@type': 'OfferCatalog',
+            'name':  servicesHeading.value,
+            'itemListElement': items,
+        };
+    }
+
+    if (props.data?.rating && props.data?.userRatingCount) {
+        payload.aggregateRating = {
+            '@type': 'AggregateRating',
+            'ratingValue': props.data.rating,
+            'reviewCount': props.data.userRatingCount,
+        };
+    }
+
+    return JSON.stringify(payload);
+});
 
 // Colour palette — user-chosen custom colours take priority over auto-detected
 const palette    = computed(() => getEffectivePalette(props.data));
@@ -82,7 +141,36 @@ const heroStyle = computed<Record<string, string>>(() => {
 // SEO / analytics settings
 const googleAnalyticsId = computed(() => props.data?.google_analytics_id || '');
 const allowIndexing     = computed(() => props.data?.allow_indexing !== false);
-const siteTitle         = computed(() => props.data?.displayName?.text ?? 'Our Website');
+const siteTitle         = computed(() => props.metaTitle || props.data?.displayName?.text || 'Our Website');
+const metaDescription   = computed(() => props.metaDescription || description.value || props.data?.editorialSummary?.text || '');
+const canonicalUrl      = computed(() => props.canonicalUrl || props.siteUrl || '');
+
+const absoluteAssetUrl = (path?: string | null) => {
+    if (!path) return '';
+    if (/^https?:\/\//i.test(path)) return path;
+
+    const base = canonicalUrl.value || props.siteUrl || '';
+    if (!base) return '';
+
+    return `${base}${path.startsWith('/') ? path : `/${path}`}`;
+};
+
+const shareImageUrl = computed(() => {
+    const firstImage = props.data?.images?.[0];
+    if (firstImage) {
+        return absoluteAssetUrl(firstImage);
+    }
+
+    const backgroundValue = props.data?.overrides?.header_bg?.value;
+    if (backgroundValue) {
+        return absoluteAssetUrl(backgroundValue);
+    }
+
+    return absoluteAssetUrl(props.data?.overrides?.logo_path || props.data?.logo);
+});
+
+const twitterCard = computed(() => shareImageUrl.value ? 'summary_large_image' : 'summary');
+
 
 onMounted(() => {
     if (googleAnalyticsId.value) {
@@ -102,11 +190,50 @@ onMounted(() => {
 <template>
     <Head>
         <title>{{ siteTitle }}</title>
+        <meta v-if="metaDescription" name="description" :content="metaDescription" />
         <meta v-if="!allowIndexing" name="robots" content="noindex,nofollow" />
+        <!-- Favicon is injected server-side via app.blade.php from $page.props.data.overrides.favicon_path -->
+        <link v-if="canonicalUrl" rel="canonical" :href="canonicalUrl" />
+        <link v-if="sitemapUrl" rel="sitemap" type="application/xml" :href="sitemapUrl" />
+        <meta property="og:type" content="business.business" />
+        <meta property="og:title" :content="siteTitle" />
+        <meta v-if="metaDescription" property="og:description" :content="metaDescription" />
+        <meta v-if="canonicalUrl" property="og:url" :content="canonicalUrl" />
+        <meta v-if="shareImageUrl" property="og:image" :content="shareImageUrl" />
+        <meta name="twitter:card" :content="twitterCard" />
+        <meta name="twitter:title" :content="siteTitle" />
+        <meta v-if="metaDescription" name="twitter:description" :content="metaDescription" />
+        <meta v-if="shareImageUrl" name="twitter:image" :content="shareImageUrl" />
+        <!-- Schema.org structured data — services / offer catalogue.
+             Use <component :is="'script'"> to avoid the Vue template compiler
+             treating a literal <script> tag as a side-effect node. -->
+        <!-- eslint-disable-next-line vue/no-v-text-v-html-on-component -->
+        <component :is="'script'" v-if="schemaOrgJson" type="application/ld+json" v-html="schemaOrgJson" />
     </Head>
 
+    <!-- Admin bar — only visible to the logged-in site owner -->
+    <div
+        v-if="isOwner"
+        class="is-admin-bar"
+        style="position:fixed;top:0;left:0;right:0;z-index:9999;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:0 16px;height:44px;background:#ffffff;color:#111418;font-family:'Inter','Instrument Sans',ui-sans-serif,system-ui,sans-serif;font-size:13px;font-weight:500;border-bottom:1.5px solid #D9D6CE;box-shadow:0 1px 4px rgba(0,0,0,0.06);"
+    >
+        <span style="display:flex;align-items:center;gap:8px;color:#6B727D;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+            You're viewing your site
+        </span>
+        <a
+            :href="dashboardUrl"
+            style="display:inline-flex;align-items:center;gap:6px;padding:0 14px;height:28px;border-radius:6px;background:#1E66F5;color:#fff;text-decoration:none;font-size:13px;font-weight:600;transition:background 0.15s;"
+            onmouseover="this.style.background='#1554d4'"
+            onmouseout="this.style.background='#1E66F5'"
+        >
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+            Edit site
+        </a>
+    </div>
+
     <!-- Root — CSS custom properties cascade to all child components -->
-    <div class="min-h-screen bg-gray-50 font-sans antialiased" :style="cssVars">
+    <div class="min-h-screen bg-gray-50 font-sans antialiased" :style="[cssVars, isOwner ? { paddingTop: '44px' } : {}]">
 
         <!-- ── Hero ───────────────────────────────────────────────────────── -->
         <div class="relative overflow-hidden" style="min-height: 380px">
@@ -147,14 +274,15 @@ onMounted(() => {
         <!-- ── Quick action buttons ───────────────────────────────────────── -->
         <div
             v-if="components.quick_actions"
-            class="bg-white shadow-sm sticky top-0 z-30"
-            style="border-bottom: 2px solid var(--site-primary)"
+            class="bg-white shadow-sm sticky z-30"
+            :style="{ top: isOwner ? '44px' : '0', borderBottom: '2px solid var(--site-primary)' }"
         >
             <div class="max-w-5xl mx-auto px-6 md:px-14 py-4">
                 <QuickActions
                     :phone-number="props.data?.nationalPhoneNumber"
                     :whatsapp-number="props.data?.whatsapp_number"
                     :contact="contactEmail"
+                    :show-form="components.contact_form && !!contactEmail"
                     :quick-links="props.data?.quickLinks"
                     :preview="true"
                 />
@@ -175,6 +303,16 @@ onMounted(() => {
                 <Gallery
                     v-if="components.gallery"
                     :photos="props.data?.images"
+                />
+
+                <!-- Services / Products -->
+                <Services
+                    v-if="components.services && hasServices"
+                    :services="services"
+                    :heading="servicesHeading"
+                    :cta-label="servicesCtaLabel"
+                    :cta-link="servicesCtaLink"
+                    :phone-number="props.data?.nationalPhoneNumber ?? ''"
                 />
 
             </div>
@@ -201,6 +339,7 @@ onMounted(() => {
             :socials="props.data?.socials"
             :contact="contactEmail"
             :show-form="components.contact_form && !!contactEmail"
+            :business-type="props.data?.primaryTypeDisplayName?.text"
             :preview="false"
         />
 
@@ -210,7 +349,14 @@ onMounted(() => {
             style="background-color: var(--site-primary-dark)"
         >
             <span style="color: rgba(255,255,255,0.5)">Website powered by </span>
-            <span class="font-medium text-white">InstantSite</span>
+            <a
+                href="https://321sites.com"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="font-medium text-white underline underline-offset-4"
+            >
+                321Sites
+            </a>
         </footer>
 
     </div>

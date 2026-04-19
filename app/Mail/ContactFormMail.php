@@ -14,16 +14,17 @@ class ContactFormMail extends Mailable
 
     public function __construct(
         public readonly string $senderEmail,
-        public readonly string $subject,
+        public readonly string $mailSubject,
         public readonly string $messageBody,
         public readonly string $businessName,
+        public readonly ?string $preferredContactTime = null,
     ) {}
 
     public function envelope(): Envelope
     {
         return new Envelope(
             replyTo: [$this->senderEmail],
-            subject: '[InstantSite Contact] ' . $this->subject,
+            subject: '[321Sites Contact] ' . $this->mailSubject,
         );
     }
 

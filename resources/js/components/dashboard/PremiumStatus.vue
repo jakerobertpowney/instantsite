@@ -13,7 +13,7 @@ const portalUrl = billing.portal.url();
             <Sparkles class="h-5 w-5 text-yellow-500 shrink-0" />
             <div>
                 <div class="flex items-center gap-2 mb-0.5">
-                    <span class="text-sm font-semibold">InstantSite Premium</span>
+                    <span class="text-sm font-semibold">321Sites Premium</span>
                     <Badge variant="default" class="text-xs">Active</Badge>
                 </div>
                 <p class="text-sm text-muted-foreground">All premium features are enabled on your site.</p>

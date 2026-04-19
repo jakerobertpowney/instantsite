@@ -2,9 +2,10 @@
     "private": true,
     "type": "module",
     "scripts": {
-        "build": "vite build",
-        "build:ssr": "vite build && vite build --ssr",
+        "build": "vite build && npm run fix:wayfinder-routes",
+        "build:ssr": "vite build && vite build --ssr && npm run fix:wayfinder-routes",
         "dev": "vite",
+        "fix:wayfinder-routes": "node scripts/fix-wayfinder-routes.mjs",
         "format": "prettier --write resources/",
         "format:check": "prettier --check resources/",
         "lint": "eslint . --fix"
