@@ -44,15 +44,17 @@ class PublishTemporarySite
             ? Str::slug($businessName)
             : null;
 
-        $site = Site::create([
-            'user_id'          => $event->user->id,
-            'places_id'        => $temporarySite->places_id,
-            'data'             => $data,
-            'meta_title'       => $metaTitle,
-            'meta_description' => $metaDescription,
-            'subdomain'        => $subdomain,
-            'domain_type'      => $subdomain ? 'subdomain' : 'draft',
-        ]);
+        $site = Site::firstOrCreate(
+            ['places_id' => $temporarySite->places_id],
+            [
+                'user_id'          => $event->user->id,
+                'data'             => $data,
+                'meta_title'       => $metaTitle,
+                'meta_description' => $metaDescription,
+                'subdomain'        => $subdomain,
+                'domain_type'      => $subdomain ? 'subdomain' : 'draft',
+            ]
+        );
 
         // Dispatch photo download jobs for every photo in the Google Places data.
         // FetchPlacePhoto only downloads to TemporarySite — which may not have finished

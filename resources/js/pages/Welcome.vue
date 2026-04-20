@@ -210,7 +210,10 @@ const features = [
                                     <div class="mk-result-row__name">{{ place.displayName.text }}</div>
                                     <div class="mk-result-row__addr">{{ place.formattedAddress }}</div>
                                 </div>
-                                <Link :href="show.url(place.id)" class="mk-btn mk-btn--primary mk-btn--sm">
+                                <span v-if="place.taken" class="mk-btn mk-btn--sm mk-btn--taken" aria-disabled="true">
+                                    Already claimed
+                                </span>
+                                <Link v-else :href="show.url(place.id)" class="mk-btn mk-btn--primary mk-btn--sm">
                                     This is me →
                                 </Link>
                             </div>
@@ -638,6 +641,14 @@ const features = [
     padding: 0 14px;
 }
 .mk-btn--full { width: 100%; justify-content: center; }
+.mk-btn--taken {
+    background: var(--mk-panel);
+    color: var(--mk-muted);
+    border: 1px solid var(--mk-border);
+    cursor: not-allowed;
+    pointer-events: none;
+    white-space: nowrap;
+}
 
 /* ── Nav ────────────────────────────────────────────────────────────────────── */
 .mk-nav {

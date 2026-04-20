@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\SearchPlacesRequest;
 use App\Jobs\FetchPlaceDetails;
+use App\Models\Site;
 use Illuminate\Bus\Batch;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\JsonResponse;
@@ -31,7 +32,20 @@ class SearchController extends Controller
 
         $response->throw();
 
-        return response()->json($response->json());
+        $results = $response->json();
+
+        // Annotate each place with a `taken` flag so the frontend can block
+        // selection of businesses that already have a published site.
+        $placeIds = collect($results['places'] ?? [])->pluck('id');
+        $takenIds = Site::whereIn('places_id', $placeIds)->pluck('places_id')->flip();
+
+        $results['places'] = collect($results['places'] ?? [])
+            ->map(fn ($place) => array_merge($place, [
+                'taken' => $takenIds->has($place['id']),
+            ]))
+            ->all();
+
+        return response()->json($results);
 
     }
 

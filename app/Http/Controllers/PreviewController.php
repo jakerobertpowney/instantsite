@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\Setup\StoreSetupRequest;
 use App\Jobs\FetchPlaceDetails;
+use App\Models\Site;
 use App\Models\TemporarySite;
 use Illuminate\Bus\Batch;
 use Illuminate\Http\RedirectResponse;
@@ -22,8 +23,15 @@ class PreviewController extends Controller
     /**
      * @throws Throwable
      */
-    public function discover(string $id): Response
+    public function discover(string $id): Response|RedirectResponse
     {
+        if (Site::where('places_id', $id)->exists()) {
+            return redirect()->route('home')->with(
+                'error',
+                'A website has already been created for this business.'
+            );
+        }
+
         $batch = Bus::batch([
             new FetchPlaceDetails($id)
         ])->then(function (Batch $batch) {
