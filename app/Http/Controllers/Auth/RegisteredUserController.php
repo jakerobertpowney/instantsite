@@ -17,9 +17,16 @@ class RegisteredUserController extends Controller
 {
     /**
      * Show the registration page.
+     *
+     * Only accessible after completing the onboarding setup wizard,
+     * which stores a `places_id` in the session via PreviewController::complete().
      */
-    public function create(): Response
+    public function create(Request $request): Response|RedirectResponse
     {
+        if (! $request->session()->has('places_id')) {
+            return redirect('/');
+        }
+
         return Inertia::render('auth/Register');
     }
 
@@ -30,6 +37,10 @@ class RegisteredUserController extends Controller
      */
     public function store(Request $request): RedirectResponse
     {
+        if (! $request->session()->has('places_id')) {
+            return redirect('/');
+        }
+
         $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|string|lowercase|email|max:255|unique:'.User::class,
