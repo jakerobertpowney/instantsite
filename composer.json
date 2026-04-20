@@ -16,6 +16,8 @@
         "laravel/sanctum": "^4.0",
         "laravel/tinker": "^2.10.1",
         "laravel/wayfinder": "^0.1.10",
+        "symfony/http-client": "^8.0",
+        "symfony/postmark-mailer": "^7.4",
         "tightenco/ziggy": "^2.5"
     },
     "require-dev": {

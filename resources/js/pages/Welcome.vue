@@ -925,7 +925,6 @@ const features = [
     align-items: center;
     max-width: 960px;
     margin: 0 auto;
-    background: var(--mk-surface);
     border: 1.5px solid var(--mk-line);
     border-bottom: none;
     border-radius: 20px 20px 0 0;
@@ -999,10 +998,6 @@ const features = [
     flex-shrink: 0;
 }
 .mk-ba-arrow__logo {
-    width: 44px;
-    height: 44px;
-    border-radius: 12px;
-    background: var(--mk-ink);
     display: flex;
     align-items: center;
     justify-content: center;
