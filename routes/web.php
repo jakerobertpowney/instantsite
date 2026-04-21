@@ -125,3 +125,34 @@ Route::middleware(['auth', 'verified'])->group(function() {
 
 require __DIR__.'/settings.php';
 require __DIR__.'/auth.php';
+
+// ─── Mail previews (local dev only) ───────────────────────────────────────────
+if (app()->isLocal()) {
+    Route::get('/__mail/contact-form', function () {
+        return new \App\Mail\ContactFormMail(
+            senderEmail: 'jane@example.com',
+            mailSubject: 'Appointment enquiry',
+            messageBody: "Hi there,\n\nI'd love to book an appointment for next Tuesday if you have availability. Please let me know what times work best.\n\nThanks,\nJane",
+            businessName: 'Acme Hair Studio',
+            preferredContactTime: 'Tuesday 10 am – 12 pm',
+        );
+    })->name('mail.preview.contact-form');
+
+    Route::get('/__mail/verify-email', function () {
+        return (new \Illuminate\Notifications\Messages\MailMessage)
+            ->subject('Confirm your 321Sites email address')
+            ->greeting('Welcome to 321Sites')
+            ->line('Confirm your email address to publish your site and start receiving customer enquiries.')
+            ->action('Confirm email address', url('/'))
+            ->line('If you did not create an account, you can safely ignore this email.');
+    })->name('mail.preview.verify-email');
+
+    Route::get('/__mail/reset-password', function () {
+        return (new \Illuminate\Notifications\Messages\MailMessage)
+            ->subject('Reset your 321Sites password')
+            ->line('You are receiving this email because we received a password reset request for your account.')
+            ->action('Reset password', url('/'))
+            ->line('This password reset link will expire in 60 minutes.')
+            ->line('If you did not request a password reset, no further action is required.');
+    })->name('mail.preview.reset-password');
+}
