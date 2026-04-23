@@ -701,7 +701,7 @@ const allDone = computed(() =>
     font-weight: 800;
     letter-spacing: 0.6px;
     text-transform: uppercase;
-    background: #111418;
+    background: #0f172a;
     color: #F6D860;
     margin-left: 7px;
     vertical-align: middle;

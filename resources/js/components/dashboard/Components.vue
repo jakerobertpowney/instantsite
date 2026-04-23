@@ -1442,7 +1442,7 @@ const sections: { id: SectionId; label: string; hint: string; icon: any }[] = [
 .ec-link-preview { display: flex; align-items: center; gap: 8px; }
 .ec-link-preview__label { font-size: 12px; color: var(--db-ink-soft); }
 .ec-link-pill { display: inline-flex; align-items: center; gap: 6px; border-radius: 8px; padding: 6px 12px; font-size: 13px; font-weight: 500; }
-.ec-link-pill--dark { background: #111418; color: #fff; }
+.ec-link-pill--dark { background: #0f172a; color: #fff; }
 .ec-link-favicon { width: 14px; height: 14px; border-radius: 3px; object-fit: contain; }
 
 /* ── Reviews ─────────────────────────────────────────────────────────────── */

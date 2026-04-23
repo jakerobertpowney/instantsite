@@ -130,19 +130,20 @@ onUnmounted(() => window.removeEventListener('scroll', handleScroll));
 </template>
 
 <style>
-/* ── Design tokens (shared with marketing page) ─────────────────────────────── */
-:root {
-    --mk-bg:          #F6F5F1;
-    --mk-surface:     #FFFFFF;
-    --mk-ink:         #111418;
-    --mk-ink-mid:     #434B55;
-    --mk-ink-soft:    #6B727D;
-    --mk-line:        #D9D6CE;
-    --mk-line-soft:   #E6E3DB;
-    --mk-panel:       #ECEAE2;
-    --mk-accent:      #1E66F5;
-    --mk-accent-soft: #E6EEFE;
-    --mk-accent-fg:   #FFFFFF;
+/* ── Design tokens scoped to the help layout ────────────────────────────────── */
+/* Using .hl-page instead of :root so these don't bleed into other pages        */
+.hl-page {
+    --mk-bg:          #ffffff;
+    --mk-surface:     #ffffff;
+    --mk-ink:         #0f172a;
+    --mk-ink-mid:     #3d4a5c;
+    --mk-ink-soft:    #64748b;
+    --mk-line:        #dde1e8;
+    --mk-line-soft:   #e8ecf1;
+    --mk-panel:       #edf1f8;
+    --mk-accent:      #1e66f5;
+    --mk-accent-soft: #e6eefe;
+    --mk-accent-fg:   #ffffff;
 }
 </style>
 
@@ -200,7 +201,7 @@ onUnmounted(() => window.removeEventListener('scroll', handleScroll));
     position: sticky;
     top: 0;
     z-index: 40;
-    background: rgba(246,245,241,0.92);
+    background: rgba(255,255,255,0.92);
     backdrop-filter: saturate(140%) blur(8px);
     -webkit-backdrop-filter: saturate(140%) blur(8px);
     border-bottom: 1px solid transparent;

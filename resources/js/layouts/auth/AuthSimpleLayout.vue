@@ -25,11 +25,18 @@ defineProps<{
     <div
         class="flex min-h-svh flex-col items-center justify-center gap-6 p-6 md:p-10"
         style="
-            background: #F6F5F1;
+            background: #ffffff;
             font-family: 'Inter', ui-sans-serif, system-ui, sans-serif;
-            --primary: #1E66F5;
+            --primary:            #1e66f5;
             --primary-foreground: #ffffff;
-            --radius: 0.75rem;
+            --radius:             0.75rem;
+            --border:             #dde1e8;
+            --ring:               #1e66f5;
+            --background:         #ffffff;
+            --foreground:         #0f172a;
+            --muted:              #edf1f8;
+            --muted-foreground:   #64748b;
+            --destructive:        #b91c1c;
         "
     >
         <div class="w-full max-w-sm">
@@ -37,15 +44,14 @@ defineProps<{
                 <div class="flex flex-col items-center gap-4">
                     <Link :href="home()" class="flex flex-col items-center gap-3">
                         <AppLogo />
-                        <p style="font-size: 13px; color: #6B727D; margin-top: 3px;">Simple websites for small businesses.</p>
                     </Link>
                     <div class="space-y-1.5 text-center">
-                        <h1 style="font-size: 21px; font-weight: 800; letter-spacing: -0.3px; color: #111418; line-height: 1.2;">{{ title }}</h1>
-                        <p style="font-size: 15px; color: #6B727D; line-height: 1.5;">{{ description }}</p>
+                        <h1 style="font-size: 21px; font-weight: 800; letter-spacing: -0.3px; color: #0f172a; line-height: 1.2;">{{ title }}</h1>
+                        <p style="font-size: 15px; color: #64748b; line-height: 1.5;">{{ description }}</p>
                     </div>
                 </div>
                 <slot />
-                <div class="flex items-center justify-center gap-4" style="font-size: 13px; color: #6B727D;">
+                <div class="flex items-center justify-center gap-4" style="font-size: 13px; color: #64748b;">
                     <Link href="/help" class="transition-opacity hover:opacity-60">Help</Link>
                     <Link href="/terms" class="transition-opacity hover:opacity-60">Terms</Link>
                     <Link href="/privacy" class="transition-opacity hover:opacity-60">Privacy</Link>
@@ -74,7 +80,7 @@ defineProps<{
 :deep(label) {
     font-size: 14px;
     font-weight: 600;
-    color: #111418;
+    color: #0f172a;
 }
 
 /* Inputs — taller, white background, more breathing room */
@@ -84,14 +90,16 @@ defineProps<{
     height: 44px !important;
     font-size: 15px !important;
     border-radius: 8px !important;
-    border-color: #D9D6CE !important;
+    border-color: #dde1e8 !important;
     background: #ffffff !important;
 }
 
 :deep(input[type="email"]:focus),
 :deep(input[type="password"]:focus),
-:deep(input[type="text"]:focus) {
-    border-color: #1E66F5 !important;
+:deep(input[type="text"]:focus),
+:deep(input[type="tel"]:focus),
+:deep(input[type="url"]:focus) {
+    border-color: #1e66f5 !important;
     box-shadow: 0 0 0 3px rgba(30, 102, 245, 0.12) !important;
     outline: none !important;
 }

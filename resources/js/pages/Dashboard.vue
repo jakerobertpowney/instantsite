@@ -220,20 +220,34 @@ const unreadBadge = computed(() => (props.unreadCount ?? 0) > 0 ? props.unreadCo
 <style>
 /* ── Dashboard shell tokens ───────────────────────────────────────────── */
 :root {
-    --db-bg:        #F6F5F1;
-    --db-surface:   #FFFFFF;
-    --db-ink:       #111418;
-    --db-ink-mid:   #434B55;
-    --db-ink-soft:  #6B727D;
-    --db-line:      #D9D6CE;
-    --db-line-soft: #E6E3DB;
-    --db-panel:     #ECEAE2;
-    --db-accent:    #1E66F5;
-    --db-accent-fg: #FFFFFF;
-    --db-accent-soft: #E6EEFE;
-    --db-success:   #1F7A3A;
-    --db-warning:   #B05A00;
-    --db-danger:    #B3261E;
+    /* Brand tokens (--db-*) */
+    --db-bg:          #f8fafc;
+    --db-surface:     #ffffff;
+    --db-ink:         #0f172a;
+    --db-ink-mid:     #3d4a5c;
+    --db-ink-soft:    #64748b;
+    --db-line:        #dde1e8;
+    --db-line-soft:   #e8ecf1;
+    --db-panel:       #edf1f8;
+    --db-accent:      #1e66f5;
+    --db-accent-fg:   #ffffff;
+    --db-accent-soft: #e6eefe;
+    --db-success:     #15803d;
+    --db-warning:     #b45309;
+    --db-danger:      #b91c1c;
+
+    /* shadcn-vue overrides — ensures all shadcn components use brand tokens */
+    --primary:            #1e66f5;
+    --primary-foreground: #ffffff;
+    --radius:             0.75rem;
+    --border:             #dde1e8;
+    --ring:               #1e66f5;
+    --background:         #ffffff;
+    --foreground:         #0f172a;
+    --muted:              #edf1f8;
+    --muted-foreground:   #64748b;
+    --destructive:        #b91c1c;
+    --destructive-foreground: #ffffff;
 }
 
 /* ── Shell ────────────────────────────────────────────────────────────── */

@@ -46,7 +46,7 @@ onUnmounted(() => {
         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
     </Head>
 
-    <div class="flex min-h-screen flex-col" style="background: #F6F5F1; font-family: 'Inter', ui-sans-serif, system-ui, sans-serif;">
+    <div class="flex min-h-screen flex-col" style="background: #ffffff; font-family: 'Inter', ui-sans-serif, system-ui, sans-serif;">
 
         <!-- Minimal top nav — matches homepage -->
         <header class="flex items-center gap-2.5 px-6 py-5">
@@ -62,10 +62,10 @@ onUnmounted(() => {
                     <!-- Animated ring -->
                     <div class="relative flex h-14 w-14 items-center justify-center">
                         <svg class="absolute inset-0 animate-spin" width="56" height="56" viewBox="0 0 56 56" fill="none" style="animation-duration: 1.1s;">
-                            <circle cx="28" cy="28" r="24" stroke="#D9D6CE" stroke-width="4"/>
+                            <circle cx="28" cy="28" r="24" stroke="#dde1e8" stroke-width="4"/>
                             <path d="M28 4a24 24 0 0 1 24 24" stroke="#1E66F5" stroke-width="4" stroke-linecap="round"/>
                         </svg>
-                        <div class="flex items-center justify-center" style="color: #111418;">
+                        <div class="flex items-center justify-center" style="color: #0f172a;">
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 160" width="32" height="10" aria-hidden="true">
                                 <text x="60" y="115" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif" font-size="100" font-weight="600" fill="currentColor">3</text>
                                 <circle cx="143" cy="90" r="9" fill="#1e66f5"/>
@@ -76,22 +76,22 @@ onUnmounted(() => {
                         </div>
                     </div>
                     <div>
-                        <p class="text-xl font-bold" style="color: #111418;">Pulling in your Google info…</p>
-                        <p class="mt-1 text-sm" style="color: #6B727D;">This only takes a few seconds.</p>
+                        <p class="text-xl font-bold" style="color: #0f172a;">Pulling in your Google info…</p>
+                        <p class="mt-1 text-sm" style="color: #64748b;">This only takes a few seconds.</p>
                     </div>
                 </div>
 
                 <!-- Progress bar — blue to match brand accent -->
-                <div style="--primary: #1E66F5; --secondary: #D9D6CE;">
+                <div style="--primary: #1e66f5; --secondary: #dde1e8;">
                     <Progress :model-value="progress" class="w-full h-2" />
                 </div>
 
                 <!-- Skeleton placeholders -->
-                <div class="flex flex-col gap-3 rounded-2xl p-5" style="background: #ECEAE2;">
-                    <Skeleton class="h-5 w-3/4 rounded-lg" style="background: #D9D6CE;" />
-                    <Skeleton class="h-4 w-1/2 rounded-lg" style="background: #D9D6CE;" />
-                    <Skeleton class="h-4 w-2/3 rounded-lg" style="background: #D9D6CE;" />
-                    <Skeleton class="mt-2 h-28 w-full rounded-xl" style="background: #D9D6CE;" />
+                <div class="flex flex-col gap-3 rounded-2xl p-5" style="background: #edf1f8;">
+                    <Skeleton class="h-5 w-3/4 rounded-lg" style="background: #dde1e8;" />
+                    <Skeleton class="h-4 w-1/2 rounded-lg" style="background: #dde1e8;" />
+                    <Skeleton class="h-4 w-2/3 rounded-lg" style="background: #dde1e8;" />
+                    <Skeleton class="mt-2 h-28 w-full rounded-xl" style="background: #dde1e8;" />
                 </div>
 
             </div>

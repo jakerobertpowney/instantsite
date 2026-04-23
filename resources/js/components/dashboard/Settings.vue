@@ -228,19 +228,31 @@ const saveForm = () => {
 
 /* ── Field ────────────────────────────────────────────────────────────── */
 .seo-field { display: flex; flex-direction: column; gap: 8px; }
-.seo-field__label { font-size: 16px; font-weight: 600; color: var(--db-ink); display: flex; align-items: center; gap: 8px; }
-.seo-field__hint  { font-size: 14px; color: var(--db-ink-soft); line-height: 1.5; }
+.seo-field__label { font-size: 14px; font-weight: 600; color: var(--db-ink); display: flex; align-items: center; gap: 8px; }
+.seo-field__hint  { font-size: 13px; color: var(--db-ink-soft); line-height: 1.5; }
 .seo-error        { font-size: 13px; color: var(--db-danger); font-weight: 500; }
 
 .seo-input {
-    height: 48px; font-size: 16px; border-radius: 10px;
+    height: 44px; font-size: 15px; border-radius: 8px;
     border: 1.5px solid var(--db-line) !important; background: #fff !important;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+.seo-input:focus {
+    border-color: var(--db-accent) !important;
+    box-shadow: 0 0 0 3px rgba(30, 102, 245, 0.12) !important;
+    outline: none !important;
 }
 .seo-input--narrow { max-width: 280px; }
 .seo-textarea {
-    font-size: 16px; border-radius: 10px;
+    font-size: 15px; border-radius: 8px;
     border: 1.5px solid var(--db-line) !important; background: #fff !important;
     resize: vertical;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+.seo-textarea:focus {
+    border-color: var(--db-accent) !important;
+    box-shadow: 0 0 0 3px rgba(30, 102, 245, 0.12) !important;
+    outline: none !important;
 }
 
 /* ── Toggle row ───────────────────────────────────────────────────────── */
@@ -263,9 +275,9 @@ const saveForm = () => {
 .seo-actions { display: flex; justify-content: flex-end; }
 .seo-save-btn {
     display: inline-flex; align-items: center; gap: 8px;
-    height: 52px; padding: 0 28px; border-radius: 10px;
+    height: 44px; padding: 0 24px; border-radius: 10px;
     background: var(--db-accent); color: var(--db-accent-fg);
-    border: none; font-family: inherit; font-size: 16px; font-weight: 600;
+    border: none; font-family: inherit; font-size: 15px; font-weight: 600;
     cursor: pointer; transition: opacity 0.1s;
 }
 .seo-save-btn:disabled { opacity: 0.5; cursor: not-allowed; }

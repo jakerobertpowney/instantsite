@@ -156,12 +156,19 @@ const complete = () => {
     <div
         class="min-h-screen flex flex-col items-center px-6 py-10 lg:justify-center lg:py-16"
         style="
-            background: #F6F5F1;
+            background: #ffffff;
             font-family: 'Inter', ui-sans-serif, system-ui, sans-serif;
-            color: #111418;
-            --primary: #1E66F5;
+            color: #0f172a;
+            --primary:            #1e66f5;
             --primary-foreground: #ffffff;
-            --radius: 0.75rem;
+            --radius:             0.75rem;
+            --border:             #dde1e8;
+            --ring:               #1e66f5;
+            --background:         #ffffff;
+            --foreground:         #0f172a;
+            --muted:              #edf1f8;
+            --muted-foreground:   #64748b;
+            --destructive:        #b91c1c;
         "
     >
         <div class="w-full max-w-md flex flex-col gap-8">
@@ -175,10 +182,10 @@ const complete = () => {
 
                 <!-- Business name + step counter -->
                 <div class="flex items-center gap-3 ml-auto">
-                    <p v-if="businessName" class="text-sm font-medium truncate max-w-[160px]" style="color: #6B727D;">
+                    <p v-if="businessName" class="text-sm font-medium truncate max-w-[160px]" style="color: #64748b;">
                         {{ businessName }}
                     </p>
-                    <p class="text-sm flex-shrink-0" style="color: #6B727D;">
+                    <p class="text-sm flex-shrink-0" style="color: #64748b;">
                         {{ currentIndex + 1 }} / {{ steps.length }}
                     </p>
                 </div>
@@ -190,16 +197,16 @@ const complete = () => {
                     v-for="(step, i) in steps"
                     :key="i"
                     class="h-1 flex-1 rounded-full transition-all duration-300"
-                    :style="i <= currentIndex ? 'background: #1E66F5;' : 'background: #D9D6CE;'"
+                    :style="i <= currentIndex ? 'background: #1e66f5;' : 'background: #dde1e8;'"
                 />
             </div>
 
             <!-- Step question + subtitle -->
             <div class="flex flex-col gap-2">
-                <h1 class="text-2xl font-bold leading-snug" style="color: #111418;">
+                <h1 class="text-2xl font-bold leading-snug" style="color: #0f172a;">
                     {{ currentStepDef.title }}
                 </h1>
-                <p class="leading-relaxed" style="color: #6B727D;">
+                <p class="leading-relaxed" style="color: #64748b;">
                     {{ currentStepDef.subtitle }}
                 </p>
             </div>
@@ -236,7 +243,7 @@ const complete = () => {
                         v-if="currentStepDef.skippable"
                         type="button"
                         class="text-sm text-center w-full py-1 transition-opacity hover:opacity-60"
-                        style="color: #6B727D;"
+                        style="color: #64748b;"
                         @click="skip"
                     >
                         Skip for now →
@@ -247,3 +254,52 @@ const complete = () => {
         </div>
     </div>
 </template>
+
+<style scoped>
+/* ── Inputs — match auth page and marketing page style ───────────────────── */
+:deep(input[type="email"]),
+:deep(input[type="password"]),
+:deep(input[type="text"]),
+:deep(input[type="url"]),
+:deep(input[type="tel"]),
+:deep(input:not([type])) {
+    height: 44px !important;
+    font-size: 15px !important;
+    border-radius: 8px !important;
+    border-color: #dde1e8 !important;
+    background: #ffffff !important;
+    font-family: 'Inter', ui-sans-serif, system-ui, sans-serif !important;
+}
+
+:deep(input[type="email"]:focus),
+:deep(input[type="password"]:focus),
+:deep(input[type="text"]:focus),
+:deep(input[type="url"]:focus),
+:deep(input[type="tel"]:focus),
+:deep(input:not([type]):focus) {
+    border-color: #1e66f5 !important;
+    box-shadow: 0 0 0 3px rgba(30, 102, 245, 0.12) !important;
+    outline: none !important;
+}
+
+:deep(textarea) {
+    font-size: 15px !important;
+    border-radius: 8px !important;
+    border-color: #dde1e8 !important;
+    background: #ffffff !important;
+    font-family: 'Inter', ui-sans-serif, system-ui, sans-serif !important;
+    line-height: 1.6 !important;
+}
+
+:deep(textarea:focus) {
+    border-color: #1e66f5 !important;
+    box-shadow: 0 0 0 3px rgba(30, 102, 245, 0.12) !important;
+    outline: none !important;
+}
+
+:deep(label) {
+    font-size: 14px;
+    font-weight: 600;
+    color: #0f172a;
+}
+</style>

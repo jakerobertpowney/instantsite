@@ -468,21 +468,22 @@ function closeAccount() {
 }
 
 .acc-input {
-    height: 46px;
+    height: 44px;
     padding: 0 14px;
     border: 1.5px solid var(--db-line);
-    border-radius: 10px;
+    border-radius: 8px;
     font-family: inherit;
     font-size: 15px;
     color: var(--db-ink);
     background: var(--db-surface);
     outline: none;
-    transition: border-color 0.15s ease;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
     width: 100%;
 }
 
 .acc-input:focus {
     border-color: var(--db-accent);
+    box-shadow: 0 0 0 3px rgba(30, 102, 245, 0.12);
 }
 
 .acc-input--error {
@@ -704,7 +705,7 @@ function closeAccount() {
     gap: 5px;
     padding: 3px 10px;
     border-radius: 100px;
-    background: #111418;
+    background: #0f172a;
     color: #F6D860;
     font-size: 11px;
     font-weight: 800;
@@ -782,7 +783,7 @@ function closeAccount() {
     width: 100%;
     height: 48px;
     border-radius: 12px;
-    background: #111418;
+    background: #0f172a;
     color: #F6D860;
     font-family: inherit;
     font-size: 15px;

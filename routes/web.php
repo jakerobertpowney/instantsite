@@ -23,6 +23,178 @@ Route::get('/', function () {
     return Inertia::render('Welcome');
 })->name('home');
 
+// ─── Demo contact form sink — returns success so the demo form shows "sent" ───
+// The demo route renders site/Index with :preview="false" on the bottom Contact
+// component, so the form POSTs to /contact on the main domain. This route
+// returns 200 JSON so the component shows the success state instead of an error.
+Route::post('contact', function () {
+    return response()->json(['ok' => true]);
+})->name('demo.contact');
+
+// ─── Demo photo proxy — redirects /demo-photo/{id} → Pexels CDN ──────────────
+// The Gallery component prepends '/' to every path, so demo image paths must be
+// root-relative. This redirect route makes that work for external stock images.
+Route::get('demo-photo/{id}', function (string $id) {
+    abort_unless(ctype_digit($id), 404);
+    return redirect()->away(
+        "https://images.pexels.com/photos/{$id}/pexels-photo-{$id}.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1"
+    );
+})->where('id', '[0-9]+')->name('demo.photo');
+
+// ─── Demo preview (used by the marketing hero iframe) ─────────────────────────
+Route::get('demo', function () {
+    $data = [
+        'displayName'              => ['text' => "Dave's Painting & Decorating"],
+        'primaryTypeDisplayName'   => ['text' => 'Painter & Decorator'],
+        'formattedAddress'         => '42 Ancoats Street, Manchester, M4 5AB',
+        'addressComponents'        => [
+            ['longText' => 'Manchester', 'shortText' => 'Manchester', 'types' => ['locality', 'political']],
+            ['longText' => 'England',    'shortText' => 'England',    'types' => ['administrative_area_level_1', 'political']],
+            ['longText' => 'United Kingdom', 'shortText' => 'GB',    'types' => ['country', 'political']],
+        ],
+        'editorialSummary' => ['text' => "Family-run painting & decorating service covering Manchester and the surrounding areas. Over 20 years of experience transforming homes and commercial spaces. Fully insured, fully certified, and always tidy. Free no-obligation quotes available seven days a week."],
+        'nationalPhoneNumber'      => '0161 234 5678',
+        'internationalPhoneNumber' => '+44 161 234 5678',
+        'rating'                   => 4.9,
+        'userRatingCount'          => 47,
+        'regularOpeningHours'      => [
+            'periods' => [
+                ['open' => ['day' => 1, 'hour' => 8, 'minute' => 0], 'close' => ['day' => 1, 'hour' => 18, 'minute' => 0]],
+                ['open' => ['day' => 2, 'hour' => 8, 'minute' => 0], 'close' => ['day' => 2, 'hour' => 18, 'minute' => 0]],
+                ['open' => ['day' => 3, 'hour' => 8, 'minute' => 0], 'close' => ['day' => 3, 'hour' => 18, 'minute' => 0]],
+                ['open' => ['day' => 4, 'hour' => 8, 'minute' => 0], 'close' => ['day' => 4, 'hour' => 18, 'minute' => 0]],
+                ['open' => ['day' => 5, 'hour' => 8, 'minute' => 0], 'close' => ['day' => 5, 'hour' => 17, 'minute' => 0]],
+            ],
+            'weekdayDescriptions' => [
+                'Monday: 8:00 AM – 6:00 PM',
+                'Tuesday: 8:00 AM – 6:00 PM',
+                'Wednesday: 8:00 AM – 6:00 PM',
+                'Thursday: 8:00 AM – 6:00 PM',
+                'Friday: 8:00 AM – 5:00 PM',
+                'Saturday: Closed',
+                'Sunday: Closed',
+            ],
+        ],
+        'whatsapp_number' => '447961234567',
+        'contact'         => 'dave@davespainting.co.uk',
+        'images'  => [
+            'demo-photo/5691677',
+            'demo-photo/6474471',
+            'demo-photo/5798984',
+            'demo-photo/8481708',
+            'demo-photo/5317151',
+            'demo-photo/5799135',
+            'demo-photo/34046208',
+        ],
+        'reviews' => [
+            [
+                'relativePublishTimeDescription' => '2 months ago',
+                'rating' => 5,
+                'text'   => ['text' => "Dave and his team did a fantastic job on our living room and hallway. Neat, tidy, and finished on time. Would highly recommend to anyone looking for a reliable decorator.", 'languageCode' => 'en'],
+                'authorAttribution' => ['displayName' => 'Sarah Mitchell', 'uri' => '', 'photoUri' => ''],
+                'publishTime' => '2024-02-15T10:00:00Z',
+            ],
+            [
+                'relativePublishTimeDescription' => '4 months ago',
+                'rating' => 5,
+                'text'   => ['text' => "Excellent service from start to finish. Very professional and the results speak for themselves. Our kitchen looks absolutely incredible.", 'languageCode' => 'en'],
+                'authorAttribution' => ['displayName' => 'James Thornton', 'uri' => '', 'photoUri' => ''],
+                'publishTime' => '2023-12-10T14:00:00Z',
+            ],
+            [
+                'relativePublishTimeDescription' => '6 months ago',
+                'rating' => 5,
+                'text'   => ['text' => "Used Dave's for a full interior repaint of our 3-bed semi. Great attention to detail and very reasonable prices. Will definitely be using them again.", 'languageCode' => 'en'],
+                'authorAttribution' => ['displayName' => 'Lisa Patel', 'uri' => '', 'photoUri' => ''],
+                'publishTime' => '2023-10-05T09:00:00Z',
+            ],
+        ],
+        'quickLinks' => [
+            ['label' => 'Book Appointment', 'link' => '#'],
+        ],
+        'services' => [
+            [
+                'id'          => 'svc-1',
+                'name'        => 'Interior Painting',
+                'description' => 'Full interior repaints including walls, ceilings, skirting boards, and woodwork. All surfaces prepped and primed for a flawless, long-lasting finish.',
+                'price'       => null,
+                'currency'    => 'GBP',
+                'show_price'  => false,
+                'featured'    => true,
+            ],
+            [
+                'id'          => 'svc-2',
+                'name'        => 'Exterior Painting',
+                'description' => 'Render, masonry, fencing, gates, and fascias. Weather-resistant paints applied to protect your property and boost kerb appeal.',
+                'price'       => null,
+                'currency'    => 'GBP',
+                'show_price'  => false,
+                'featured'    => true,
+            ],
+            [
+                'id'          => 'svc-3',
+                'name'        => 'Wallpaper Hanging',
+                'description' => null,
+                'price'       => null,
+                'currency'    => 'GBP',
+                'show_price'  => false,
+                'featured'    => false,
+            ],
+            [
+                'id'          => 'svc-4',
+                'name'        => 'Coving & Plasterwork',
+                'description' => null,
+                'price'       => null,
+                'currency'    => 'GBP',
+                'show_price'  => false,
+                'featured'    => false,
+            ],
+            [
+                'id'          => 'svc-5',
+                'name'        => 'Colour Consultation',
+                'description' => null,
+                'price'       => null,
+                'currency'    => 'GBP',
+                'show_price'  => false,
+                'featured'    => false,
+            ],
+        ],
+        'components' => [
+            'header'        => ['enabled' => true],
+            'description'   => ['enabled' => true],
+            'gallery'       => ['enabled' => true],
+            'quick_actions' => ['enabled' => true],
+            'reviews'       => ['enabled' => true],
+            'contact'       => ['enabled' => true],
+            'contact_form'  => ['enabled' => true],
+            'services'      => ['enabled' => true],
+        ],
+        'overrides' => [
+            'description'   => '',
+            'logo_path'     => '',
+            'contact_email' => 'dave@davespainting.co.uk',
+            'header_bg'     => [
+                'type'       => 'stock',
+                'value'      => 'https://images.pexels.com/photos/6474471/pexels-photo-6474471.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2',
+                'credit'     => 'Tima Miroshnichenko',
+                'credit_url' => 'https://www.pexels.com/photo/man-in-white-dress-shirt-painting-wall-6474471/',
+            ],
+        ],
+    ];
+
+    return Inertia::render('site/Index', [
+        'data'            => $data,
+        'isPremium'       => true,
+        'metaTitle'       => "Dave's Painting & Decorating",
+        'metaDescription' => "Family-run painting & decorating in Manchester.",
+        'siteUrl'         => config('app.url') . '/demo',
+        'canonicalUrl'    => config('app.url') . '/demo',
+        'sitemapUrl'      => null,
+        'isOwner'         => false,
+        'dashboardUrl'    => config('app.url') . '/dashboard',
+    ]);
+})->name('demo');
+
 Route::get('terms', function () {
     return Inertia::render('Terms');
 })->name('terms');

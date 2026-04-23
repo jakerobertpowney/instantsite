@@ -62,19 +62,60 @@ const scrollToSearch = () => {
     }
 };
 
+// ── Preview iframe scaling ────────────────────────────────────────────────────
+const previewClip = ref<HTMLElement | null>(null);
+const previewIframe = ref<HTMLIFrameElement | null>(null);
+
+const updatePreviewScale = () => {
+    if (!previewClip.value || !previewIframe.value) return;
+    const containerWidth = previewClip.value.offsetWidth;
+    // Always render the desktop version of the demo site.
+    const designWidth = 900;
+    const scale = containerWidth / designWidth;
+    // iframeHeight = visible clip height ÷ scale → ensures site content
+    // overflows the iframe viewport so the iframe can scroll internally.
+    const iframeHeight = Math.round(previewClip.value.offsetHeight / scale);
+    previewIframe.value.style.width = `${designWidth}px`;
+    previewIframe.value.style.transform = `scale(${scale})`;
+    previewIframe.value.style.height = `${iframeHeight}px`;
+};
+
+// Inject a style rule that disables all anchor clicks in the demo iframe.
+// tel: / wa.me / map links are built by the site component from props, so
+// we can't zero them out at the data level — CSS pointer-events is easier.
+const disableDemoLinks = () => {
+    try {
+        const doc = previewIframe.value?.contentDocument;
+        if (!doc || doc.getElementById('demo-no-links')) return;
+        const style = doc.createElement('style');
+        style.id = 'demo-no-links';
+        style.textContent = 'a { pointer-events: none !important; cursor: default !important; }';
+        (doc.head ?? doc.documentElement).appendChild(style);
+    } catch {
+        // cross-origin guard — should not fire since demo is same-origin
+    }
+};
+
 onMounted(() => {
     window.addEventListener('scroll', handleScroll, { passive: true });
+    updatePreviewScale();
+    window.addEventListener('resize', updatePreviewScale);
+    previewIframe.value?.addEventListener('load', () => {
+        disableDemoLinks();
+        updatePreviewScale();
+    });
 });
 
 onUnmounted(() => {
     window.removeEventListener('scroll', handleScroll);
+    window.removeEventListener('resize', updatePreviewScale);
 });
 
 // ── Static data ───────────────────────────────────────────────────────────────
 const freeFeats = [
     'Your own one-page website',
     'Free address: yourname.321sites.com',
-    'Auto-updates from Google',
+    'Manual Sync with Google Business Listing',
     'Photo gallery & reviews',
     'Call, message & WhatsApp buttons',
     'Works on any phone',
@@ -84,32 +125,32 @@ const proFeats = [
     'Everything in Free',
     'Use your own web address (e.g. thompsondecorating.co.uk)',
     'Remove the "Powered by 321Sites" mark',
-    'A proper contact form that emails you',
-    'Extra colour themes & backgrounds',
+    'Auto Sync with Google Business Listing',
+    'On-page contact form',
     'Priority support',
 ];
 
 const faqs = [
     {
         q: 'Do I need my own web address?',
-        a: "No. You get a free one — yourname.321sites.com — the minute you sign up. If you'd rather use your own (like thompsondecorating.co.uk), you can upgrade to Premium any time.",
+        a: "No. You get a free one — yourcompany.321sites.com — the minute you sign up. If you'd rather use your own (like thompsondecorating.co.uk), you can upgrade to Premium any time.",
     },
     {
-        q: "What if I'm not on Google Business Profile?",
-        a: "You'll need to add your business to Google first — it's free, and we can point you through it. Once Google knows about you, we can build your site.",
+        q: "What if I don't have a Google Business Profile?",
+        a: "You'll need a Google Business Profile before we can build your site — but setting one up is free and takes about 10 minutes. <a href=\"https://business.google.com/en-all/business-profile/\" target=\"_blank\" rel=\"noopener noreferrer\" class=\"mk-faq__link\">Set up your Google Business Profile →</a> Once you're listed, come back here and we'll build your site.",
     },
     {
         q: 'Can I edit things like my description and photos?',
         a: 'Your business details (name, address, hours, photos, reviews) are pulled from Google, so you change them once there and they update everywhere. Everything else — the description, colours, buttons, which sections show — you edit inside 321Sites with plain toggles and text boxes.',
     },
     {
-        q: "I'm not very techy. Will I be able to use it?",
-        a: "That's exactly who it's built for. No drag-and-drop, no picking templates, no jargon. If you can type your business name, you can use 321Sites.",
+        q: "I'm not a technical person, can I still build my site?",
+        a: "That's exactly who it's built for — and there's no real 'building' involved on your end. We pull everything from your Google listing automatically. No drag-and-drop, no templates to pick, no jargon. If you can type your business name, you can use 321Sites.",
     },
-    { q: 'Can I cancel?', a: 'Yes, any time, with one click. If you cancel Premium you drop back to Free — your site stays up.' },
+    { q: 'Am I locked into a contract?', a: 'Not at all. Cancel Premium any time with one click — no questions asked. You\'ll drop back to the Free plan, your site stays up, and your web address stays yours.' },
     {
         q: 'Will it show up on Google search?',
-        a: 'We write the hidden SEO bits (page title, description, structured data) for you, so Google knows what your site is about. You can tweak the title yourself in Search & sharing.',
+        a: 'Your 321Sites website and your Google Business Profile work together — the same name, address, and info in both places is one of the most effective things you can do for local search. We also set up the technical bits (meta title, description, structured data) so Google can index your site correctly.',
     },
 ];
 
@@ -121,10 +162,16 @@ const features = [
         t: 'Show your best work',
         d: 'A gallery of your photos, right at the top. Add or change them in Google Business Profile and they appear here.',
     },
-    { t: 'Reviews front and centre', d: 'Your Google star rating and best reviews, shown on your site. No fetching, no copy-paste.' },
-    { t: 'Shows up on Google', d: "We write the behind-the-scenes SEO bits so you're findable. You can tweak the title and description yourself." },
-    { t: 'Edit anything in plain English', d: "Big toggles, big buttons — everything is where you'd expect it." },
-    { t: 'Your own web address', d: 'Starts free as yourname.321sites.com. Upgrade to use your own domain whenever you like.' },
+    { t: 'Let your reviews do the talking', d: 'Your Google star rating and best reviews shown on your site automatically. The social proof that turns visitors into customers.' },
+    {
+        t: 'Linked to your Google listing',
+        d: 'Your site and your Google Business Profile work together — consistent info across both is one of the best things you can do for local search.',
+    },
+    { t: 'Your site, your way', d: 'Toggle sections on or off, update your description, swap your logo. Done in a few taps.' },
+    {
+        t: 'Your own web address',
+        d: 'You get a free web address like yourcompany.321sites.com. Upgrade to premium and use your own domain whenever you like.',
+    },
 ];
 </script>
 
@@ -161,7 +208,10 @@ const features = [
                     </template>
                     <template v-else>
                         <Link href="/login" class="mk-nav__signin">Sign in</Link>
-                        <button class="mk-btn mk-btn--primary" @click="scrollToSearch">Find my business</button>
+                        <button class="mk-btn mk-btn--primary" @click="scrollToSearch">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+                            Find my business
+                        </button>
                     </template>
                 </div>
             </div>
@@ -172,230 +222,170 @@ const features = [
         ══════════════════════════════════════════════ -->
         <section class="mk-hero">
             <div class="mk-container">
-                <div class="mk-hero__inner">
-                    <!-- Badge pill -->
-                    <div class="mk-pill">
-                        <span class="mk-pill__dot"></span>
-                        Free · No credit card · 2 minute setup
-                    </div>
+                <div class="mk-hero__split">
 
-                    <!-- Headline -->
-                    <h1 class="mk-hero__h1">A simple and free website for your business.</h1>
-                    <p class="mk-hero__sub">Turn your Google Business listing into a website in under 2 minutes. Free forever.</p>
-
-                    <!-- Search box -->
-                    <div id="hero-search" class="mk-search-wrap">
-                        <!-- Idle: search form -->
-                        <div v-if="searchPhase === 'idle'" class="mk-search" :class="{ 'mk-search--focused': searchFocused }">
-                            <svg
-                                class="mk-search__icon"
-                                width="26"
-                                height="26"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                stroke="currentColor"
-                                stroke-width="2"
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                                aria-hidden="true"
-                            >
-                                <circle cx="11" cy="11" r="8" />
-                                <path d="m21 21-4.35-4.35" />
-                            </svg>
-                            <input
-                                v-model="query"
-                                type="text"
-                                class="mk-search__input"
-                                placeholder="Your business name, e.g. Thompson Decorating"
-                                autofocus
-                                @focus="searchFocused = true"
-                                @blur="searchFocused = false"
-                                @keydown.enter="searchPlaces"
-                            />
-                            <button class="mk-btn mk-btn--primary mk-btn--lg" @click="searchPlaces">Find my business</button>
+                    <!-- ── Left: content ── -->
+                    <div class="mk-hero__left">
+                        <!-- Badge pill -->
+                        <div class="mk-pill">
+                            <span class="mk-pill__dot"></span>
+                            Free · No credit card · 2 minute setup
                         </div>
 
-                        <!-- Loading -->
-                        <div v-else-if="searchPhase === 'loading'" class="mk-search-state">
-                            <svg
-                                class="mk-spin"
-                                width="22"
-                                height="22"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                stroke="var(--mk-accent)"
-                                stroke-width="2.5"
-                                stroke-linecap="round"
-                                aria-hidden="true"
-                            >
-                                <path
-                                    d="M12 2v4m0 12v4M4.93 4.93l2.83 2.83m8.48 8.48 2.83 2.83M2 12h4m12 0h4M4.93 19.07l2.83-2.83m8.48-8.48 2.83-2.83"
-                                />
-                            </svg>
-                            <span>Searching Google Business…</span>
-                        </div>
+                        <!-- Headline -->
+                        <h1 class="mk-hero__h1">Your Google listing.<br>Now a free website.</h1>
+                        <p class="mk-hero__sub">Turn your Google Business listing into a website in under 2 minutes. Free forever.</p>
 
-                        <!-- Results -->
-                        <div v-else-if="searchPhase === 'results'" class="mk-results">
-                            <p class="mk-results__label">Is one of these your business?</p>
-                            <div v-for="place in places" :key="place.id" class="mk-result-row">
-                                <div class="mk-result-row__icon">
+                        <!-- Search box -->
+                        <div id="hero-search" class="mk-search-wrap">
+                            <!-- Idle: search form -->
+                            <div v-if="searchPhase === 'idle'" class="mk-search-stack">
+                                <div class="mk-search" :class="{ 'mk-search--focused': searchFocused }">
                                     <svg
-                                        width="18"
-                                        height="18"
+                                        class="mk-search__icon"
+                                        width="26"
+                                        height="26"
                                         viewBox="0 0 24 24"
                                         fill="none"
                                         stroke="currentColor"
                                         stroke-width="2"
                                         stroke-linecap="round"
                                         stroke-linejoin="round"
+                                        aria-hidden="true"
                                     >
-                                        <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z" />
-                                        <circle cx="12" cy="10" r="3" />
+                                        <circle cx="11" cy="11" r="8" />
+                                        <path d="m21 21-4.35-4.35" />
                                     </svg>
+                                    <input
+                                        v-model="query"
+                                        type="text"
+                                        class="mk-search__input"
+                                        placeholder="Your business name, e.g. Thompson Decorating"
+                                        autofocus
+                                        @focus="searchFocused = true"
+                                        @blur="searchFocused = false"
+                                        @keydown.enter="searchPlaces"
+                                    />
                                 </div>
-                                <div class="mk-result-row__info">
-                                    <div class="mk-result-row__name">{{ place.displayName.text }}</div>
-                                    <div class="mk-result-row__addr">{{ place.formattedAddress }}</div>
-                                </div>
-                                <span v-if="place.taken" class="mk-result-row__taken">
-                                    <span class="mk-btn mk-btn--sm mk-btn--taken" aria-disabled="true">Already claimed</span>
-                                    <Link href="/login" class="mk-result-row__taken-link">Sign in →</Link>
-                                </span>
-                                <Link v-else :href="show.url(place.id)" class="mk-btn mk-btn--primary mk-btn--sm"> This is me → </Link>
+                                <button class="mk-btn mk-btn--primary mk-btn--lg mk-search-stack__btn" @click="searchPlaces">
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+                                    Find my business
+                                </button>
                             </div>
-                            <button class="mk-reset-btn" @click="resetSearch">← Search again</button>
+
+                            <!-- Loading -->
+                            <div v-else-if="searchPhase === 'loading'" class="mk-search-state">
+                                <svg
+                                    class="mk-spin"
+                                    width="22"
+                                    height="22"
+                                    viewBox="0 0 24 24"
+                                    fill="none"
+                                    stroke="var(--mk-accent)"
+                                    stroke-width="2.5"
+                                    stroke-linecap="round"
+                                    aria-hidden="true"
+                                >
+                                    <path
+                                        d="M12 2v4m0 12v4M4.93 4.93l2.83 2.83m8.48 8.48 2.83 2.83M2 12h4m12 0h4M4.93 19.07l2.83-2.83m8.48-8.48 2.83-2.83"
+                                    />
+                                </svg>
+                                <span>Searching Google Business…</span>
+                            </div>
+
+                            <!-- Results -->
+                            <div v-else-if="searchPhase === 'results'" class="mk-results">
+                                <p class="mk-results__label">Is one of these your business?</p>
+                                <div v-for="place in places" :key="place.id" class="mk-result-row">
+                                    <div class="mk-result-row__icon">
+                                        <svg
+                                            width="18"
+                                            height="18"
+                                            viewBox="0 0 24 24"
+                                            fill="none"
+                                            stroke="currentColor"
+                                            stroke-width="2"
+                                            stroke-linecap="round"
+                                            stroke-linejoin="round"
+                                        >
+                                            <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z" />
+                                            <circle cx="12" cy="10" r="3" />
+                                        </svg>
+                                    </div>
+                                    <div class="mk-result-row__info">
+                                        <div class="mk-result-row__name">{{ place.displayName.text }}</div>
+                                        <div class="mk-result-row__addr">{{ place.formattedAddress }}</div>
+                                    </div>
+                                    <span v-if="place.taken" class="mk-result-row__taken">
+                                        <span class="mk-btn mk-btn--sm mk-btn--taken" aria-disabled="true">Already claimed</span>
+                                        <Link href="/login" class="mk-result-row__taken-link">Sign in →</Link>
+                                    </span>
+                                    <Link v-else :href="show.url(place.id)" class="mk-btn mk-btn--primary mk-btn--sm"> This is me → </Link>
+                                </div>
+                                <button class="mk-reset-btn" @click="resetSearch">← Search again</button>
+                            </div>
+
+                            <!-- No results -->
+                            <div v-else-if="searchPhase === 'empty'" class="mk-results mk-results--empty">
+                                <p class="mk-results__label">No results found</p>
+                                <p class="mk-results__sub">Try searching with your postcode or the full business name.</p>
+                                <button class="mk-reset-btn" @click="resetSearch">← Search again</button>
+                            </div>
                         </div>
 
-                        <!-- No results -->
-                        <div v-else-if="searchPhase === 'empty'" class="mk-results mk-results--empty">
-                            <p class="mk-results__label">No results found</p>
-                            <p class="mk-results__sub">Try searching with your postcode or the full business name.</p>
-                            <button class="mk-reset-btn" @click="resetSearch">← Search again</button>
+                        <!-- Trust signals -->
+                        <div class="mk-trust">
+                            <span class="mk-trust__item">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--mk-accent)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5" /></svg>
+                                Free yourcompany.321sites.com web address
+                            </span>
+                            <span class="mk-trust__item">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--mk-accent)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5" /></svg>
+                                No credit card required
+                            </span>
+                            <span class="mk-trust__item">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--mk-accent)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5" /></svg>
+                                Live in under 2 minutes
+                            </span>
                         </div>
                     </div>
 
-                    <!-- Trust signals -->
-                    <div class="mk-trust">
-                        <span class="mk-trust__item">
-                            <svg
-                                width="16"
-                                height="16"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                stroke="var(--mk-accent)"
-                                stroke-width="2.5"
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                                aria-hidden="true"
-                            >
-                                <path d="M20 6 9 17l-5-5" />
-                            </svg>
-                            Free yourcompany.321sites.com web address
-                        </span>
+                    <!-- ── Right: live website preview ── -->
+                    <div class="mk-hero__right">
+                        <div class="mk-preview-browser">
+                            <!-- Browser chrome bar -->
+                            <div class="mk-preview-browser__bar">
+                                <div class="mk-preview-browser__dots">
+                                    <span class="mk-preview-browser__dot"></span>
+                                    <span class="mk-preview-browser__dot"></span>
+                                    <span class="mk-preview-browser__dot"></span>
+                                </div>
+                                <div class="mk-preview-browser__urlbar">
+                                    <svg width="9" height="11" viewBox="0 0 9 11" fill="currentColor" aria-hidden="true">
+                                        <path d="M4.5 0C3.12 0 2 1.12 2 2.5V3H1a1 1 0 0 0-1 1v6a1 1 0 0 0 1 1h7a1 1 0 0 0 1-1V4a1 1 0 0 0-1-1H7v-.5C7 1.12 5.88 0 4.5 0zm0 1C5.33 1 6 1.67 6 2.5V3H3v-.5C3 1.67 3.67 1 4.5 1zM4.5 6a1 1 0 1 1 0 2 1 1 0 0 1 0-2z"/>
+                                    </svg>
+                                    davespainting.321sites.com
+                                </div>
+                            </div>
+                            <!-- Scaled iframe -->
+                            <div ref="previewClip" class="mk-preview-iframe-clip">
+                                <iframe
+                                    ref="previewIframe"
+                                    src="/demo"
+                                    class="mk-preview-iframe"
+                                    loading="lazy"
+                                    tabindex="-1"
+                                    aria-hidden="true"
+                                    title="Example business website"
+                                    sandbox="allow-scripts allow-same-origin"
+                                ></iframe>
+                            </div>
+                        </div>
+                        <p class="mk-preview-caption">
+                            Example site — built from a Google Business listing
+                        </p>
                     </div>
-                </div>
 
-                <!-- ── From Google listing to live website ── -->
-                <div class="mk-hero__below">
-                    <div class="mk-before-after">
-                        <!-- Left: Google listing -->
-                        <div class="mk-ba-item">
-                            <p class="mk-ba-label">Your Google listing</p>
-                            <div class="mk-google-card">
-                                <div class="mk-google-card__photos">
-                                    <div class="mk-google-card__photo-main"></div>
-                                    <div class="mk-google-card__photo-grid">
-                                        <div></div>
-                                        <div></div>
-                                    </div>
-                                </div>
-                                <div class="mk-google-card__body">
-                                    <p class="mk-google-card__name">Dave's Painting & Decorating</p>
-                                    <p class="mk-google-card__type">Painter · decorator</p>
-                                    <div class="mk-google-card__rating">
-                                        <span class="mk-stars">
-                                            <svg v-for="n in 5" :key="n" width="12" height="12" viewBox="0 0 24 24" fill="#f59e0b" aria-hidden="true">
-                                                <path
-                                                    d="M13.849 4.22c-.684-1.626-3.014-1.626-3.698 0L8.397 8.387l-4.552.361c-1.775.14-2.495 2.331-1.142 3.477l3.468 2.937-1.06 4.392c-.413 1.713 1.472 3.067 2.992 2.149L12 19.35l3.897 2.354c1.52.918 3.405-.436 2.992-2.15l-1.06-4.39 3.468-2.938c1.353-1.146.633-3.336-1.142-3.477l-4.552-.36-1.754-4.17Z"
-                                                />
-                                            </svg>
-                                        </span>
-                                        <span class="mk-google-card__rating-num">4.9</span>
-                                        <span class="mk-google-card__rating-count">(47)</span>
-                                        <span class="mk-google-card__open">· Open</span>
-                                    </div>
-                                    <p class="mk-google-card__addr">📍 Manchester, England</p>
-                                    <div class="mk-google-card__no-web">
-                                        <span>🌐</span>
-                                        <span class="mk-strikethrough">No website</span>
-                                    </div>
-                                    <div class="mk-google-card__actions">
-                                        <button v-for="a in ['Directions', 'Call', 'Save']" :key="a" class="mk-google-card__action-btn">
-                                            {{ a }}
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Middle: Arrow + logo -->
-                        <div class="mk-ba-arrow">
-                            <div class="mk-ba-arrow__logo">
-                                <AppLogo />
-                            </div>
-                            <svg
-                                width="28"
-                                height="28"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                stroke="var(--mk-accent)"
-                                stroke-width="2"
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                                aria-hidden="true"
-                            >
-                                <path d="M5 12h14m-7-7 7 7-7 7" />
-                            </svg>
-                            <span class="mk-ba-arrow__label">INSTANT</span>
-                        </div>
-
-                        <!-- Right: New website -->
-                        <div class="mk-ba-item">
-                            <p class="mk-ba-label">Your new website</p>
-                            <div class="mk-site-card">
-                                <div class="mk-site-card__header">
-                                    <div class="mk-site-card__accent-bar"></div>
-                                    <div class="mk-site-card__logo-mark">D</div>
-                                    <p class="mk-site-card__name">Dave's Painting & Decorating</p>
-                                    <p class="mk-site-card__loc">📍 Manchester, England</p>
-                                </div>
-                                <div class="mk-site-card__actions">
-                                    <button class="mk-site-card__btn mk-site-card__btn--primary">📞 Call</button>
-                                    <button class="mk-site-card__btn mk-site-card__btn--outline">✉ Message</button>
-                                    <button class="mk-site-card__btn mk-site-card__btn--book">📅 Book</button>
-                                </div>
-                                <div class="mk-site-card__about">
-                                    <p class="mk-site-card__section-label">About us</p>
-                                    <p class="mk-site-card__about-text">Family-run painting & decorating in Manchester with 20+ years' experience…</p>
-                                </div>
-                                <div class="mk-site-card__reviews">
-                                    <p class="mk-site-card__section-label">Reviews</p>
-                                    <div class="mk-site-card__review-row">
-                                        <span class="mk-stars">
-                                            <svg v-for="n in 5" :key="n" width="12" height="12" viewBox="0 0 24 24" fill="#f59e0b" aria-hidden="true">
-                                                <path
-                                                    d="M13.849 4.22c-.684-1.626-3.014-1.626-3.698 0L8.397 8.387l-4.552.361c-1.775.14-2.495 2.331-1.142 3.477l3.468 2.937-1.06 4.392c-.413 1.713 1.472 3.067 2.992 2.149L12 19.35l3.897 2.354c1.52.918 3.405-.436 2.992-2.15l-1.06-4.39 3.468-2.938c1.353-1.146.633-3.336-1.142-3.477l-4.552-.36-1.754-4.17Z"
-                                                />
-                                            </svg>
-                                        </span>
-                                        <span class="mk-site-card__rating-num">4.9</span>
-                                        <span class="mk-site-card__review-count">· 47 Google reviews</span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
                 </div>
             </div>
         </section>
@@ -407,7 +397,7 @@ const features = [
             <div class="mk-container">
                 <div class="mk-section-head mk-section-head--center">
                     <div class="mk-eyebrow">How it works</div>
-                    <h2 class="mk-section-head__h2">From Google listing to a proper website in three steps.</h2>
+                    <h2 class="mk-section-head__h2">A website from your Google Business listing in three steps.</h2>
                     <p class="mk-section-head__sub">
                         No drag-and-drop. No templates to pick. We build the whole thing from what Google already knows about your business.
                     </p>
@@ -424,13 +414,13 @@ const features = [
                             {
                                 n: '02',
                                 t: 'Add your finishing touches',
-                                d: 'Upload a logo, tweak the text. Or skip — it works out of the box.',
+                                d: 'Upload a logo, write a description, change colour schemes. Or skip — it works out of the box.',
                                 icon: 'palette',
                             },
                             {
                                 n: '03',
                                 t: 'Share your new website',
-                                d: 'You get a free web address like yourname.321sites.com. Hand it to customers, stick it on your van.',
+                                d: 'You get a free web address like yourcompany.321sites.com. Hand it to customers, stick it on your van.',
                                 icon: 'globe',
                             },
                         ]"
@@ -495,7 +485,10 @@ const features = [
                     </div>
                 </div>
                 <div class="mk-steps-cta">
-                    <button class="mk-btn mk-btn--primary mk-btn--lg" @click="scrollToSearch">Find my business on Google</button>
+                    <button class="mk-btn mk-btn--primary mk-btn--lg" @click="scrollToSearch">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+                        Find my business
+                    </button>
                     <div class="mk-steps-cta__note">No sign-up needed to start. Really.</div>
                 </div>
             </div>
@@ -575,10 +568,19 @@ const features = [
                                 <circle cx="8.5" cy="8.5" r="1.5" />
                                 <path d="m21 15-5-5L5 21" />
                             </svg>
-                            <svg v-else-if="i === 4" width="22" height="22" viewBox="0 0 24 24" fill="#f59e0b" aria-hidden="true">
-                                <path
-                                    d="M13.849 4.22c-.684-1.626-3.014-1.626-3.698 0L8.397 8.387l-4.552.361c-1.775.14-2.495 2.331-1.142 3.477l3.468 2.937-1.06 4.392c-.413 1.713 1.472 3.067 2.992 2.149L12 19.35l3.897 2.354c1.52.918 3.405-.436 2.992-2.15l-1.06-4.39 3.468-2.938c1.353-1.146.633-3.336-1.142-3.477l-4.552-.36-1.754-4.17Z"
-                                />
+                            <svg
+                                v-else-if="i === 4"
+                                width="22"
+                                height="22"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="var(--mk-accent)"
+                                stroke-width="2"
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                aria-hidden="true"
+                            >
+                                <path d="M11.525 2.295a.53.53 0 0 1 .95 0l2.31 4.679a2.123 2.123 0 0 0 1.595 1.16l5.166.756a.53.53 0 0 1 .294.904l-3.736 3.638a2.123 2.123 0 0 0-.611 1.878l.882 5.14a.53.53 0 0 1-.771.56l-4.618-2.428a2.122 2.122 0 0 0-1.973 0L6.396 21.01a.53.53 0 0 1-.77-.56l.881-5.139a2.122 2.122 0 0 0-.611-1.879L2.16 9.795a.53.53 0 0 1 .294-.906l5.165-.755a2.122 2.122 0 0 0 1.597-1.16z" />
                             </svg>
                             <svg
                                 v-else-if="i === 5"
@@ -640,8 +642,8 @@ const features = [
             <div class="mk-container">
                 <div class="mk-section-head mk-section-head--center">
                     <div class="mk-eyebrow">Pricing</div>
-                    <h2 class="mk-section-head__h2">Free to start. £9/month when you're ready.</h2>
-                    <p class="mk-section-head__sub">Start on Free. Upgrade when you outgrow it. No setup fees, no surprises.</p>
+                    <h2 class="mk-section-head__h2">Free forever. £9/month when you're ready.</h2>
+                    <p class="mk-section-head__sub">No hidden fees. No surprises. Cancel any time.</p>
                 </div>
                 <div class="mk-pricing-grid">
                     <!-- Free plan -->
@@ -672,11 +674,14 @@ const features = [
                                 {{ f }}
                             </li>
                         </ul>
-                        <button class="mk-btn mk-btn--secondary mk-btn--full" @click="scrollToSearch">Find my business</button>
+                        <button class="mk-btn mk-btn--secondary mk-btn--full" @click="scrollToSearch">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+                            Find my business
+                        </button>
                     </div>
                     <!-- Premium plan -->
                     <div class="mk-plan mk-plan--premium">
-                        <div class="mk-plan__popular">Most popular</div>
+                        <div class="mk-plan__popular">Best value</div>
                         <div class="mk-plan__tier mk-plan__tier--light">Premium</div>
                         <div class="mk-plan__price-row">
                             <span class="mk-plan__price">£9</span>
@@ -706,14 +711,14 @@ const features = [
                         <button class="mk-btn mk-btn--white mk-btn--full">Start Premium — £9/mo</button>
                     </div>
                 </div>
-                <p class="mk-pricing-note">Prices in GBP. VAT included where applicable. Cancel any time.</p>
+                <p class="mk-pricing-note">Prices in GBP. VAT included where applicable. No hidden fees. No price hikes at renewal. Cancel any time.</p>
             </div>
         </section>
 
         <!-- ══════════════════════════════════════════════
              FAQ
         ══════════════════════════════════════════════ -->
-        <section id="faq" class="mk-section">
+        <section id="faq" class="mk-section mk-section--flush-top">
             <div class="mk-container mk-container--narrow">
                 <div class="mk-section-head mk-section-head--center">
                     <div class="mk-eyebrow">FAQ</div>
@@ -739,7 +744,7 @@ const features = [
                                 </svg>
                             </span>
                         </button>
-                        <div v-if="faqOpen === i" class="mk-faq__a">{{ item.a }}</div>
+                        <div v-if="faqOpen === i" class="mk-faq__a" v-html="item.a"></div>
                     </div>
                 </div>
                 <p class="mk-faq__note">
@@ -752,30 +757,17 @@ const features = [
         <!-- ══════════════════════════════════════════════
              CTA BAND
         ══════════════════════════════════════════════ -->
-        <section class="mk-section">
+        <section class="mk-section mk-section--flush-top">
             <div class="mk-container">
                 <div class="mk-cta-band">
                     <div class="mk-cta-band__copy">
-                        <h2 class="mk-cta-band__h2">A proper website for your business. In the time it takes to make a cuppa.</h2>
+                        <h2 class="mk-cta-band__h2">A website for your business in the time it takes to make a brew.</h2>
                         <p class="mk-cta-band__sub">Free to start, no credit card, no pushy sales calls. Give it a go — there's no commitment.</p>
                     </div>
                     <div class="mk-cta-band__action">
                         <button class="mk-btn mk-btn--accent-white mk-btn--lg" @click="scrollToSearch">
-                            <svg
-                                width="22"
-                                height="22"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                stroke="currentColor"
-                                stroke-width="2"
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                                aria-hidden="true"
-                            >
-                                <circle cx="11" cy="11" r="8" />
-                                <path d="m21 21-4.35-4.35" />
-                            </svg>
-                            Find my business on Google
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+                            Find my business
                         </button>
                         <div class="mk-cta-band__trust">
                             <span>
@@ -826,7 +818,7 @@ const features = [
                         <div class="mk-footer__logo" style="color: #ffffff">
                             <AppLogo />
                         </div>
-                        <p class="mk-footer__tagline">A website for your business in the time it takes to make a cuppa.</p>
+                        <p class="mk-footer__tagline">A website for your business in the time it takes to make a brew.</p>
                     </div>
                     <div class="mk-footer__cols">
                         <div class="mk-footer__col">
@@ -838,6 +830,7 @@ const features = [
                         </div>
                         <div class="mk-footer__col">
                             <div class="mk-footer__col-head">Support</div>
+                            <Link href="/help" class="mk-footer__link">Help centre</Link>
                             <a href="mailto:support@321sites.com" class="mk-footer__link">Contact us</a>
                         </div>
                         <div class="mk-footer__col">
@@ -862,14 +855,14 @@ const features = [
 <style>
 /* ── Design tokens ──────────────────────────────────────────────────────────── */
 :root {
-    --mk-bg: #f6f5f1;
+    --mk-bg: #ffffff;
     --mk-surface: #ffffff;
-    --mk-ink: #111418;
-    --mk-ink-mid: #434b55;
-    --mk-ink-soft: #6b727d;
-    --mk-line: #d9d6ce;
-    --mk-line-soft: #e6e3db;
-    --mk-panel: #eceae2;
+    --mk-ink: #0f172a;
+    --mk-ink-mid: #3d4a5c;
+    --mk-ink-soft: #64748b;
+    --mk-line: #dde1e8;
+    --mk-line-soft: #e8ecf1;
+    --mk-panel: #edf1f8;
     --mk-accent: #1e66f5;
     --mk-accent-soft: #e6eefe;
     --mk-accent-fg: #ffffff;
@@ -905,6 +898,7 @@ const features = [
 .mk-btn {
     display: inline-flex;
     align-items: center;
+    justify-content: center;
     gap: 8px;
     height: 48px;
     padding: 0 20px;
@@ -983,13 +977,14 @@ const features = [
     position: sticky;
     top: 0;
     z-index: 40;
-    background: rgba(246, 245, 241, 0.92);
+    background: rgba(238, 244, 255, 0.92);
     backdrop-filter: saturate(140%) blur(8px);
     -webkit-backdrop-filter: saturate(140%) blur(8px);
     border-bottom: 1px solid transparent;
-    transition: border-color 0.2s ease;
+    transition: border-color 0.2s ease, background 0.2s ease;
 }
 .mk-nav--scrolled {
+    background: rgba(255, 255, 255, 0.92);
     border-bottom-color: var(--mk-line-soft);
 }
 .mk-nav__inner {
@@ -1071,12 +1066,93 @@ const features = [
 
 /* ── Hero ───────────────────────────────────────────────────────────────────── */
 .mk-hero {
-    padding: 80px 0 0;
+    padding: 0;
+    background: linear-gradient(180deg, #eef4ff 0%, #ffffff 100%);
 }
-.mk-hero__inner {
+.mk-hero__split {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 56px;
+    align-items: start;
+    padding: 80px 0 72px;
+}
+.mk-hero__left {
+    text-align: left;
+    padding-top: 24px;
+}
+.mk-hero__right {
+    position: relative;
+}
+
+/* ── Preview browser mockup ──────────────────────────────────────────────────── */
+.mk-preview-browser {
+    border-radius: 12px;
+    overflow: hidden;
+    border: 1.5px solid var(--mk-line);
+    box-shadow:
+        0 24px 60px -12px rgba(0, 0, 0, 0.14),
+        0 8px 20px -8px rgba(0, 0, 0, 0.08);
+}
+.mk-preview-browser__bar {
+    height: 40px;
+    background: #f5f7fa;
+    border-bottom: 1.5px solid var(--mk-line);
+    display: flex;
+    align-items: center;
+    padding: 0 14px;
+    gap: 10px;
+}
+.mk-preview-browser__dots {
+    display: flex;
+    gap: 5px;
+    flex-shrink: 0;
+}
+.mk-preview-browser__dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+}
+.mk-preview-browser__dot:nth-child(1) { background: #ff5f57; }
+.mk-preview-browser__dot:nth-child(2) { background: #febc2e; }
+.mk-preview-browser__dot:nth-child(3) { background: #28c840; }
+.mk-preview-browser__urlbar {
+    flex: 1;
+    height: 24px;
+    background: #e9ecf0;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    padding: 0 10px;
+    gap: 5px;
+    font-size: 11px;
+    color: #718096;
+    overflow: hidden;
+    white-space: nowrap;
+    font-family: ui-monospace, 'Menlo', monospace;
+}
+.mk-preview-iframe-clip {
+    width: 100%;
+    overflow: clip;
+    position: relative;
+    height: 520px;
+    background: white;
+    cursor: default;
+}
+.mk-preview-iframe {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 900px; /* JS overrides width (900 desktop / 390 mobile) and height at runtime */
+    height: 900px;
+    border: none;
+    transform-origin: top left;
+}
+.mk-preview-caption {
     text-align: center;
-    max-width: 920px;
-    margin: 0 auto;
+    font-size: 12px;
+    color: var(--mk-ink-soft);
+    margin-top: 10px;
+    font-weight: 500;
 }
 
 /* Pill badge */
@@ -1102,10 +1178,10 @@ const features = [
 }
 
 .mk-hero__h1 {
-    font-size: clamp(40px, 7vw, 78px);
+    font-size: clamp(32px, 4.2vw, 54px);
     font-weight: 900;
     letter-spacing: -2px;
-    line-height: 1.02;
+    line-height: 1.05;
     margin: 0;
     color: var(--mk-ink);
 }
@@ -1114,24 +1190,32 @@ const features = [
     font-size: clamp(18px, 2vw, 22px);
     color: var(--mk-ink-mid);
     line-height: 1.5;
-    margin: 24px auto 0;
-    max-width: 640px;
+    margin: 24px 0 0;
+    max-width: 520px;
 }
 
 /* Search */
 .mk-search-wrap {
     margin-top: 44px;
     position: relative;
-    max-width: 720px;
-    margin-left: auto;
-    margin-right: auto;
+    max-width: 600px;
+}
+.mk-search-stack {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+.mk-search-stack__btn {
+    width: 100%;
+    justify-content: center;
+    border-radius: 12px;
 }
 .mk-search {
     display: flex;
     align-items: center;
     gap: 6px;
     background: #fff;
-    border: 2.5px solid var(--mk-ink);
+    border: 2px solid var(--mk-line);
     border-radius: 16px;
     padding: 8px;
     box-shadow: 0 6px 18px rgba(0, 0, 0, 0.06);
@@ -1282,11 +1366,10 @@ const features = [
 /* Trust */
 .mk-trust {
     display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 20px;
-    flex-wrap: wrap;
-    margin-top: 20px;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+    margin-top: 24px;
 }
 .mk-trust__item {
     display: inline-flex;
@@ -1560,7 +1643,32 @@ const features = [
     padding: 100px 0;
 }
 .mk-section--panel {
-    background: var(--mk-panel);
+    background: var(--mk-ink);
+}
+.mk-section--panel .mk-eyebrow {
+    color: #6ea3ff;
+}
+.mk-section--panel .mk-section-head__h2 {
+    color: #ffffff;
+}
+.mk-section--panel .mk-features-grid {
+    gap: 1px;
+    background: rgba(255, 255, 255, 0.08);
+}
+.mk-section--panel .mk-feature-cell {
+    background: var(--mk-ink);
+}
+.mk-section--panel .mk-feature-cell__icon {
+    background: rgba(30, 102, 245, 0.18);
+}
+.mk-section--panel .mk-feature-cell__title {
+    color: #ffffff;
+}
+.mk-section--panel .mk-feature-cell__desc {
+    color: rgba(255, 255, 255, 0.55);
+}
+.mk-section--flush-top {
+    padding-top: 40px;
 }
 .mk-section-head {
     margin-bottom: 56px;
@@ -1871,6 +1979,17 @@ const features = [
     font-weight: 700;
     text-underline-offset: 3px;
 }
+.mk-faq__link {
+    color: var(--mk-accent);
+    font-weight: 600;
+    text-decoration: none;
+    display: inline-block;
+    margin: 8px 0;
+}
+.mk-faq__link:hover {
+    text-decoration: underline;
+    text-underline-offset: 3px;
+}
 
 /* ── CTA Band ────────────────────────────────────────────────────────────────── */
 .mk-cta-band {
@@ -2019,6 +2138,30 @@ const features = [
     .mk-nav__links {
         display: none;
     }
+    /* Stack hero split on tablet */
+    .mk-hero__split {
+        grid-template-columns: 1fr;
+        padding: 72px 0 60px;
+        gap: 48px;
+    }
+    .mk-hero__left {
+        text-align: center;
+    }
+    .mk-hero__sub {
+        max-width: 560px;
+        margin-left: auto;
+        margin-right: auto;
+    }
+    .mk-search-wrap {
+        margin-left: auto;
+        margin-right: auto;
+    }
+    .mk-trust {
+        align-items: center;
+    }
+    .mk-preview-iframe-clip {
+        height: 400px;
+    }
     .mk-steps-grid {
         grid-template-columns: 1fr;
     }
@@ -2037,38 +2180,21 @@ const features = [
     .mk-footer__cols {
         grid-template-columns: repeat(2, 1fr);
     }
-    .mk-before-after {
-        grid-template-columns: 1fr;
-    }
-    .mk-ba-arrow {
-        flex-direction: row;
-        justify-content: center;
-    }
-    .mk-ba-arrow__label {
-        display: none;
-    }
 }
 
 @media (max-width: 640px) {
-    .mk-hero {
-        padding: 60px 0 0;
+    .mk-hero__split {
+        padding: 60px 0 48px;
     }
     .mk-hero__h1 {
         letter-spacing: -1px;
     }
-    .mk-search {
-        flex-wrap: wrap;
-    }
-    .mk-search .mk-btn {
-        width: 100%;
-        justify-content: center;
-        border-radius: 8px;
+    .mk-hero__right {
+        display: none;
     }
     .mk-features-grid {
         grid-template-columns: 1fr;
     }
-    .mk-before-after {
-        padding: 24px;
-    }
 }
+
 </style>
