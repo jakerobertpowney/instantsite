@@ -43,6 +43,11 @@ const handleScroll = () => {
     scrolled.value = window.scrollY > 60;
 };
 
+// ── Mobile menu ───────────────────────────────────────────────────────────────
+const mobileMenuOpen = ref(false);
+const toggleMobileMenu = () => { mobileMenuOpen.value = !mobileMenuOpen.value; };
+const closeMobileMenu = () => { mobileMenuOpen.value = false; };
+
 // ── FAQ accordion ─────────────────────────────────────────────────────────────
 const faqOpen = ref<number | null>(0);
 const toggleFaq = (i: number) => {
@@ -51,11 +56,13 @@ const toggleFaq = (i: number) => {
 
 // ── Smooth scroll helper ──────────────────────────────────────────────────────
 const scrollTo = (id: string) => {
+    closeMobileMenu();
     const el = document.getElementById(id);
     if (el) window.scrollTo({ top: el.offsetTop - 72, behavior: 'smooth' });
 };
 
 const scrollToSearch = () => {
+    closeMobileMenu();
     const el = document.getElementById('hero-search');
     if (el) {
         el.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -193,7 +200,7 @@ const features = [
                     <AppLogo />
                 </a>
 
-                <!-- Nav links -->
+                <!-- Desktop nav links -->
                 <nav class="mk-nav__links">
                     <button class="mk-nav__link" @click="scrollTo('how')">How it works</button>
                     <button class="mk-nav__link" @click="scrollTo('features')">Features</button>
@@ -201,8 +208,8 @@ const features = [
                     <button class="mk-nav__link" @click="scrollTo('faq')">FAQ</button>
                 </nav>
 
-                <!-- CTA — auth-aware -->
-                <div class="mk-nav__cta">
+                <!-- Desktop CTA — auth-aware -->
+                <div class="mk-nav__cta mk-nav__cta--desktop">
                     <template v-if="isLoggedIn">
                         <Link href="/dashboard" class="mk-btn mk-btn--primary">Dashboard</Link>
                     </template>
@@ -210,6 +217,35 @@ const features = [
                         <Link href="/login" class="mk-nav__signin">Sign in</Link>
                         <button class="mk-btn mk-btn--primary" @click="scrollToSearch">
                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+                            Find my business
+                        </button>
+                    </template>
+                </div>
+
+                <!-- Mobile hamburger -->
+                <button class="mk-nav__hamburger" :class="{ 'mk-nav__hamburger--open': mobileMenuOpen }" :aria-expanded="mobileMenuOpen" aria-label="Toggle menu" @click="toggleMobileMenu">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </button>
+            </div>
+
+            <!-- Mobile menu panel -->
+            <div class="mk-mobile-menu" :class="{ 'mk-mobile-menu--open': mobileMenuOpen }" aria-hidden="!mobileMenuOpen">
+                <nav class="mk-mobile-menu__links">
+                    <button class="mk-mobile-menu__link" @click="scrollTo('how')">How it works</button>
+                    <button class="mk-mobile-menu__link" @click="scrollTo('features')">Features</button>
+                    <button class="mk-mobile-menu__link" @click="scrollTo('pricing')">Pricing</button>
+                    <button class="mk-mobile-menu__link" @click="scrollTo('faq')">FAQ</button>
+                </nav>
+                <div class="mk-mobile-menu__actions">
+                    <template v-if="isLoggedIn">
+                        <Link href="/dashboard" class="mk-btn mk-btn--primary mk-btn--full" @click="closeMobileMenu">Dashboard</Link>
+                    </template>
+                    <template v-else>
+                        <Link href="/login" class="mk-mobile-menu__signin" @click="closeMobileMenu">Sign in</Link>
+                        <button class="mk-btn mk-btn--primary mk-btn--full" @click="scrollToSearch">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
                             Find my business
                         </button>
                     </template>
@@ -882,6 +918,7 @@ const features = [
     color: var(--mk-ink);
     -webkit-font-smoothing: antialiased;
     min-height: 100vh;
+    overflow-x: clip;
 }
 
 /* ── Container ──────────────────────────────────────────────────────────────── */
@@ -2133,16 +2170,136 @@ const features = [
     background: #5bd46a;
 }
 
+/* ── Hamburger button ────────────────────────────────────────────────────────── */
+.mk-nav__hamburger {
+    display: none;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 5px;
+    width: 40px;
+    height: 40px;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 8px;
+    flex-shrink: 0;
+    transition: background 0.1s ease;
+}
+.mk-nav__hamburger:hover {
+    background: var(--mk-panel);
+}
+.mk-nav__hamburger span {
+    display: block;
+    width: 22px;
+    height: 2px;
+    background: var(--mk-ink);
+    border-radius: 2px;
+    transition: transform 0.2s ease, opacity 0.2s ease;
+    transform-origin: center;
+}
+/* Animate to ✕ when open */
+.mk-nav__hamburger--open span:nth-child(1) {
+    transform: translateY(7px) rotate(45deg);
+}
+.mk-nav__hamburger--open span:nth-child(2) {
+    opacity: 0;
+    transform: scaleX(0);
+}
+.mk-nav__hamburger--open span:nth-child(3) {
+    transform: translateY(-7px) rotate(-45deg);
+}
+
+/* ── Mobile menu panel ───────────────────────────────────────────────────────── */
+.mk-mobile-menu {
+    display: none;
+    flex-direction: column;
+    background: #fff;
+    /* transparent border so the 1px line doesn't show when collapsed */
+    border-top: 1px solid transparent;
+    /* zero vertical padding — content-box sizing means padding bleeds past max-height:0 */
+    padding: 0 24px;
+    gap: 4px;
+    overflow: hidden;
+    max-height: 0;
+    transition: max-height 0.28s ease, padding 0.28s ease, border-color 0.15s ease;
+}
+.mk-mobile-menu--open {
+    max-height: 480px;
+    padding: 16px 24px 28px;
+    border-top-color: var(--mk-line-soft);
+}
+.mk-mobile-menu__links {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    margin-bottom: 16px;
+}
+.mk-mobile-menu__link {
+    width: 100%;
+    text-align: left;
+    padding: 13px 12px;
+    border: none;
+    background: transparent;
+    font-family: inherit;
+    font-size: 17px;
+    font-weight: 600;
+    color: var(--mk-ink);
+    cursor: pointer;
+    border-radius: 10px;
+    transition: background 0.1s ease;
+}
+.mk-mobile-menu__link:hover {
+    background: var(--mk-panel);
+}
+.mk-mobile-menu__actions {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    border-top: 1px solid var(--mk-line-soft);
+    padding-top: 16px;
+}
+.mk-mobile-menu__signin {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 48px;
+    border-radius: 10px;
+    border: 1.5px solid var(--mk-line);
+    font-family: inherit;
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--mk-ink);
+    text-decoration: none;
+    transition: background 0.1s ease;
+}
+.mk-mobile-menu__signin:hover {
+    background: var(--mk-panel);
+}
+
 /* ── Responsive ──────────────────────────────────────────────────────────────── */
 @media (max-width: 900px) {
     .mk-nav__links {
         display: none;
     }
+    .mk-nav__cta--desktop {
+        display: none;
+    }
+    .mk-nav__hamburger {
+        display: flex;
+    }
+    .mk-mobile-menu {
+        display: flex;
+    }
+    .mk-nav__inner {
+        justify-content: space-between;
+    }
     /* Stack hero split on tablet */
     .mk-hero__split {
         grid-template-columns: 1fr;
-        padding: 72px 0 60px;
-        gap: 48px;
+        padding: 56px 0 48px;
+        gap: 40px;
     }
     .mk-hero__left {
         text-align: center;
@@ -2156,11 +2313,30 @@ const features = [
         margin-left: auto;
         margin-right: auto;
     }
+    /* Trust items: keep icon pinned to text on wrap */
     .mk-trust {
-        align-items: center;
+        align-items: flex-start;
+        display: inline-flex;
+        flex-direction: column;
+        margin: 0 auto;
+    }
+    .mk-trust__item {
+        display: flex;
+        align-items: flex-start;
+        text-align: left;
     }
     .mk-preview-iframe-clip {
         height: 400px;
+    }
+    /* Tighter section spacing on tablet/mobile */
+    .mk-section {
+        padding: 72px 0;
+    }
+    .mk-section--flush-top {
+        padding-top: 32px;
+    }
+    .mk-section-head {
+        margin-bottom: 40px;
     }
     .mk-steps-grid {
         grid-template-columns: 1fr;
@@ -2171,20 +2347,42 @@ const features = [
     .mk-pricing-grid {
         grid-template-columns: 1fr;
     }
+    /* CTA band: centre-align content on mobile */
     .mk-cta-band {
         grid-template-columns: 1fr;
+        text-align: center;
     }
+    .mk-cta-band__sub {
+        margin-left: auto;
+        margin-right: auto;
+    }
+    .mk-cta-band__action {
+        align-items: center;
+    }
+    .mk-cta-band__action .mk-btn {
+        width: 100%;
+        max-width: 360px;
+        justify-content: center;
+    }
+    /* FAQ */
+    .mk-faq {
+        margin-top: 32px;
+    }
+    /* Footer: stack brand above a 3-col link grid */
     .mk-footer__top {
         grid-template-columns: 1fr;
+        gap: 32px;
+        padding-top: 48px;
+        padding-bottom: 32px;
     }
     .mk-footer__cols {
-        grid-template-columns: repeat(2, 1fr);
+        grid-template-columns: repeat(3, 1fr);
     }
 }
 
 @media (max-width: 640px) {
     .mk-hero__split {
-        padding: 60px 0 48px;
+        padding: 44px 0 40px;
     }
     .mk-hero__h1 {
         letter-spacing: -1px;
@@ -2192,8 +2390,41 @@ const features = [
     .mk-hero__right {
         display: none;
     }
+    .mk-section {
+        padding: 64px 0;
+    }
+    .mk-section-head {
+        margin-bottom: 32px;
+    }
     .mk-features-grid {
         grid-template-columns: 1fr;
+    }
+    /* Remove extra top padding on hero left col — split already has top padding */
+    .mk-hero__left {
+        padding-top: 0;
+    }
+    /* Reduce pill bottom margin so headline sits closer */
+    .mk-pill {
+        margin-bottom: 20px;
+        white-space: normal;
+        text-align: center;
+    }
+    /* Footer: 2-col links on small mobile, Legal below */
+    .mk-footer__cols {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    /* Mobile menu links: tighter tap targets */
+    .mk-mobile-menu__link {
+        padding: 11px 12px;
+        font-size: 16px;
+    }
+    /* Step cards: tighter padding on small screens */
+    .mk-step-card {
+        padding: 24px;
+    }
+    /* Feature cells: tighter padding on small screens */
+    .mk-feature-cell {
+        padding: 24px;
     }
 }
 

@@ -936,4 +936,30 @@ const providerLabel = computed(() => {
 .sa-privacy-pill--on {
     background: #fef3c7; color: #92400e; border-color: #fde68a;
 }
+
+/* ── Responsive ──────────────────────────────────────────────────────── */
+@media (max-width: 640px) {
+    /* DNS table: stack type/name/value vertically per row */
+    .sa-dns-table__head { display: none; }
+    .sa-dns-table__row {
+        grid-template-columns: 1fr;
+        gap: 4px;
+        padding: 12px 14px;
+    }
+    .sa-dns-table__row > *:first-child {
+        font-weight: 700;
+        color: var(--db-ink);
+    }
+
+    /* Action row: stack buttons */
+    .sa-actions { flex-direction: column; gap: 8px; }
+    .sa-actions > * { width: 100%; }
+
+    /* Verify row: stack */
+    .sa-verify-row { flex-direction: column; align-items: flex-start; gap: 10px; }
+
+    /* Favicon options: full-width */
+    .sa-favicon-options { flex-direction: column; }
+    .sa-favicon-opt { width: 100%; }
+}
 </style>

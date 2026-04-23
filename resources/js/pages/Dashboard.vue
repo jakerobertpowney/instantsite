@@ -182,7 +182,7 @@ const unreadBadge = computed(() => (props.unreadCount ?? 0) > 0 ? props.unreadCo
                     class="db-preview-btn"
                 >
                     <ExternalLink :size="16" />
-                    <span>Preview my site</span>
+                    <span class="db-preview-btn__text">Preview my site</span>
                 </a>
             </header>
 
@@ -605,16 +605,47 @@ const unreadBadge = computed(() => (props.unreadCount ?? 0) > 0 ? props.unreadCo
         display: flex;
     }
 
+    /* Topbar: single-line, compact */
     .db-topbar {
-        padding: 18px 20px;
+        padding: 0 16px;
+        height: 56px;
+        gap: 12px;
     }
 
-    .db-content {
-        padding: 20px 20px 40px;
+    /* Hide subtitle — title alone is enough on small screens */
+    .db-topbar__sub {
+        display: none;
     }
 
+    /* Prevent title from wrapping */
     .db-topbar__title {
-        font-size: 20px;
+        font-size: 17px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    /* Preview button: icon only on mobile */
+    .db-preview-btn {
+        width: 40px;
+        height: 40px;
+        padding: 0;
+        justify-content: center;
+        border-radius: 10px;
+    }
+
+    .db-preview-btn__text {
+        display: none;
+    }
+
+    /* Content: tighter on mobile */
+    .db-content {
+        padding: 16px 16px 40px;
+    }
+
+    /* Sidebar nav items: slightly tighter on mobile */
+    .db-nav-item {
+        padding: 12px 14px;
     }
 }
 </style>
