@@ -918,7 +918,9 @@ const features = [
     color: var(--mk-ink);
     -webkit-font-smoothing: antialiased;
     min-height: 100vh;
-    overflow-x: clip;
+    overflow-x: hidden; /* clip is newer CSS; hidden is universally safe */
+    width: 100%;
+    max-width: 100%;
 }
 
 /* ── Container ──────────────────────────────────────────────────────────────── */
@@ -926,6 +928,8 @@ const features = [
     max-width: 1200px;
     margin: 0 auto;
     padding: 0 24px;
+    width: 100%;
+    box-sizing: border-box;
 }
 .mk-container--narrow {
     max-width: 860px;
@@ -1030,6 +1034,9 @@ const features = [
     gap: 20px;
     padding-top: 14px;
     padding-bottom: 14px;
+    /* Prevent the nav from stretching wider than its container */
+    min-width: 0;
+    width: 100%;
 }
 .mk-nav__logo {
     display: flex;
@@ -2315,15 +2322,19 @@ const features = [
     }
     /* Trust items: keep icon pinned to text on wrap */
     .mk-trust {
-        align-items: flex-start;
-        display: inline-flex;
+        display: flex;
         flex-direction: column;
+        align-items: flex-start;
+        /* fit-content centres the block without creating an inline overflow risk */
+        width: fit-content;
+        max-width: 100%;
         margin: 0 auto;
     }
     .mk-trust__item {
         display: flex;
         align-items: flex-start;
         text-align: left;
+        max-width: 100%;
     }
     .mk-preview-iframe-clip {
         height: 400px;
@@ -2425,6 +2436,29 @@ const features = [
     /* Feature cells: tighter padding on small screens */
     .mk-feature-cell {
         padding: 24px;
+    }
+    /* Reduce search input font — 20px causes excessive height on small screens */
+    .mk-search__input {
+        font-size: 16px;
+        padding: 12px 6px;
+    }
+    /* Hero subtitle: constrain width so it can't overflow */
+    .mk-hero__sub {
+        max-width: 100%;
+    }
+}
+
+/* ── Extra-small phones (< 380px) ──────────────────────────────────────────── */
+@media (max-width: 380px) {
+    /* Tighter horizontal padding gives more content room */
+    .mk-container {
+        padding: 0 16px;
+    }
+    .mk-hero__h1 {
+        font-size: 28px;
+    }
+    .mk-hero__sub {
+        font-size: 16px;
     }
 }
 

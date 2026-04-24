@@ -102,6 +102,17 @@
     }
 }
 
+/* Prevent horizontal overflow / scroll on all pages */
+html {
+    overflow-x: hidden;
+    max-width: 100%;
+}
+body {
+    overflow-x: hidden;
+    max-width: 100%;
+    width: 100%;
+}
+
 :root {
     --background: hsl(0 0% 100%);
     --foreground: hsl(0 0% 3.9%);
