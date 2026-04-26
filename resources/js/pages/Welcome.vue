@@ -227,7 +227,7 @@ const features = [
 
                 <!-- Mobile hamburger -->
                 <button :class="[
-                    'lg:hidden flex flex-col justify-center items-center gap-1.25 w-10 h-10 border-none bg-transparent cursor-pointer p-1 rounded-lg flex-shrink-0 transition-colors hover:bg-brand-panel',
+                    'lg:hidden ml-auto flex flex-col justify-center items-center gap-1.25 w-10 h-10 border-none bg-transparent cursor-pointer p-1 rounded-lg flex-shrink-0 transition-colors hover:bg-brand-panel',
                     mobileMenuOpen && 'bg-brand-panel'
                 ]" :aria-expanded="mobileMenuOpen" aria-label="Toggle menu" @click="toggleMobileMenu">
                     <span :class="[
@@ -281,17 +281,17 @@ const features = [
                     <!-- ── Left: content ── -->
                     <div class="min-w-0 text-center lg:text-left lg:pt-6">
                         <!-- Badge pill -->
-                        <div class="inline-flex items-center gap-2 px-3.5 py-2 rounded-full bg-brand-blue-soft text-brand-blue border-[1.5px] border-brand-blue/15 text-sm font-bold mb-7">
+                        <div class="inline-flex items-center gap-2 px-3.5 py-2 rounded-full bg-brand-blue-soft text-brand-blue border-[1.5px] border-brand-blue/15 text-sm font-bold mb-5 lg:mb-7">
                             <span class="w-2 h-2 rounded-full bg-brand-blue flex-shrink-0"></span>
                             Free · No credit card · 2 minute setup
                         </div>
 
                         <!-- Headline -->
                         <h1 class="text-[clamp(32px,4.2vw,54px)] font-black tracking-[-0.05em] leading-[1.05] m-0 text-brand-ink">Your Google listing.<br>Now a free website.</h1>
-                        <p class="text-[clamp(18px,2vw,22px)] text-brand-ink-mid leading-[1.5] mt-6 max-w-[520px]">Turn your Google Business listing into a website in under 2 minutes. Free forever.</p>
+                        <p class="text-[clamp(18px,2vw,22px)] text-brand-ink-mid leading-[1.5] mt-3 lg:mt-6 max-w-[520px]">Turn your Google Business listing into a website in under 2 minutes. Free forever.</p>
 
                         <!-- Search box -->
-                        <div id="hero-search" class="mt-11 relative w-full">
+                        <div id="hero-search" class="mt-5 lg:mt-11 relative w-full">
                             <!-- Idle: search form -->
                             <div v-if="searchPhase === 'idle'" class="flex flex-col gap-3">
                                 <div :class="[
@@ -317,7 +317,7 @@ const features = [
                                         v-model="query"
                                         type="text"
                                         class="flex-1 border-none outline-none bg-transparent font-inherit text-base lg:text-xl font-medium text-brand-ink py-3 lg:py-3.5 px-1.5 min-w-0 placeholder:text-brand-ink-soft"
-                                        placeholder="Your business name, e.g. Thompson Decorating"
+                                        placeholder="e.g. Thompson Decorating"
                                         autofocus
                                         @focus="searchFocused = true"
                                         @blur="searchFocused = false"
