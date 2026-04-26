@@ -154,18 +154,18 @@ const preferredTimePlaceholder = computed(() =>
 </script>
 
 <template>
-    <section class="text-white py-14" style="background-color: var(--site-primary-dark)">
-        <div class="max-w-5xl mx-auto px-6 md:px-14">
+    <section class="py-14 text-white" style="background-color: var(--site-primary-dark)">
+        <div class="mx-auto max-w-5xl px-6 md:px-14">
 
-            <p class="text-xs font-semibold uppercase tracking-widest mb-8" style="color: var(--site-secondary)">
+            <p class="mb-8 text-xs font-semibold uppercase tracking-widest" style="color: var(--site-secondary)">
                 {{ sectionLabel }}
             </p>
 
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-10">
+            <div class="grid grid-cols-1 gap-10 md:grid-cols-3 md:gap-10">
 
                 <!-- Address & Phone -->
                 <div class="flex flex-col gap-5">
-                    <h3 class="text-sm font-semibold text-white/60 uppercase tracking-wide">Contact</h3>
+                    <h3 class="text-sm font-semibold uppercase tracking-wide text-white/60">Contact</h3>
 
                     <!-- Phone -->
                     <a
@@ -174,18 +174,18 @@ const preferredTimePlaceholder = computed(() =>
                         class="inline-flex items-center gap-3 rounded-xl px-4 py-3.5 transition-colors hover:bg-white/10 -mx-4"
                     >
                         <span
-                            class="flex items-center justify-center h-10 w-10 rounded-full shrink-0"
+                            class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full"
                             style="background-color: var(--site-primary)"
                         >
                             <Phone class="h-5 w-5" style="color: var(--site-primary-fg)" />
                         </span>
-                        <span class="text-sm pt-2" style="color: rgba(255,255,255,0.65)">{{ phoneNumber }}</span>
+                        <span class="pt-2 text-sm" style="color: rgba(255,255,255,0.65)">{{ phoneNumber }}</span>
                     </a>
 
                     <!-- Address -->
                     <div v-if="formattedAddress" class="flex items-start gap-3">
                         <span
-                            class="flex items-center justify-center h-10 w-10 rounded-full shrink-0"
+                            class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full"
                             style="background-color: var(--site-primary)"
                         >
                             <MapPin class="h-5 w-5" style="color: var(--site-primary-fg)" />
@@ -194,7 +194,7 @@ const preferredTimePlaceholder = computed(() =>
                             :href="`https://www.google.com/maps/place/${encodeURIComponent(formattedAddress)}`"
                             target="_blank"
                             rel="noopener noreferrer"
-                            class="text-sm leading-relaxed transition-colors pt-2"
+                            class="pt-2 text-sm leading-relaxed transition-colors"
                             style="color: rgba(255,255,255,0.65)"
                             @mouseover="($event.currentTarget as HTMLElement).style.color = 'white'"
                             @mouseleave="($event.currentTarget as HTMLElement).style.color = 'rgba(255,255,255,0.65)'"
@@ -204,13 +204,13 @@ const preferredTimePlaceholder = computed(() =>
                     </div>
 
                     <!-- Social links -->
-                    <div v-if="hasSocials" class="flex gap-2 mt-1">
+                    <div v-if="hasSocials" class="mt-1 flex gap-2">
                         <a
                             v-if="socials?.instagram"
                             :href="socials.instagram"
                             target="_blank"
                             rel="noopener noreferrer"
-                            class="flex items-center justify-center h-10 w-10 rounded-full transition-opacity hover:opacity-80"
+                            class="flex h-10 w-10 items-center justify-center rounded-full transition-opacity hover:opacity-80"
                             style="background-color: var(--site-primary)"
                             aria-label="Instagram"
                         >
@@ -221,7 +221,7 @@ const preferredTimePlaceholder = computed(() =>
                             :href="socials.facebook"
                             target="_blank"
                             rel="noopener noreferrer"
-                            class="flex items-center justify-center h-10 w-10 rounded-full transition-opacity hover:opacity-80"
+                            class="flex h-10 w-10 items-center justify-center rounded-full transition-opacity hover:opacity-80"
                             style="background-color: var(--site-primary)"
                             aria-label="Facebook"
                         >
@@ -232,7 +232,7 @@ const preferredTimePlaceholder = computed(() =>
                             :href="socials.x"
                             target="_blank"
                             rel="noopener noreferrer"
-                            class="flex items-center justify-center h-10 w-10 rounded-full transition-opacity hover:opacity-80"
+                            class="flex h-10 w-10 items-center justify-center rounded-full transition-opacity hover:opacity-80"
                             style="background-color: var(--site-primary)"
                             aria-label="X / Twitter"
                         >
@@ -243,7 +243,7 @@ const preferredTimePlaceholder = computed(() =>
                             :href="socials.linkedin"
                             target="_blank"
                             rel="noopener noreferrer"
-                            class="flex items-center justify-center h-10 w-10 rounded-full transition-opacity hover:opacity-80"
+                            class="flex h-10 w-10 items-center justify-center rounded-full transition-opacity hover:opacity-80"
                             style="background-color: var(--site-primary)"
                             aria-label="LinkedIn"
                         >
@@ -254,7 +254,7 @@ const preferredTimePlaceholder = computed(() =>
 
                 <!-- Opening hours -->
                 <div v-if="weekdayDescriptions.length" class="md:col-span-2">
-                    <h3 class="text-sm font-semibold text-white/60 uppercase tracking-wide mb-4">
+                    <h3 class="mb-4 text-sm font-semibold uppercase tracking-wide text-white/60">
                         Opening hours
                     </h3>
                     <div class="flex flex-col gap-2">
@@ -263,7 +263,7 @@ const preferredTimePlaceholder = computed(() =>
                             :key="index"
                             class="flex items-center justify-between gap-4"
                         >
-                            <span class="text-sm w-28 shrink-0" style="color: rgba(255,255,255,0.55)">{{ entry.day }}</span>
+                            <span class="w-28 shrink-0 text-sm" style="color: rgba(255,255,255,0.55)">{{ entry.day }}</span>
                             <span class="text-sm font-medium" style="color: rgba(255,255,255,0.9)">{{ entry.hours }}</span>
                         </div>
                     </div>
@@ -273,8 +273,8 @@ const preferredTimePlaceholder = computed(() =>
 
             <!-- ── Inline contact form ────────────────────────────────────── -->
             <template v-if="showForm && contact">
-                <div class="mt-12 pt-10" style="border-top: 1px solid rgba(255,255,255,0.12)">
-                    <p class="text-xs font-semibold uppercase tracking-widest mb-6" style="color: var(--site-secondary)">
+                <div class="mt-12 border-t border-white/12 pt-10">
+                    <p class="mb-6 text-xs font-semibold uppercase tracking-widest" style="color: var(--site-secondary)">
                         Get in touch
                     </p>
 

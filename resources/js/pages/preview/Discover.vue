@@ -46,7 +46,7 @@ onUnmounted(() => {
         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
     </Head>
 
-    <div class="flex min-h-screen flex-col" style="background: #ffffff; font-family: 'Inter', ui-sans-serif, system-ui, sans-serif;">
+    <div class="flex min-h-screen flex-col bg-white" style="font-family: 'Inter', ui-sans-serif, system-ui, sans-serif;">
 
         <!-- Minimal top nav — matches homepage -->
         <header class="flex items-center gap-2.5 px-6 py-5">
@@ -65,7 +65,7 @@ onUnmounted(() => {
                             <circle cx="28" cy="28" r="24" stroke="#dde1e8" stroke-width="4"/>
                             <path d="M28 4a24 24 0 0 1 24 24" stroke="#1E66F5" stroke-width="4" stroke-linecap="round"/>
                         </svg>
-                        <div class="flex items-center justify-center" style="color: #0f172a;">
+                        <div class="flex items-center justify-center text-brand-ink">
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 160" width="32" height="10" aria-hidden="true">
                                 <text x="60" y="115" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif" font-size="100" font-weight="600" fill="currentColor">3</text>
                                 <circle cx="143" cy="90" r="9" fill="#1e66f5"/>
@@ -76,8 +76,8 @@ onUnmounted(() => {
                         </div>
                     </div>
                     <div>
-                        <p class="text-xl font-bold" style="color: #0f172a;">Pulling in your Google info…</p>
-                        <p class="mt-1 text-sm" style="color: #64748b;">This only takes a few seconds.</p>
+                        <p class="text-xl font-bold text-brand-ink">Pulling in your Google info…</p>
+                        <p class="mt-1 text-sm text-brand-ink-soft">This only takes a few seconds.</p>
                     </div>
                 </div>
 
@@ -87,7 +87,7 @@ onUnmounted(() => {
                 </div>
 
                 <!-- Skeleton placeholders -->
-                <div class="flex flex-col gap-3 rounded-2xl p-5" style="background: #edf1f8;">
+                <div class="flex flex-col gap-3 rounded-2xl p-5 bg-brand-panel">
                     <Skeleton class="h-5 w-3/4 rounded-lg" style="background: #dde1e8;" />
                     <Skeleton class="h-4 w-1/2 rounded-lg" style="background: #dde1e8;" />
                     <Skeleton class="h-4 w-2/3 rounded-lg" style="background: #dde1e8;" />

@@ -89,63 +89,70 @@ const unreadBadge = computed(() => (props.unreadCount ?? 0) > 0 ? props.unreadCo
     <Toaster />
 
     <!-- Full-screen shell -->
-    <div class="db-shell">
+    <div class="flex min-h-screen bg-brand-bg font-[Inter,ui-sans-serif] text-brand-ink">
 
         <!-- ── Sidebar (desktop) ────────────────────────────────────── -->
-        <aside class="db-sidebar" :class="{ 'db-sidebar--mobile-open': mobileMenuOpen }">
+        <aside
+            class="w-[280px] min-w-[280px] bg-brand-surface border-r border-brand-line flex flex-col h-screen sticky top-0 overflow-y-auto z-30 shrink-0 md:translate-x-0 md:static md:h-screen"
+            :class="{ 'translate-x-0': mobileMenuOpen, '-translate-x-[280px]': !mobileMenuOpen }"
+            style="transition: transform 0.2s ease"
+        >
             <!-- Logo -->
-            <div class="db-sidebar__brand">
+            <div class="flex items-center gap-3 px-5 py-5 border-b border-brand-line-soft">
                 <AppLogo />
             </div>
 
             <!-- Nav items -->
-            <nav class="db-sidebar__nav">
+            <nav class="px-3.5 py-3.5 flex flex-col gap-1 flex-1">
                 <template v-for="item in navItems" :key="item.id">
                     <!-- Help item links directly to the help page -->
                     <a
                         v-if="item.id === 'help'"
                         href="/help"
-                        class="db-nav-item"
+                        class="flex items-center gap-3.5 px-4 py-3.5 rounded-[10px] cursor-pointer text-left w-full font-[inherit] border-[1.5px] border-transparent transition-colors bg-transparent hover:bg-brand-panel"
                     >
-                        <span class="db-nav-item__icon">
+                        <span class="shrink-0 flex items-center">
                             <component :is="item.icon" :size="22" />
                         </span>
-                        <span class="db-nav-item__text">
-                            <span class="db-nav-item__label-row">
-                                <span class="db-nav-item__label">{{ item.label }}</span>
+                        <span class="flex flex-col flex-1 min-w-0">
+                            <span class="flex items-center gap-2">
+                                <span class="text-[15px] font-bold leading-tight">{{ item.label }}</span>
                             </span>
-                            <span class="db-nav-item__hint">{{ item.hint }}</span>
+                            <span class="text-xs text-brand-ink-soft font-medium mt-0.5 leading-tight">{{ item.hint }}</span>
                         </span>
                     </a>
                     <button
                         v-else
-                        class="db-nav-item"
-                        :class="{ 'db-nav-item--active': activeNav === item.id }"
+                        class="flex items-center gap-3.5 px-4 py-3.5 rounded-[10px] cursor-pointer text-left w-full font-[inherit] border-[1.5px] border-transparent transition-colors"
+                        :class="activeNav === item.id ? 'bg-brand-blue-soft border-brand-blue text-brand-blue' : 'bg-transparent hover:bg-brand-panel'"
                         @click="navigate(item.id)"
                     >
-                        <span class="db-nav-item__icon">
+                        <span class="shrink-0 flex items-center">
                             <component :is="item.icon" :size="22" />
                         </span>
-                        <span class="db-nav-item__text">
-                            <span class="db-nav-item__label-row">
-                                <span class="db-nav-item__label">{{ item.label }}</span>
+                        <span class="flex flex-col flex-1 min-w-0">
+                            <span class="flex items-center gap-2">
+                                <span class="text-[15px] font-bold leading-tight">{{ item.label }}</span>
                                 <span
                                     v-if="item.badge === 'unread' && unreadBadge"
-                                    class="db-nav-badge"
+                                    class="inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 rounded-full bg-brand-blue text-white text-[11px] font-bold leading-none"
                                 >{{ unreadBadge }}</span>
                             </span>
-                            <span class="db-nav-item__hint">{{ item.hint }}</span>
+                            <span
+                                class="text-xs font-medium mt-0.5 leading-tight"
+                                :class="activeNav === item.id ? 'text-brand-blue opacity-80' : 'text-brand-ink-soft'"
+                            >{{ item.hint }}</span>
                         </span>
                     </button>
                 </template>
             </nav>
 
             <!-- Bottom: sign-in info -->
-            <div class="db-sidebar__footer">
-                <div class="db-account-block">
-                    <div class="db-account-label">Signed in as</div>
-                    <div class="db-account-name">{{ firstName || 'You' }}</div>
-                    <div class="db-account-email">{{ userEmail }}</div>
+            <div class="px-3.5 py-3.5 border-t border-brand-line-soft flex flex-col gap-2">
+                <div class="px-3.5 py-3.5 rounded-[10px] bg-brand-panel">
+                    <div class="text-xs text-brand-ink-soft font-semibold">Signed in as</div>
+                    <div class="text-[15px] font-bold text-brand-ink mt-0.5">{{ firstName || 'You' }}</div>
+                    <div class="text-xs text-brand-ink-soft mt-0.5 break-all">{{ userEmail }}</div>
                 </div>
             </div>
         </aside>
@@ -153,24 +160,30 @@ const unreadBadge = computed(() => (props.unreadCount ?? 0) > 0 ? props.unreadCo
         <!-- Mobile overlay -->
         <div
             v-if="mobileMenuOpen"
-            class="db-mobile-overlay"
+            class="fixed inset-0 bg-[rgba(15,17,20,0.5)] z-[35]"
             @click="mobileMenuOpen = false"
         />
 
         <!-- ── Main content ──────────────────────────────────────────── -->
-        <div class="db-main">
+        <div class="flex-1 min-w-0 flex flex-col min-h-screen">
 
             <!-- Top bar -->
-            <header class="db-topbar">
+            <header class="px-8 py-5 bg-brand-surface border-b-[1.5px] border-brand-line flex items-center gap-5 sticky top-0 z-20 md:px-8 md:py-5">
                 <!-- Mobile hamburger -->
-                <button class="db-hamburger" @click="mobileMenuOpen = !mobileMenuOpen" aria-label="Open menu">
+                <button
+                    class="flex md:hidden flex-col justify-center items-center gap-[5px] w-10 h-10 border-none bg-transparent cursor-pointer p-1 rounded-lg shrink-0 text-brand-ink"
+                    @click="mobileMenuOpen = !mobileMenuOpen"
+                    aria-label="Open menu"
+                >
                     <X v-if="mobileMenuOpen" :size="22" />
                     <Menu v-else :size="22" />
                 </button>
 
-                <div class="db-topbar__titles">
-                    <h1 class="db-topbar__title">{{ screenTitles[activeNav].title }}</h1>
-                    <p class="db-topbar__sub">{{ screenTitles[activeNav].subtitle }}</p>
+                <div class="flex-1 min-w-0 md:flex-1 md:min-w-0">
+                    <h1 class="text-2xl font-extrabold text-brand-ink tracking-tight leading-tight m-0 md:text-2xl md:whitespace-normal md:overflow-visible md:text-ellipsis">
+                        {{ screenTitles[activeNav].title }}
+                    </h1>
+                    <p class="text-[15px] text-brand-ink-soft mt-0.5 hidden md:block">{{ screenTitles[activeNav].subtitle }}</p>
                 </div>
 
                 <!-- Preview link (show when site is live) -->
@@ -179,15 +192,15 @@ const unreadBadge = computed(() => (props.unreadCount ?? 0) > 0 ? props.unreadCo
                     :href="siteUrl"
                     target="_blank"
                     rel="noopener noreferrer"
-                    class="db-preview-btn"
+                    class="inline-flex items-center justify-center md:justify-start gap-2 h-11 px-4 md:px-4 rounded-[10px] border-[1.5px] border-brand-line bg-brand-surface text-brand-ink font-[inherit] text-[15px] font-semibold no-underline shrink-0 transition-colors hover:bg-brand-panel md:w-auto md:h-11 md:p-0 md:justify-start w-10 h-10 p-0 md:px-4"
                 >
                     <ExternalLink :size="16" />
-                    <span class="db-preview-btn__text">Preview my site</span>
+                    <span class="hidden md:inline">Preview my site</span>
                 </a>
             </header>
 
             <!-- Screen content -->
-            <div class="db-content">
+            <div class="flex-1 p-[28px_32px_48px] max-w-[1100px] w-full md:p-[28px_32px_48px] sm:p-[16px_16px_40px]">
                 <Overview       v-if="activeNav === 'home'"     @navigate="navigate" />
                 <Site           v-else-if="activeNav === 'address'" />
                 <Components     v-else-if="activeNav === 'edit'" />
@@ -196,17 +209,17 @@ const unreadBadge = computed(() => (props.unreadCount ?? 0) > 0 ? props.unreadCo
                 <AccountSettings v-else-if="activeNav === 'account'" :user-name="userName" :user-email="userEmail" />
 
                 <!-- Help screen — simple placeholder linking to Help pages -->
-                <div v-else-if="activeNav === 'help'" class="db-help-screen">
-                    <div class="db-card db-card--pad">
-                        <h2 class="db-section-title">Help & guides</h2>
-                        <p class="db-section-sub">Need a hand? Browse our guides below or get in touch.</p>
-                        <div class="db-help-links">
-                            <a href="/help" class="db-help-link">
-                                <span class="db-help-link__label">Browse all guides</span>
+                <div v-else-if="activeNav === 'help'" class="max-w-[600px]">
+                    <div class="bg-brand-surface border-[1.5px] border-brand-line rounded-[14px] p-6">
+                        <h2 class="text-xl font-bold text-brand-ink tracking-tight m-0 mb-1">Help & guides</h2>
+                        <p class="text-[15px] text-brand-ink-soft m-0 mb-5">Need a hand? Browse our guides below or get in touch.</p>
+                        <div class="flex flex-col gap-2">
+                            <a href="/help" class="flex items-center justify-between px-4 py-4 border-[1.5px] border-brand-line rounded-lg bg-brand-surface text-brand-ink no-underline font-semibold text-base transition-colors hover:bg-brand-panel">
+                                <span>Browse all guides</span>
                                 <ChevronRight :size="18" />
                             </a>
-                            <a href="mailto:support@321sites.com" class="db-help-link">
-                                <span class="db-help-link__label">Email support</span>
+                            <a href="mailto:support@321sites.com" class="flex items-center justify-between px-4 py-4 border-[1.5px] border-brand-line rounded-lg bg-brand-surface text-brand-ink no-underline font-semibold text-base transition-colors hover:bg-brand-panel">
+                                <span>Email support</span>
                                 <ChevronRight :size="18" />
                             </a>
                         </div>
@@ -218,7 +231,6 @@ const unreadBadge = computed(() => (props.unreadCount ?? 0) > 0 ? props.unreadCo
 </template>
 
 <style>
-/* ── Dashboard shell tokens ───────────────────────────────────────────── */
 :root {
     /* Brand tokens (--db-*) */
     --db-bg:          #f8fafc;
@@ -248,404 +260,5 @@ const unreadBadge = computed(() => (props.unreadCount ?? 0) > 0 ? props.unreadCo
     --muted-foreground:   #64748b;
     --destructive:        #b91c1c;
     --destructive-foreground: #ffffff;
-}
-
-/* ── Shell ────────────────────────────────────────────────────────────── */
-.db-shell {
-    display: flex;
-    min-height: 100vh;
-    background: var(--db-bg);
-    font-family: 'Inter', 'Instrument Sans', ui-sans-serif, system-ui, sans-serif;
-    color: var(--db-ink);
-}
-
-/* ── Sidebar ──────────────────────────────────────────────────────────── */
-.db-sidebar {
-    width: 280px;
-    min-width: 280px;
-    background: var(--db-surface);
-    border-right: 1.5px solid var(--db-line);
-    display: flex;
-    flex-direction: column;
-    height: 100vh;
-    position: sticky;
-    top: 0;
-    overflow-y: auto;
-    z-index: 30;
-    flex-shrink: 0;
-}
-
-.db-sidebar__brand {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 22px 22px 18px;
-    border-bottom: 1px solid var(--db-line-soft);
-}
-
-.db-brand-icon {
-    width: 40px;
-    height: 40px;
-    border-radius: 10px;
-    background: var(--db-ink);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-}
-
-.db-brand-name {
-    font-size: 17px;
-    font-weight: 800;
-    color: var(--db-ink);
-    letter-spacing: -0.3px;
-    line-height: 1.2;
-}
-
-.db-brand-sub {
-    font-size: 13px;
-    color: var(--db-ink-soft);
-    line-height: 1.2;
-}
-
-.db-sidebar__nav {
-    padding: 14px;
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-    flex: 1;
-}
-
-.db-nav-item {
-    display: flex;
-    align-items: center;
-    gap: 14px;
-    padding: 14px 16px;
-    border-radius: 10px;
-    cursor: pointer;
-    text-align: left;
-    background: transparent;
-    border: 1.5px solid transparent;
-    color: var(--db-ink);
-    font-family: inherit;
-    width: 100%;
-    transition: background 0.1s ease, border-color 0.1s ease;
-}
-
-.db-nav-item:hover:not(.db-nav-item--active) {
-    background: var(--db-panel);
-}
-
-.db-nav-item--active {
-    background: var(--db-accent-soft);
-    border-color: var(--db-accent);
-    color: var(--db-accent);
-}
-
-.db-nav-item__icon {
-    flex-shrink: 0;
-    display: flex;
-    align-items: center;
-}
-
-.db-nav-item__text {
-    display: flex;
-    flex-direction: column;
-    flex: 1;
-    min-width: 0;
-}
-
-.db-nav-item__label-row {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-
-.db-nav-item__label {
-    font-size: 15px;
-    font-weight: 700;
-    line-height: 1.2;
-}
-
-.db-nav-badge {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    min-width: 20px;
-    height: 20px;
-    padding: 0 6px;
-    border-radius: 100px;
-    background: var(--db-accent);
-    color: var(--db-accent-fg);
-    font-size: 11px;
-    font-weight: 700;
-    line-height: 1;
-}
-
-.db-nav-item--active .db-nav-badge {
-    background: var(--db-accent);
-    color: var(--db-accent-fg);
-}
-
-.db-nav-item__hint {
-    font-size: 12px;
-    color: var(--db-ink-soft);
-    font-weight: 500;
-    margin-top: 2px;
-    line-height: 1.3;
-}
-
-.db-nav-item--active .db-nav-item__hint {
-    color: var(--db-accent);
-    opacity: 0.8;
-}
-
-.db-sidebar__footer {
-    padding: 14px;
-    border-top: 1px solid var(--db-line-soft);
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-}
-
-.db-account-block {
-    padding: 14px;
-    border-radius: 10px;
-    background: var(--db-panel);
-}
-
-.db-account-label {
-    font-size: 12px;
-    color: var(--db-ink-soft);
-    font-weight: 600;
-}
-
-.db-account-name {
-    font-size: 15px;
-    font-weight: 700;
-    color: var(--db-ink);
-    margin-top: 2px;
-}
-
-.db-account-email {
-    font-size: 13px;
-    color: var(--db-ink-soft);
-    margin-top: 2px;
-    word-break: break-all;
-}
-
-/* ── Mobile sidebar overlay ───────────────────────────────────────────── */
-.db-mobile-overlay {
-    display: none;
-}
-
-/* ── Top bar ──────────────────────────────────────────────────────────── */
-.db-main {
-    flex: 1;
-    min-width: 0;
-    display: flex;
-    flex-direction: column;
-    min-height: 100vh;
-}
-
-.db-topbar {
-    padding: 22px 32px;
-    background: var(--db-surface);
-    border-bottom: 1.5px solid var(--db-line);
-    display: flex;
-    align-items: center;
-    gap: 20px;
-    position: sticky;
-    top: 0;
-    z-index: 20;
-}
-
-.db-hamburger {
-    display: none;
-    background: transparent;
-    border: none;
-    cursor: pointer;
-    color: var(--db-ink);
-    padding: 4px;
-    border-radius: 8px;
-    flex-shrink: 0;
-}
-
-.db-topbar__titles {
-    flex: 1;
-    min-width: 0;
-}
-
-.db-topbar__title {
-    font-size: 24px;
-    font-weight: 800;
-    color: var(--db-ink);
-    letter-spacing: -0.5px;
-    line-height: 1.2;
-    margin: 0;
-}
-
-.db-topbar__sub {
-    font-size: 15px;
-    color: var(--db-ink-soft);
-    margin: 2px 0 0;
-}
-
-.db-preview-btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    height: 44px;
-    padding: 0 18px;
-    border-radius: 10px;
-    border: 1.5px solid var(--db-line);
-    background: var(--db-surface);
-    color: var(--db-ink);
-    font-family: inherit;
-    font-size: 15px;
-    font-weight: 600;
-    text-decoration: none;
-    cursor: pointer;
-    white-space: nowrap;
-    flex-shrink: 0;
-    transition: background 0.1s ease;
-}
-
-.db-preview-btn:hover {
-    background: var(--db-panel);
-}
-
-/* ── Content area ─────────────────────────────────────────────────────── */
-.db-content {
-    flex: 1;
-    padding: 28px 32px 48px;
-    max-width: 1100px;
-    width: 100%;
-}
-
-/* ── Shared card / section primitives ─────────────────────────────────── */
-.db-card {
-    background: var(--db-surface);
-    border: 1.5px solid var(--db-line);
-    border-radius: 14px;
-}
-
-.db-card--pad {
-    padding: 24px;
-}
-
-.db-section-title {
-    font-size: 20px;
-    font-weight: 700;
-    color: var(--db-ink);
-    letter-spacing: -0.2px;
-    margin: 0 0 4px;
-}
-
-.db-section-sub {
-    font-size: 15px;
-    color: var(--db-ink-soft);
-    margin: 0 0 20px;
-}
-
-/* ── Help screen ──────────────────────────────────────────────────────── */
-.db-help-screen {
-    max-width: 600px;
-}
-
-.db-help-links {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-}
-
-.db-help-link {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 16px;
-    border: 1.5px solid var(--db-line);
-    border-radius: 12px;
-    background: var(--db-surface);
-    color: var(--db-ink);
-    text-decoration: none;
-    font-weight: 600;
-    font-size: 16px;
-    transition: background 0.1s ease;
-}
-
-.db-help-link:hover {
-    background: var(--db-panel);
-}
-
-/* ── Responsive / Mobile ──────────────────────────────────────────────── */
-@media (max-width: 768px) {
-    .db-sidebar {
-        position: fixed;
-        left: -280px;
-        top: 0;
-        height: 100vh;
-        transition: left 0.2s ease;
-        z-index: 40;
-    }
-
-    .db-sidebar--mobile-open {
-        left: 0;
-    }
-
-    .db-mobile-overlay {
-        display: block;
-        position: fixed;
-        inset: 0;
-        background: rgba(15, 17, 20, 0.5);
-        z-index: 35;
-    }
-
-    .db-hamburger {
-        display: flex;
-    }
-
-    /* Topbar: single-line, compact */
-    .db-topbar {
-        padding: 0 16px;
-        height: 56px;
-        gap: 12px;
-    }
-
-    /* Hide subtitle — title alone is enough on small screens */
-    .db-topbar__sub {
-        display: none;
-    }
-
-    /* Prevent title from wrapping */
-    .db-topbar__title {
-        font-size: 17px;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-    }
-
-    /* Preview button: icon only on mobile */
-    .db-preview-btn {
-        width: 40px;
-        height: 40px;
-        padding: 0;
-        justify-content: center;
-        border-radius: 10px;
-    }
-
-    .db-preview-btn__text {
-        display: none;
-    }
-
-    /* Content: tighter on mobile */
-    .db-content {
-        padding: 16px 16px 40px;
-    }
-
-    /* Sidebar nav items: slightly tighter on mobile */
-    .db-nav-item {
-        padding: 12px 14px;
-    }
 }
 </style>

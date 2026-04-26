@@ -154,11 +154,9 @@ const complete = () => {
         Shadcn inputs/buttons read --primary / --radius and will pick up the overrides.
     -->
     <div
-        class="min-h-screen flex flex-col items-center px-6 py-10 lg:justify-center lg:py-16"
+        class="min-h-screen flex flex-col items-center px-6 py-10 lg:justify-center lg:py-16 bg-white text-brand-ink"
         style="
-            background: #ffffff;
             font-family: 'Inter', ui-sans-serif, system-ui, sans-serif;
-            color: #0f172a;
             --primary:            #1e66f5;
             --primary-foreground: #ffffff;
             --radius:             0.75rem;
@@ -182,10 +180,10 @@ const complete = () => {
 
                 <!-- Business name + step counter -->
                 <div class="flex items-center gap-3 ml-auto">
-                    <p v-if="businessName" class="text-sm font-medium truncate max-w-[160px]" style="color: #64748b;">
+                    <p v-if="businessName" class="text-sm font-medium truncate max-w-[160px] text-brand-ink-soft">
                         {{ businessName }}
                     </p>
-                    <p class="text-sm flex-shrink-0" style="color: #64748b;">
+                    <p class="text-sm flex-shrink-0 text-brand-ink-soft">
                         {{ currentIndex + 1 }} / {{ steps.length }}
                     </p>
                 </div>
@@ -197,16 +195,16 @@ const complete = () => {
                     v-for="(step, i) in steps"
                     :key="i"
                     class="h-1 flex-1 rounded-full transition-all duration-300"
-                    :style="i <= currentIndex ? 'background: #1e66f5;' : 'background: #dde1e8;'"
+                    :class="i <= currentIndex ? 'bg-brand-blue' : 'bg-border-brand-line'"
                 />
             </div>
 
             <!-- Step question + subtitle -->
             <div class="flex flex-col gap-2">
-                <h1 class="text-2xl font-bold leading-snug" style="color: #0f172a;">
+                <h1 class="text-2xl font-bold leading-snug text-brand-ink">
                     {{ currentStepDef.title }}
                 </h1>
-                <p class="leading-relaxed" style="color: #64748b;">
+                <p class="leading-relaxed text-brand-ink-soft">
                     {{ currentStepDef.subtitle }}
                 </p>
             </div>
@@ -242,8 +240,7 @@ const complete = () => {
                     <button
                         v-if="currentStepDef.skippable"
                         type="button"
-                        class="text-sm text-center w-full py-1 transition-opacity hover:opacity-60"
-                        style="color: #64748b;"
+                        class="text-sm text-center w-full py-1 transition-opacity hover:opacity-60 text-brand-ink-soft"
                         @click="skip"
                     >
                         Skip for now →
@@ -254,52 +251,3 @@ const complete = () => {
         </div>
     </div>
 </template>
-
-<style scoped>
-/* ── Inputs — match auth page and marketing page style ───────────────────── */
-:deep(input[type="email"]),
-:deep(input[type="password"]),
-:deep(input[type="text"]),
-:deep(input[type="url"]),
-:deep(input[type="tel"]),
-:deep(input:not([type])) {
-    height: 44px !important;
-    font-size: 15px !important;
-    border-radius: 8px !important;
-    border-color: #dde1e8 !important;
-    background: #ffffff !important;
-    font-family: 'Inter', ui-sans-serif, system-ui, sans-serif !important;
-}
-
-:deep(input[type="email"]:focus),
-:deep(input[type="password"]:focus),
-:deep(input[type="text"]:focus),
-:deep(input[type="url"]:focus),
-:deep(input[type="tel"]:focus),
-:deep(input:not([type]):focus) {
-    border-color: #1e66f5 !important;
-    box-shadow: 0 0 0 3px rgba(30, 102, 245, 0.12) !important;
-    outline: none !important;
-}
-
-:deep(textarea) {
-    font-size: 15px !important;
-    border-radius: 8px !important;
-    border-color: #dde1e8 !important;
-    background: #ffffff !important;
-    font-family: 'Inter', ui-sans-serif, system-ui, sans-serif !important;
-    line-height: 1.6 !important;
-}
-
-:deep(textarea:focus) {
-    border-color: #1e66f5 !important;
-    box-shadow: 0 0 0 3px rgba(30, 102, 245, 0.12) !important;
-    outline: none !important;
-}
-
-:deep(label) {
-    font-size: 14px;
-    font-weight: 600;
-    color: #0f172a;
-}
-</style>

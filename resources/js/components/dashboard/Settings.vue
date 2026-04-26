@@ -75,49 +75,49 @@ const saveForm = () => {
 </script>
 
 <template>
-    <div class="seo-wrap">
+    <div class="flex flex-col gap-5 max-w-[820px]">
 
         <!-- How your site looks on Google -->
-        <div class="seo-card">
-            <div class="seo-card__head">
-                <div class="seo-card__title">How your site looks on Google</div>
-                <div class="seo-card__sub">This is what people see when they find your site in Google search results. It updates as you type.</div>
+        <div class="bg-brand-surface border-[1.5px] border-brand-line rounded-[14px] overflow-hidden">
+            <div class="border-b border-brand-line-soft p-5 pb-4">
+                <div class="text-[17px] font-bold text-brand-ink">How your site looks on Google</div>
+                <div class="text-sm text-brand-ink-soft mt-1 leading-[1.5]">This is what people see when they find your site in Google search results. It updates as you type.</div>
                 <a
                     v-if="searchConsoleUrl"
                     :href="searchConsoleUrl"
                     target="_blank"
                     rel="noopener noreferrer"
-                    class="seo-console-link"
+                    class="inline-block mt-2 text-xs font-semibold text-brand-blue no-underline hover:underline"
                 >
                     Open Search Console ↗
                 </a>
             </div>
-            <div class="seo-card__body">
+            <div class="p-5">
                 <!-- Preview -->
-                <div class="seo-preview">
-                    <div class="seo-preview__url">{{ liveSiteUrl || 'yourbusiness.321sites.com' }}</div>
-                    <div class="seo-preview__title">{{ form.meta_title || 'Your page title will appear here' }}</div>
-                    <div class="seo-preview__desc">{{ form.meta_description || 'Your short description will help people decide whether to click through to your website.' }}</div>
+                <div class="p-4 rounded-[10px] bg-brand-panel font-[Arial, sans-serif]">
+                    <div class="text-xs text-[#1e8e3e]">{{ liveSiteUrl || 'yourbusiness.321sites.com' }}</div>
+                    <div class="text-[18px] text-[#1a0dab] font-medium my-1">{{ form.meta_title || 'Your page title will appear here' }}</div>
+                    <div class="text-sm text-[#4d5156] leading-[1.45]">{{ form.meta_description || 'Your short description will help people decide whether to click through to your website.' }}</div>
                 </div>
             </div>
         </div>
 
         <!-- Page title -->
-        <div class="seo-card seo-card--pad">
-            <label class="seo-field">
-                <span class="seo-field__label">Page title</span>
+        <div class="bg-brand-surface border-[1.5px] border-brand-line rounded-[14px] p-6">
+            <label class="flex flex-col gap-2">
+                <span class="text-sm font-semibold text-brand-ink flex items-center gap-2">Page title</span>
                 <Input
                     id="title"
                     v-model="form.meta_title"
                     type="text"
                     placeholder="e.g. Dave's Painting & Decorating — Harrogate"
-                    class="seo-input"
+                    class="h-11 text-sm rounded-2 border-[1.5px] border-brand-line bg-white transition-colors focus:border-brand-blue focus:ring-3 focus:ring-[rgba(30, 102, 245, 0.12)] focus:outline-none"
                     required
                 />
-                <span class="seo-field__hint">This appears in the browser tab and in Google. Use your business name and where you work.</span>
-                <span v-if="form.errors.meta_title" class="seo-error">{{ form.errors.meta_title }}</span>
-                <button type="button" class="seo-ai-btn" :disabled="isGeneratingTitle" @click="generateField('meta_title')">
-                    <Loader2 v-if="isGeneratingTitle" :size="14" class="seo-ai-spin" />
+                <span class="text-xs text-brand-ink-soft leading-[1.5]">This appears in the browser tab and in Google. Use your business name and where you work.</span>
+                <span v-if="form.errors.meta_title" class="text-xs text-red-600 font-medium">{{ form.errors.meta_title }}</span>
+                <button type="button" class="inline-flex items-center gap-1.5 px-3.5 h-8.5 rounded-2 text-xs font-semibold bg-brand-panel text-brand-ink border-[1.5px] border-brand-line cursor-pointer transition-all hover:not(:disabled):border-brand-blue hover:not(:disabled):bg-[rgba(30, 102, 245, 0.06)] disabled:opacity-50 disabled:cursor-not-allowed self-start" :disabled="isGeneratingTitle" @click="generateField('meta_title')">
+                    <Loader2 v-if="isGeneratingTitle" :size="14" class="animate-spin" />
                     <Wand2 v-else :size="14" />
                     {{ isGeneratingTitle ? 'Writing…' : 'Write it for me' }}
                 </button>
@@ -125,21 +125,21 @@ const saveForm = () => {
         </div>
 
         <!-- Description -->
-        <div class="seo-card seo-card--pad">
-            <label class="seo-field">
-                <span class="seo-field__label">Short description</span>
+        <div class="bg-brand-surface border-[1.5px] border-brand-line rounded-[14px] p-6">
+            <label class="flex flex-col gap-2">
+                <span class="text-sm font-semibold text-brand-ink flex items-center gap-2">Short description</span>
                 <Textarea
                     id="description"
                     v-model="form.meta_description"
                     rows="3"
                     placeholder="e.g. Professional painter and decorator in Manchester. 20 years experience. Free quotes."
-                    class="seo-textarea"
+                    class="text-sm rounded-2 border-[1.5px] border-brand-line bg-white resize-vertical transition-colors focus:border-brand-blue focus:ring-3 focus:ring-[rgba(30, 102, 245, 0.12)] focus:outline-none"
                     required
                 />
-                <span class="seo-field__hint">One or two sentences. This shows up under your site link in Google search results.</span>
-                <span v-if="form.errors.meta_description" class="seo-error">{{ form.errors.meta_description }}</span>
-                <button type="button" class="seo-ai-btn" :disabled="isGeneratingMetaDesc" @click="generateField('meta_description')">
-                    <Loader2 v-if="isGeneratingMetaDesc" :size="14" class="seo-ai-spin" />
+                <span class="text-xs text-brand-ink-soft leading-[1.5]">One or two sentences. This shows up under your site link in Google search results.</span>
+                <span v-if="form.errors.meta_description" class="text-xs text-red-600 font-medium">{{ form.errors.meta_description }}</span>
+                <button type="button" class="inline-flex items-center gap-1.5 px-3.5 h-8.5 rounded-2 text-xs font-semibold bg-brand-panel text-brand-ink border-[1.5px] border-brand-line cursor-pointer transition-all hover:not(:disabled):border-brand-blue hover:not(:disabled):bg-[rgba(30, 102, 245, 0.06)] disabled:opacity-50 disabled:cursor-not-allowed self-start" :disabled="isGeneratingMetaDesc" @click="generateField('meta_description')">
+                    <Loader2 v-if="isGeneratingMetaDesc" :size="14" class="animate-spin" />
                     <Wand2 v-else :size="14" />
                     {{ isGeneratingMetaDesc ? 'Writing…' : 'Write it for me' }}
                 </button>
@@ -147,22 +147,22 @@ const saveForm = () => {
         </div>
 
         <!-- Show on Google toggle -->
-        <div class="seo-card seo-card--pad">
-            <div class="seo-toggle-row">
+        <div class="bg-brand-surface border-[1.5px] border-brand-line rounded-[14px] p-6">
+            <div class="flex items-center justify-between gap-4">
                 <div>
-                    <div class="seo-toggle-row__label">Show my site on Google</div>
-                    <div class="seo-toggle-row__hint">Turn this off while you're still setting things up. Turn it back on when you're ready for customers to find you.</div>
+                    <div class="text-base font-bold text-brand-ink">Show my site on Google</div>
+                    <div class="text-sm text-brand-ink-soft leading-[1.5] mt-1 max-w-[500px]">Turn this off while you're still setting things up. Turn it back on when you're ready for customers to find you.</div>
                 </div>
-                <Switch id="allow-indexing" v-model="form.allow_indexing" class="seo-switch" />
+                <Switch id="allow-indexing" v-model="form.allow_indexing" class="flex-shrink-0" />
             </div>
         </div>
 
         <!-- Google Analytics (Premium) -->
-        <div class="seo-card seo-card--pad" :class="{ 'seo-card--dimmed': !isPremium }">
-            <label class="seo-field">
-                <span class="seo-field__label">
+        <div class="bg-brand-surface border-[1.5px] border-brand-line rounded-[14px] p-6" :class="{ 'opacity-60': !isPremium }">
+            <label class="flex flex-col gap-2">
+                <span class="text-sm font-semibold text-brand-ink flex items-center gap-2">
                     Google Analytics
-                    <span v-if="!isPremium" class="seo-premium-badge">
+                    <span v-if="!isPremium" class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-[#fef9c3] text-[#854d0e] text-xs font-bold">
                         <Sparkles :size="11" /> Premium
                     </span>
                 </span>
@@ -170,132 +170,23 @@ const saveForm = () => {
                     id="ga-id"
                     v-model="form.google_analytics_id"
                     placeholder="G-XXXXXXXXXX"
-                    class="seo-input seo-input--narrow"
+                    class="h-11 text-sm rounded-2 border-[1.5px] border-brand-line bg-white transition-colors focus:border-brand-blue focus:ring-3 focus:ring-[rgba(30, 102, 245, 0.12)] focus:outline-none max-w-[280px]"
                     :disabled="!isPremium"
                 />
-                <span class="seo-field__hint">
+                <span class="text-xs text-brand-ink-soft leading-[1.5]">
                     <template v-if="isPremium">Paste your Measurement ID here. Leave blank if you don't use Analytics.</template>
                     <template v-else>Upgrade to Premium to connect Google Analytics and track your visitors.</template>
                 </span>
-                <span v-if="form.errors.google_analytics_id" class="seo-error">{{ form.errors.google_analytics_id }}</span>
+                <span v-if="form.errors.google_analytics_id" class="text-xs text-red-600 font-medium">{{ form.errors.google_analytics_id }}</span>
             </label>
         </div>
 
         <!-- Save -->
-        <div class="seo-actions">
-            <button type="button" class="seo-save-btn" :disabled="saving" @click="saveForm">
-                <Loader2 v-if="saving" :size="18" class="seo-spin" />
+        <div class="flex justify-end">
+            <button type="button" class="inline-flex items-center justify-center gap-2 h-11 px-6 rounded-[10px] bg-brand-blue text-white border-none font-semibold text-sm cursor-pointer transition-opacity hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed" :disabled="saving" @click="saveForm">
+                <Loader2 v-if="saving" :size="18" class="animate-spin" />
                 {{ saving ? 'Saving…' : 'Save changes' }}
             </button>
         </div>
     </div>
 </template>
-
-<style scoped>
-.seo-wrap { display: flex; flex-direction: column; gap: 20px; max-width: 820px; }
-
-.seo-card {
-    background: var(--db-surface);
-    border: 1.5px solid var(--db-line);
-    border-radius: 14px;
-    overflow: hidden;
-}
-.seo-card--pad { padding: 24px; }
-.seo-card--dimmed { opacity: 0.6; }
-
-.seo-card__head {
-    padding: 20px 24px 16px;
-    border-bottom: 1px solid var(--db-line-soft);
-}
-.seo-card__body { padding: 20px 24px; }
-.seo-card__title { font-size: 17px; font-weight: 700; color: var(--db-ink); }
-.seo-card__sub   { font-size: 14px; color: var(--db-ink-soft); margin-top: 4px; line-height: 1.5; }
-.seo-console-link {
-    display: inline-block; margin-top: 8px;
-    font-size: 13px; font-weight: 600; color: var(--db-accent);
-    text-decoration: none;
-}
-.seo-console-link:hover { text-decoration: underline; }
-
-/* ── Google search preview ────────────────────────────────────────────── */
-.seo-preview {
-    padding: 16px; border-radius: 10px; background: var(--db-panel);
-    font-family: Arial, sans-serif;
-}
-.seo-preview__url   { font-size: 13px; color: #1e8e3e; }
-.seo-preview__title { font-size: 18px; color: #1a0dab; font-weight: 500; margin: 4px 0; }
-.seo-preview__desc  { font-size: 14px; color: #4d5156; line-height: 1.45; }
-
-/* ── Field ────────────────────────────────────────────────────────────── */
-.seo-field { display: flex; flex-direction: column; gap: 8px; }
-.seo-field__label { font-size: 14px; font-weight: 600; color: var(--db-ink); display: flex; align-items: center; gap: 8px; }
-.seo-field__hint  { font-size: 13px; color: var(--db-ink-soft); line-height: 1.5; }
-.seo-error        { font-size: 13px; color: var(--db-danger); font-weight: 500; }
-
-.seo-input {
-    height: 44px; font-size: 15px; border-radius: 8px;
-    border: 1.5px solid var(--db-line) !important; background: #fff !important;
-    transition: border-color 0.15s ease, box-shadow 0.15s ease;
-}
-.seo-input:focus {
-    border-color: var(--db-accent) !important;
-    box-shadow: 0 0 0 3px rgba(30, 102, 245, 0.12) !important;
-    outline: none !important;
-}
-.seo-input--narrow { max-width: 280px; }
-.seo-textarea {
-    font-size: 15px; border-radius: 8px;
-    border: 1.5px solid var(--db-line) !important; background: #fff !important;
-    resize: vertical;
-    transition: border-color 0.15s ease, box-shadow 0.15s ease;
-}
-.seo-textarea:focus {
-    border-color: var(--db-accent) !important;
-    box-shadow: 0 0 0 3px rgba(30, 102, 245, 0.12) !important;
-    outline: none !important;
-}
-
-/* ── Toggle row ───────────────────────────────────────────────────────── */
-.seo-toggle-row {
-    display: flex; align-items: center; justify-content: space-between; gap: 16px;
-}
-.seo-toggle-row__label { font-size: 16px; font-weight: 700; color: var(--db-ink); }
-.seo-toggle-row__hint  { font-size: 14px; color: var(--db-ink-soft); line-height: 1.5; margin-top: 4px; max-width: 500px; }
-.seo-switch { flex-shrink: 0; }
-
-/* ── Premium badge ────────────────────────────────────────────────────── */
-.seo-premium-badge {
-    display: inline-flex; align-items: center; gap: 4px;
-    padding: 2px 8px; border-radius: 999px;
-    background: #fef9c3; color: #854d0e;
-    font-size: 12px; font-weight: 700;
-}
-
-/* ── Save button ──────────────────────────────────────────────────────── */
-.seo-actions { display: flex; justify-content: flex-end; }
-.seo-save-btn {
-    display: inline-flex; align-items: center; gap: 8px;
-    height: 44px; padding: 0 24px; border-radius: 10px;
-    background: var(--db-accent); color: var(--db-accent-fg);
-    border: none; font-family: inherit; font-size: 15px; font-weight: 600;
-    cursor: pointer; transition: opacity 0.1s;
-}
-.seo-save-btn:disabled { opacity: 0.5; cursor: not-allowed; }
-.seo-save-btn:hover:not(:disabled) { opacity: 0.9; }
-.seo-spin { animation: seo-spin 1s linear infinite; }
-@keyframes seo-spin { to { transform: rotate(360deg); } }
-
-/* ── AI generate button ─────────────────────────────────────────────── */
-.seo-ai-btn {
-    display: inline-flex; align-items: center; gap: 6px;
-    padding: 0 14px; height: 34px; border-radius: 8px;
-    font-family: inherit; font-size: 13px; font-weight: 600;
-    background: var(--db-panel); color: var(--db-ink);
-    border: 1.5px solid var(--db-line);
-    cursor: pointer; transition: border-color 0.15s, background 0.15s;
-    align-self: flex-start;
-}
-.seo-ai-btn:hover:not(:disabled) { border-color: var(--db-accent); background: var(--db-accent-soft); color: var(--db-accent); }
-.seo-ai-btn:disabled { opacity: 0.5; cursor: not-allowed; }
-.seo-ai-spin { animation: seo-spin 1s linear infinite; }
-</style>

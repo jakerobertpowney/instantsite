@@ -57,10 +57,10 @@ const submit = async (preview: boolean | undefined) => {
 </script>
 
 <template>
-    <section id="contact-form" class="py-14" style="border-bottom: 1px solid var(--site-primary-muted)">
+    <section id="contact-form" class="border-b py-14" style="border-bottom: 1px solid var(--site-primary-muted)">
         <!-- Section label -->
         <p
-            class="text-xs font-semibold uppercase tracking-widest mb-6"
+            class="mb-6 text-xs font-semibold uppercase tracking-widest"
             style="color: var(--site-primary)"
         >
             Get in touch
@@ -70,8 +70,8 @@ const submit = async (preview: boolean | undefined) => {
 
             <!-- Left: heading + sub-copy -->
             <div class="flex flex-col justify-center">
-                <h2 class="text-2xl font-bold text-gray-900 mb-3">Send us a message</h2>
-                <p class="text-gray-500 text-sm leading-relaxed">
+                <h2 class="mb-3 text-2xl font-bold text-gray-900">Send us a message</h2>
+                <p class="text-sm leading-relaxed text-gray-500">
                     Fill in the form and we'll get back to you as soon as possible.
                 </p>
             </div>

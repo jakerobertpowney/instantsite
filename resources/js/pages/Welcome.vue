@@ -144,7 +144,7 @@ const faqs = [
     },
     {
         q: "What if I don't have a Google Business Profile?",
-        a: "You'll need a Google Business Profile before we can build your site — but setting one up is free and takes about 10 minutes. <a href=\"https://business.google.com/en-all/business-profile/\" target=\"_blank\" rel=\"noopener noreferrer\" class=\"mk-faq__link\">Set up your Google Business Profile →</a> Once you're listed, come back here and we'll build your site.",
+        a: "You'll need a Google Business Profile before we can build your site — but setting one up is free and takes about 10 minutes. <a href=\"https://business.google.com/en-all/business-profile/\" target=\"_blank\" rel=\"noopener noreferrer\" style=\"color:#1e66f5;font-weight:600;text-decoration:none;display:inline-block;margin:8px 0;\">Set up your Google Business Profile →</a> Once you're listed, come back here and we'll build your site.",
     },
     {
         q: 'Can I edit things like my description and photos?',
@@ -189,33 +189,36 @@ const features = [
         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
     </Head>
 
-    <div class="mk-page">
+    <div class="w-full max-w-full overflow-x-hidden bg-brand-surface text-brand-ink min-h-screen antialiased" style="font-family: 'Inter', ui-sans-serif, system-ui, sans-serif;">
         <!-- ══════════════════════════════════════════════
              NAV
         ══════════════════════════════════════════════ -->
-        <header class="mk-nav" :class="{ 'mk-nav--scrolled': scrolled }">
-            <div class="mk-container mk-nav__inner">
+        <header :class="[
+            'sticky top-0 z-40 transition-all duration-200 ease-out border-b border-transparent',
+            scrolled ? 'bg-white/92 border-brand-line-soft backdrop-blur-[8px] -webkit-backdrop-filter:blur(8px)' : 'bg-brand-blue-soft/92 backdrop-blur-[8px] -webkit-backdrop-filter:blur(8px)'
+        ]">
+            <div class="max-w-[1200px] mx-auto px-6 w-full box-border flex items-center gap-5 py-3.5">
                 <!-- Logo -->
-                <a href="/" class="mk-nav__logo">
+                <a href="/" class="flex items-center gap-2.5 no-underline text-brand-ink flex-shrink-0">
                     <AppLogo />
                 </a>
 
                 <!-- Desktop nav links -->
-                <nav class="mk-nav__links">
-                    <button class="mk-nav__link" @click="scrollTo('how')">How it works</button>
-                    <button class="mk-nav__link" @click="scrollTo('features')">Features</button>
-                    <button class="mk-nav__link" @click="scrollTo('pricing')">Pricing</button>
-                    <button class="mk-nav__link" @click="scrollTo('faq')">FAQ</button>
+                <nav class="hidden lg:flex items-center gap-1 flex-1 ml-6">
+                    <button class="px-3 py-2 border-none bg-transparent cursor-pointer font-inherit text-sm font-semibold text-brand-ink-mid rounded-lg transition-colors hover:bg-brand-panel hover:text-brand-ink" @click="scrollTo('how')">How it works</button>
+                    <button class="px-3 py-2 border-none bg-transparent cursor-pointer font-inherit text-sm font-semibold text-brand-ink-mid rounded-lg transition-colors hover:bg-brand-panel hover:text-brand-ink" @click="scrollTo('features')">Features</button>
+                    <button class="px-3 py-2 border-none bg-transparent cursor-pointer font-inherit text-sm font-semibold text-brand-ink-mid rounded-lg transition-colors hover:bg-brand-panel hover:text-brand-ink" @click="scrollTo('pricing')">Pricing</button>
+                    <button class="px-3 py-2 border-none bg-transparent cursor-pointer font-inherit text-sm font-semibold text-brand-ink-mid rounded-lg transition-colors hover:bg-brand-panel hover:text-brand-ink" @click="scrollTo('faq')">FAQ</button>
                 </nav>
 
                 <!-- Desktop CTA — auth-aware -->
-                <div class="mk-nav__cta mk-nav__cta--desktop">
+                <div class="hidden lg:flex items-center gap-2 flex-shrink-0">
                     <template v-if="isLoggedIn">
-                        <Link href="/dashboard" class="mk-btn mk-btn--primary">Dashboard</Link>
+                        <Link href="/dashboard" class="inline-flex items-center justify-center gap-2 h-12 px-5 rounded-lg font-bold text-sm cursor-pointer border border-brand-blue transition-opacity bg-brand-blue text-white hover:opacity-90">Dashboard</Link>
                     </template>
                     <template v-else>
-                        <Link href="/login" class="mk-nav__signin">Sign in</Link>
-                        <button class="mk-btn mk-btn--primary" @click="scrollToSearch">
+                        <Link href="/login" class="h-10.5 px-4 text-sm font-semibold text-brand-ink no-underline inline-flex items-center rounded-lg transition-colors hover:bg-brand-panel">Sign in</Link>
+                        <button class="inline-flex items-center justify-center gap-2 h-12 px-5 rounded-lg font-bold text-sm cursor-pointer border border-brand-blue transition-opacity bg-brand-blue text-white hover:opacity-90" @click="scrollToSearch">
                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
                             Find my business
                         </button>
@@ -223,28 +226,43 @@ const features = [
                 </div>
 
                 <!-- Mobile hamburger -->
-                <button class="mk-nav__hamburger" :class="{ 'mk-nav__hamburger--open': mobileMenuOpen }" :aria-expanded="mobileMenuOpen" aria-label="Toggle menu" @click="toggleMobileMenu">
-                    <span></span>
-                    <span></span>
-                    <span></span>
+                <button :class="[
+                    'lg:hidden flex flex-col justify-center items-center gap-1.25 w-10 h-10 border-none bg-transparent cursor-pointer p-1 rounded-lg flex-shrink-0 transition-colors hover:bg-brand-panel',
+                    mobileMenuOpen && 'bg-brand-panel'
+                ]" :aria-expanded="mobileMenuOpen" aria-label="Toggle menu" @click="toggleMobileMenu">
+                    <span :class="[
+                        'block w-5.5 h-0.5 bg-brand-ink rounded-sm transition-all duration-200',
+                        mobileMenuOpen && 'translate-y-1.75 rotate-45'
+                    ]"></span>
+                    <span :class="[
+                        'block w-5.5 h-0.5 bg-brand-ink rounded-sm transition-all duration-200',
+                        mobileMenuOpen && 'opacity-0 scale-x-0'
+                    ]"></span>
+                    <span :class="[
+                        'block w-5.5 h-0.5 bg-brand-ink rounded-sm transition-all duration-200',
+                        mobileMenuOpen && '-translate-y-1.75 -rotate-45'
+                    ]"></span>
                 </button>
             </div>
 
             <!-- Mobile menu panel -->
-            <div class="mk-mobile-menu" :class="{ 'mk-mobile-menu--open': mobileMenuOpen }" aria-hidden="!mobileMenuOpen">
-                <nav class="mk-mobile-menu__links">
-                    <button class="mk-mobile-menu__link" @click="scrollTo('how')">How it works</button>
-                    <button class="mk-mobile-menu__link" @click="scrollTo('features')">Features</button>
-                    <button class="mk-mobile-menu__link" @click="scrollTo('pricing')">Pricing</button>
-                    <button class="mk-mobile-menu__link" @click="scrollTo('faq')">FAQ</button>
+            <div :class="[
+                'lg:hidden flex flex-col bg-white border-t border-transparent px-6 gap-1 overflow-hidden max-h-0 transition-all duration-280 ease-out',
+                mobileMenuOpen && 'max-h-[480px] py-4 pb-7 border-t-brand-line-soft'
+            ]" aria-hidden="!mobileMenuOpen">
+                <nav class="flex flex-col gap-0.5 mb-4">
+                    <button class="w-full text-left px-3 py-3.25 border-none bg-transparent font-inherit text-base font-semibold text-brand-ink cursor-pointer rounded-lg transition-colors hover:bg-brand-panel" @click="scrollTo('how')">How it works</button>
+                    <button class="w-full text-left px-3 py-3.25 border-none bg-transparent font-inherit text-base font-semibold text-brand-ink cursor-pointer rounded-lg transition-colors hover:bg-brand-panel" @click="scrollTo('features')">Features</button>
+                    <button class="w-full text-left px-3 py-3.25 border-none bg-transparent font-inherit text-base font-semibold text-brand-ink cursor-pointer rounded-lg transition-colors hover:bg-brand-panel" @click="scrollTo('pricing')">Pricing</button>
+                    <button class="w-full text-left px-3 py-3.25 border-none bg-transparent font-inherit text-base font-semibold text-brand-ink cursor-pointer rounded-lg transition-colors hover:bg-brand-panel" @click="scrollTo('faq')">FAQ</button>
                 </nav>
-                <div class="mk-mobile-menu__actions">
+                <div class="flex flex-col gap-2.5 border-t border-brand-line-soft pt-4">
                     <template v-if="isLoggedIn">
-                        <Link href="/dashboard" class="mk-btn mk-btn--primary mk-btn--full" @click="closeMobileMenu">Dashboard</Link>
+                        <Link href="/dashboard" class="inline-flex items-center justify-center gap-2 h-12 px-5 rounded-lg font-bold text-sm cursor-pointer border border-brand-blue transition-opacity bg-brand-blue text-white hover:opacity-90 w-full justify-center" @click="closeMobileMenu">Dashboard</Link>
                     </template>
                     <template v-else>
-                        <Link href="/login" class="mk-mobile-menu__signin" @click="closeMobileMenu">Sign in</Link>
-                        <button class="mk-btn mk-btn--primary mk-btn--full" @click="scrollToSearch">
+                        <Link href="/login" class="flex items-center justify-center h-12 rounded-lg border-[1.5px] border-brand-line font-inherit text-sm font-bold text-brand-ink no-underline transition-colors hover:bg-brand-panel" @click="closeMobileMenu">Sign in</Link>
+                        <button class="inline-flex items-center justify-center gap-2 h-12 px-5 rounded-lg font-bold text-sm cursor-pointer border border-brand-blue transition-opacity bg-brand-blue text-white hover:opacity-90 w-full justify-center" @click="scrollToSearch">
                             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
                             Find my business
                         </button>
@@ -256,29 +274,32 @@ const features = [
         <!-- ══════════════════════════════════════════════
              HERO
         ══════════════════════════════════════════════ -->
-        <section class="mk-hero">
-            <div class="mk-container">
-                <div class="mk-hero__split">
+        <section class="bg-gradient-to-b from-brand-blue-soft to-white">
+            <div class="max-w-[1200px] mx-auto px-6 w-full box-border">
+                <div class="grid lg:grid-cols-2 gap-14 items-start py-12 sm:py-16 lg:py-28 lg:pb-24 sm:gap-10">
 
                     <!-- ── Left: content ── -->
-                    <div class="mk-hero__left">
+                    <div class="text-center lg:text-left lg:pt-6">
                         <!-- Badge pill -->
-                        <div class="mk-pill">
-                            <span class="mk-pill__dot"></span>
+                        <div class="inline-flex items-center gap-2 px-3.5 py-2 rounded-full bg-brand-blue-soft text-brand-blue border-[1.5px] border-brand-blue/15 text-sm font-bold mb-7">
+                            <span class="w-2 h-2 rounded-full bg-brand-blue flex-shrink-0"></span>
                             Free · No credit card · 2 minute setup
                         </div>
 
                         <!-- Headline -->
-                        <h1 class="mk-hero__h1">Your Google listing.<br>Now a free website.</h1>
-                        <p class="mk-hero__sub">Turn your Google Business listing into a website in under 2 minutes. Free forever.</p>
+                        <h1 class="text-[clamp(32px,4.2vw,54px)] font-black tracking-[-0.05em] leading-[1.05] m-0 text-brand-ink">Your Google listing.<br>Now a free website.</h1>
+                        <p class="text-[clamp(18px,2vw,22px)] text-brand-ink-mid leading-[1.5] mt-6 max-w-[520px]">Turn your Google Business listing into a website in under 2 minutes. Free forever.</p>
 
                         <!-- Search box -->
-                        <div id="hero-search" class="mk-search-wrap">
+                        <div id="hero-search" class="mt-11 relative w-full">
                             <!-- Idle: search form -->
-                            <div v-if="searchPhase === 'idle'" class="mk-search-stack">
-                                <div class="mk-search" :class="{ 'mk-search--focused': searchFocused }">
+                            <div v-if="searchPhase === 'idle'" class="flex flex-col gap-3">
+                                <div :class="[
+                                    'flex items-center gap-1.5 bg-white border-2 border-brand-line rounded-lg px-2 shadow-sm transition-all duration-150',
+                                    searchFocused && 'border-brand-blue shadow-[0_0_0_6px_rgba(30,102,245,0.13),0_8px_24px_rgba(0,0,0,0.08)]'
+                                ]">
                                     <svg
-                                        class="mk-search__icon"
+                                        class="pl-2.5 text-brand-ink-soft flex-shrink-0"
                                         width="26"
                                         height="26"
                                         viewBox="0 0 24 24"
@@ -295,7 +316,7 @@ const features = [
                                     <input
                                         v-model="query"
                                         type="text"
-                                        class="mk-search__input"
+                                        class="flex-1 border-none outline-none bg-transparent font-inherit text-base lg:text-xl font-medium text-brand-ink py-3 lg:py-3.5 px-1.5 min-w-0 placeholder:text-brand-ink-soft"
                                         placeholder="Your business name, e.g. Thompson Decorating"
                                         autofocus
                                         @focus="searchFocused = true"
@@ -303,21 +324,21 @@ const features = [
                                         @keydown.enter="searchPlaces"
                                     />
                                 </div>
-                                <button class="mk-btn mk-btn--primary mk-btn--lg mk-search-stack__btn" @click="searchPlaces">
+                                <button class="w-full inline-flex items-center justify-center gap-2 h-14 px-7 rounded-lg font-bold text-base cursor-pointer border border-brand-blue transition-opacity bg-brand-blue text-white hover:opacity-90" @click="searchPlaces">
                                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
                                     Find my business
                                 </button>
                             </div>
 
                             <!-- Loading -->
-                            <div v-else-if="searchPhase === 'loading'" class="mk-search-state">
+                            <div v-else-if="searchPhase === 'loading'" class="flex items-center justify-center gap-3 py-6 px-6 bg-white border-[1.5px] border-brand-line rounded-lg text-brand-ink-mid text-base font-medium">
                                 <svg
-                                    class="mk-spin"
+                                    class="animate-spin"
                                     width="22"
                                     height="22"
                                     viewBox="0 0 24 24"
                                     fill="none"
-                                    stroke="var(--mk-accent)"
+                                    stroke="currentColor"
                                     stroke-width="2.5"
                                     stroke-linecap="round"
                                     aria-hidden="true"
@@ -330,10 +351,10 @@ const features = [
                             </div>
 
                             <!-- Results -->
-                            <div v-else-if="searchPhase === 'results'" class="mk-results">
-                                <p class="mk-results__label">Is one of these your business?</p>
-                                <div v-for="place in places" :key="place.id" class="mk-result-row">
-                                    <div class="mk-result-row__icon">
+                            <div v-else-if="searchPhase === 'results'" class="bg-white border-[1.5px] border-brand-line rounded-lg overflow-hidden text-left shadow-lg">
+                                <p class="text-xs font-bold text-brand-ink-soft py-4 px-5 mb-2 m-0">Is one of these your business?</p>
+                                <div v-for="place in places" :key="place.id" class="flex items-center gap-3.5 py-3.5 px-5 border-t border-brand-line-soft cursor-pointer transition-colors hover:bg-white">
+                                    <div class="w-10 h-10 rounded-[10px] bg-brand-panel flex items-center justify-center text-brand-ink-mid flex-shrink-0">
                                         <svg
                                             width="18"
                                             height="18"
@@ -348,55 +369,55 @@ const features = [
                                             <circle cx="12" cy="10" r="3" />
                                         </svg>
                                     </div>
-                                    <div class="mk-result-row__info">
-                                        <div class="mk-result-row__name">{{ place.displayName.text }}</div>
-                                        <div class="mk-result-row__addr">{{ place.formattedAddress }}</div>
+                                    <div class="flex-1 min-w-0">
+                                        <div class="text-sm font-bold text-brand-ink">{{ place.displayName.text }}</div>
+                                        <div class="text-xs text-brand-ink-soft mt-0.5 whitespace-nowrap overflow-hidden text-ellipsis">{{ place.formattedAddress }}</div>
                                     </div>
-                                    <span v-if="place.taken" class="mk-result-row__taken">
-                                        <span class="mk-btn mk-btn--sm mk-btn--taken" aria-disabled="true">Already claimed</span>
-                                        <Link href="/login" class="mk-result-row__taken-link">Sign in →</Link>
+                                    <span v-if="place.taken" class="flex flex-col items-end gap-1">
+                                        <span class="inline-flex items-center justify-center gap-2 h-9 px-3.5 rounded-lg font-bold text-xs cursor-not-allowed border-none bg-brand-panel text-brand-ink-mid pointer-events-none whitespace-nowrap" aria-disabled="true">Already claimed</span>
+                                        <Link href="/login" class="text-xs text-brand-blue no-underline whitespace-nowrap hover:underline">Sign in →</Link>
                                     </span>
-                                    <Link v-else :href="show.url(place.id)" class="mk-btn mk-btn--primary mk-btn--sm"> This is me → </Link>
+                                    <Link v-else :href="show.url(place.id)" class="inline-flex items-center justify-center gap-2 h-9 px-3.5 rounded-lg font-bold text-xs cursor-pointer border border-brand-blue transition-opacity bg-brand-blue text-white hover:opacity-90"> This is me → </Link>
                                 </div>
-                                <button class="mk-reset-btn" @click="resetSearch">← Search again</button>
+                                <button class="w-full block py-3 px-5 bg-brand-panel border-none font-inherit text-sm font-semibold text-brand-ink-mid cursor-pointer text-left border-t border-brand-line-soft transition-colors hover:bg-brand-line-soft" @click="resetSearch">← Search again</button>
                             </div>
 
                             <!-- No results -->
-                            <div v-else-if="searchPhase === 'empty'" class="mk-results mk-results--empty">
-                                <p class="mk-results__label">No results found</p>
-                                <p class="mk-results__sub">Try searching with your postcode or the full business name.</p>
-                                <button class="mk-reset-btn" @click="resetSearch">← Search again</button>
+                            <div v-else-if="searchPhase === 'empty'" class="bg-white border-[1.5px] border-brand-line rounded-lg overflow-hidden text-left shadow-lg">
+                                <p class="text-xs font-bold text-brand-ink-soft py-4 px-5 mb-2 m-0">No results found</p>
+                                <p class="text-xs text-brand-ink-soft px-5 mb-1 m-0">Try searching with your postcode or the full business name.</p>
+                                <button class="w-full block py-3 px-5 bg-brand-panel border-none font-inherit text-sm font-semibold text-brand-ink-mid cursor-pointer text-left border-t border-brand-line-soft transition-colors hover:bg-brand-line-soft" @click="resetSearch">← Search again</button>
                             </div>
                         </div>
 
                         <!-- Trust signals -->
-                        <div class="mk-trust">
-                            <span class="mk-trust__item">
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--mk-accent)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5" /></svg>
+                        <div class="flex flex-col items-center lg:items-start gap-2.5 mt-6">
+                            <span class="inline-flex items-center gap-1.5 text-sm text-brand-ink-soft font-medium">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5" /></svg>
                                 Free yourcompany.321sites.com web address
                             </span>
-                            <span class="mk-trust__item">
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--mk-accent)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5" /></svg>
+                            <span class="inline-flex items-center gap-1.5 text-sm text-brand-ink-soft font-medium">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5" /></svg>
                                 No credit card required
                             </span>
-                            <span class="mk-trust__item">
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--mk-accent)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5" /></svg>
+                            <span class="inline-flex items-center gap-1.5 text-sm text-brand-ink-soft font-medium">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5" /></svg>
                                 Live in under 2 minutes
                             </span>
                         </div>
                     </div>
 
                     <!-- ── Right: live website preview ── -->
-                    <div class="mk-hero__right">
-                        <div class="mk-preview-browser">
+                    <div class="relative hidden lg:block">
+                        <div class="rounded-lg overflow-hidden border-[1.5px] border-brand-line shadow-2xl">
                             <!-- Browser chrome bar -->
-                            <div class="mk-preview-browser__bar">
-                                <div class="mk-preview-browser__dots">
-                                    <span class="mk-preview-browser__dot"></span>
-                                    <span class="mk-preview-browser__dot"></span>
-                                    <span class="mk-preview-browser__dot"></span>
+                            <div class="h-10 bg-gray-100 border-b border-brand-line flex items-center px-3.5 gap-2.5">
+                                <div class="flex gap-1.25 flex-shrink-0">
+                                    <span class="w-2.5 h-2.5 rounded-full" style="background: #ff5f57"></span>
+                                    <span class="w-2.5 h-2.5 rounded-full" style="background: #febc2e"></span>
+                                    <span class="w-2.5 h-2.5 rounded-full" style="background: #28c840"></span>
                                 </div>
-                                <div class="mk-preview-browser__urlbar">
+                                <div class="flex-1 h-6 bg-gray-200 rounded-3xl flex items-center px-2.5 gap-1.25 text-xs text-gray-600 overflow-hidden whitespace-nowrap font-mono">
                                     <svg width="9" height="11" viewBox="0 0 9 11" fill="currentColor" aria-hidden="true">
                                         <path d="M4.5 0C3.12 0 2 1.12 2 2.5V3H1a1 1 0 0 0-1 1v6a1 1 0 0 0 1 1h7a1 1 0 0 0 1-1V4a1 1 0 0 0-1-1H7v-.5C7 1.12 5.88 0 4.5 0zm0 1C5.33 1 6 1.67 6 2.5V3H3v-.5C3 1.67 3.67 1 4.5 1zM4.5 6a1 1 0 1 1 0 2 1 1 0 0 1 0-2z"/>
                                     </svg>
@@ -404,11 +425,11 @@ const features = [
                                 </div>
                             </div>
                             <!-- Scaled iframe -->
-                            <div ref="previewClip" class="mk-preview-iframe-clip">
+                            <div ref="previewClip" class="w-full overflow-clip relative h-[520px] bg-white cursor-default">
                                 <iframe
                                     ref="previewIframe"
                                     src="/demo"
-                                    class="mk-preview-iframe"
+                                    class="absolute top-0 left-0 w-[900px] h-[900px] border-none origin-top-left"
                                     loading="lazy"
                                     tabindex="-1"
                                     aria-hidden="true"
@@ -417,7 +438,7 @@ const features = [
                                 ></iframe>
                             </div>
                         </div>
-                        <p class="mk-preview-caption">
+                        <p class="text-center text-xs text-brand-ink-soft mt-2.5 font-medium">
                             Example site — built from a Google Business listing
                         </p>
                     </div>
@@ -429,16 +450,16 @@ const features = [
         <!-- ══════════════════════════════════════════════
              HOW IT WORKS
         ══════════════════════════════════════════════ -->
-        <section id="how" class="mk-section">
-            <div class="mk-container">
-                <div class="mk-section-head mk-section-head--center">
-                    <div class="mk-eyebrow">How it works</div>
-                    <h2 class="mk-section-head__h2">A website from your Google Business listing in three steps.</h2>
-                    <p class="mk-section-head__sub">
+        <section id="how" class="py-[72px] lg:py-[100px]">
+            <div class="max-w-[1200px] mx-auto px-6 w-full box-border">
+                <div class="mb-14 sm:mb-10 text-center">
+                    <div class="text-xs font-black text-brand-ink-soft uppercase tracking-wider mb-3">How it works</div>
+                    <h2 class="text-[clamp(30px,4vw,48px)] font-black text-brand-ink tracking-[-0.025em] leading-[1.08] m-0 max-w-3xl mx-auto">A website from your Google Business listing in three steps.</h2>
+                    <p class="text-lg text-brand-ink-mid leading-[1.55] mt-4 mx-auto max-w-2xl">
                         No drag-and-drop. No templates to pick. We build the whole thing from what Google already knows about your business.
                     </p>
                 </div>
-                <div class="mk-steps-grid">
+                <div class="grid sm:grid-cols-1 md:grid-cols-1 lg:grid-cols-3 gap-6">
                     <div
                         v-for="(step, i) in [
                             {
@@ -461,9 +482,9 @@ const features = [
                             },
                         ]"
                         :key="i"
-                        class="mk-step-card"
+                        class="bg-brand-surface border-[1.5px] border-brand-line rounded-[18px] p-8 flex flex-col gap-3 relative"
                     >
-                        <div class="mk-step-card__icon">
+                        <div class="w-13 h-13 rounded-[14px] bg-brand-blue-soft flex items-center justify-center flex-shrink-0">
                             <svg
                                 v-if="step.icon === 'search'"
                                 width="28"
@@ -515,17 +536,17 @@ const features = [
                                 <path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
                             </svg>
                         </div>
-                        <div class="mk-step-card__num">{{ step.n }}</div>
-                        <h3 class="mk-step-card__title">{{ step.t }}</h3>
-                        <p class="mk-step-card__desc">{{ step.d }}</p>
+                        <div class="absolute top-6 right-6 text-[60px] font-black text-brand-panel leading-none tracking-[-0.075em]">{{ step.n }}</div>
+                        <h3 class="text-[21px] font-black text-brand-ink tracking-[-0.015em] mt-1.5 m-0">{{ step.t }}</h3>
+                        <p class="text-sm text-brand-ink-mid leading-[1.55] m-0">{{ step.d }}</p>
                     </div>
                 </div>
-                <div class="mk-steps-cta">
-                    <button class="mk-btn mk-btn--primary mk-btn--lg" @click="scrollToSearch">
+                <div class="mt-12 text-center flex flex-col items-center gap-3">
+                    <button class="inline-flex items-center justify-center gap-2 h-14 px-7 rounded-lg font-bold text-base cursor-pointer border border-brand-blue transition-opacity bg-brand-blue text-white hover:opacity-90" @click="scrollToSearch">
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
                         Find my business
                     </button>
-                    <div class="mk-steps-cta__note">No sign-up needed to start. Really.</div>
+                    <div class="text-sm text-brand-ink-soft">No sign-up needed to start. Really.</div>
                 </div>
             </div>
         </section>
@@ -533,15 +554,15 @@ const features = [
         <!-- ══════════════════════════════════════════════
              FEATURES / WHAT YOU GET
         ══════════════════════════════════════════════ -->
-        <section id="features" class="mk-section mk-section--panel">
-            <div class="mk-container">
-                <div class="mk-section-head mk-section-head--center">
-                    <div class="mk-eyebrow">What you get</div>
-                    <h2 class="mk-section-head__h2">Everything a small business site needs. Nothing it doesn't.</h2>
+        <section id="features" class="py-[72px] lg:py-[100px] bg-brand-ink">
+            <div class="max-w-[1200px] mx-auto px-6 w-full box-border">
+                <div class="mb-14 sm:mb-10 text-center">
+                    <div class="text-xs font-black text-blue-400 uppercase tracking-wider mb-3">What you get</div>
+                    <h2 class="text-[clamp(30px,4vw,48px)] font-black text-white tracking-[-0.025em] leading-[1.08] m-0 max-w-3xl mx-auto">Everything a small business site needs. Nothing it doesn't.</h2>
                 </div>
-                <div class="mk-features-grid">
-                    <div v-for="(feat, i) in features" :key="i" class="mk-feature-cell">
-                        <div class="mk-feature-cell__icon">
+                <div class="grid sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-px bg-white/8 border border-white/8 rounded-[18px] overflow-hidden">
+                    <div v-for="(feat, i) in features" :key="i" class="bg-brand-ink p-7 flex flex-col gap-2.5">
+                        <div class="w-11 h-11 rounded-[12px] bg-brand-blue/18 flex items-center justify-center flex-shrink-0">
                             <svg
                                 v-if="i === 0"
                                 width="22"
@@ -664,8 +685,8 @@ const features = [
                                 <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
                             </svg>
                         </div>
-                        <div class="mk-feature-cell__title">{{ feat.t }}</div>
-                        <div class="mk-feature-cell__desc">{{ feat.d }}</div>
+                        <div class="text-base font-black text-white tracking-[-0.005em]">{{ feat.t }}</div>
+                        <div class="text-sm text-white/55 leading-[1.55]">{{ feat.d }}</div>
                     </div>
                 </div>
             </div>
@@ -674,31 +695,31 @@ const features = [
         <!-- ══════════════════════════════════════════════
              PRICING
         ══════════════════════════════════════════════ -->
-        <section id="pricing" class="mk-section">
-            <div class="mk-container">
-                <div class="mk-section-head mk-section-head--center">
-                    <div class="mk-eyebrow">Pricing</div>
-                    <h2 class="mk-section-head__h2">Free forever. £9/month when you're ready.</h2>
-                    <p class="mk-section-head__sub">No hidden fees. No surprises. Cancel any time.</p>
+        <section id="pricing" class="py-[72px] lg:py-[100px]">
+            <div class="max-w-[1200px] mx-auto px-6 w-full box-border">
+                <div class="mb-14 sm:mb-10 text-center">
+                    <div class="text-xs font-black text-brand-ink-soft uppercase tracking-wider mb-3">Pricing</div>
+                    <h2 class="text-[clamp(30px,4vw,48px)] font-black text-brand-ink tracking-[-0.025em] leading-[1.08] m-0 max-w-3xl mx-auto">Free forever. £9/month when you're ready.</h2>
+                    <p class="text-lg text-brand-ink-mid leading-[1.55] mt-4 mx-auto max-w-2xl">No hidden fees. No surprises. Cancel any time.</p>
                 </div>
-                <div class="mk-pricing-grid">
+                <div class="grid sm:grid-cols-1 lg:grid-cols-2 gap-6 max-w-[860px] mx-auto">
                     <!-- Free plan -->
-                    <div class="mk-plan">
-                        <div class="mk-plan__tier">Free</div>
-                        <div class="mk-plan__price-row">
-                            <span class="mk-plan__price">£0</span>
-                            <span class="mk-plan__cadence">forever</span>
+                    <div class="bg-brand-surface border-[1.5px] border-brand-line rounded-[20px] p-9 flex flex-col gap-5 relative">
+                        <div class="text-xs font-black text-brand-ink-soft uppercase tracking-wider">Free</div>
+                        <div class="flex items-baseline gap-2">
+                            <span class="text-[54px] font-black tracking-[-0.05em] leading-none">£0</span>
+                            <span class="text-base text-brand-ink-soft">forever</span>
                         </div>
-                        <p class="mk-plan__sub">Get a website up today, at no cost.</p>
-                        <ul class="mk-plan__feats">
-                            <li v-for="f in freeFeats" :key="f" class="mk-plan__feat">
-                                <span class="mk-plan__feat-check">
+                        <p class="text-sm text-brand-ink-mid leading-[1.5] m-0">Get a website up today, at no cost.</p>
+                        <ul class="list-none p-0 m-0 flex flex-col gap-3 flex-1">
+                            <li v-for="f in freeFeats" :key="f" class="flex items-start gap-3 text-sm leading-[1.45]">
+                                <span class="w-5.5 h-5.5 rounded-full bg-brand-blue-soft flex items-center justify-center flex-shrink-0 mt-0.25">
                                     <svg
                                         width="14"
                                         height="14"
                                         viewBox="0 0 24 24"
                                         fill="none"
-                                        stroke="var(--mk-accent)"
+                                        stroke="currentColor"
                                         stroke-width="2.5"
                                         stroke-linecap="round"
                                         stroke-linejoin="round"
@@ -710,29 +731,29 @@ const features = [
                                 {{ f }}
                             </li>
                         </ul>
-                        <button class="mk-btn mk-btn--secondary mk-btn--full" @click="scrollToSearch">
+                        <button class="w-full inline-flex items-center justify-center gap-2 h-12 px-5 rounded-lg font-bold text-sm cursor-pointer border border-brand-line transition-colors bg-brand-surface text-brand-ink hover:bg-brand-panel" @click="scrollToSearch">
                             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
                             Find my business
                         </button>
                     </div>
                     <!-- Premium plan -->
-                    <div class="mk-plan mk-plan--premium">
-                        <div class="mk-plan__popular">Best value</div>
-                        <div class="mk-plan__tier mk-plan__tier--light">Premium</div>
-                        <div class="mk-plan__price-row">
-                            <span class="mk-plan__price">£9</span>
-                            <span class="mk-plan__cadence mk-plan__cadence--light">a month</span>
+                    <div class="bg-brand-ink text-white border-brand-ink rounded-[20px] p-9 flex flex-col gap-5 relative">
+                        <div class="absolute -top-3.5 right-7 py-1.5 px-3.5 rounded-full bg-brand-blue text-white text-xs font-black">Best value</div>
+                        <div class="text-xs font-black text-white/65 uppercase tracking-wider">Premium</div>
+                        <div class="flex items-baseline gap-2">
+                            <span class="text-[54px] font-black tracking-[-0.05em] leading-none">£9</span>
+                            <span class="text-base text-white/55">a month</span>
                         </div>
-                        <p class="mk-plan__sub mk-plan__sub--light">For businesses who want a custom address and the full feature set.</p>
-                        <ul class="mk-plan__feats">
-                            <li v-for="f in proFeats" :key="f" class="mk-plan__feat">
-                                <span class="mk-plan__feat-check mk-plan__feat-check--light">
+                        <p class="text-sm text-white/70 leading-[1.5] m-0">For businesses who want a custom address and the full feature set.</p>
+                        <ul class="list-none p-0 m-0 flex flex-col gap-3 flex-1">
+                            <li v-for="f in proFeats" :key="f" class="flex items-start gap-3 text-sm leading-[1.45]">
+                                <span class="w-5.5 h-5.5 rounded-full bg-white/15 flex items-center justify-center flex-shrink-0 mt-0.25">
                                     <svg
                                         width="14"
                                         height="14"
                                         viewBox="0 0 24 24"
                                         fill="none"
-                                        stroke="#fff"
+                                        stroke="white"
                                         stroke-width="2.5"
                                         stroke-linecap="round"
                                         stroke-linejoin="round"
@@ -744,27 +765,30 @@ const features = [
                                 {{ f }}
                             </li>
                         </ul>
-                        <button class="mk-btn mk-btn--white mk-btn--full">Start Premium — £9/mo</button>
+                        <button class="w-full inline-flex items-center justify-center gap-2 h-12 px-5 rounded-lg font-bold text-sm cursor-pointer border-none transition-opacity bg-white text-brand-ink hover:opacity-90">Start Premium — £9/mo</button>
                     </div>
                 </div>
-                <p class="mk-pricing-note">Prices in GBP. VAT included where applicable. No hidden fees. No price hikes at renewal. Cancel any time.</p>
+                <p class="text-center text-sm text-brand-ink-soft mt-6">Prices in GBP. VAT included where applicable. No hidden fees. No price hikes at renewal. Cancel any time.</p>
             </div>
         </section>
 
         <!-- ══════════════════════════════════════════════
              FAQ
         ══════════════════════════════════════════════ -->
-        <section id="faq" class="mk-section mk-section--flush-top">
-            <div class="mk-container mk-container--narrow">
-                <div class="mk-section-head mk-section-head--center">
-                    <div class="mk-eyebrow">FAQ</div>
-                    <h2 class="mk-section-head__h2">Your questions, answered.</h2>
+        <section id="faq" class="py-10 sm:py-8">
+            <div class="max-w-[860px] mx-auto px-6 w-full box-border">
+                <div class="mb-14 sm:mb-10 text-center">
+                    <div class="text-xs font-black text-brand-ink-soft uppercase tracking-wider mb-3">FAQ</div>
+                    <h2 class="text-[clamp(30px,4vw,48px)] font-black text-brand-ink tracking-[-0.025em] leading-[1.08] m-0">Your questions, answered.</h2>
                 </div>
-                <div class="mk-faq">
-                    <div v-for="(item, i) in faqs" :key="i" class="mk-faq__item">
-                        <button class="mk-faq__btn" @click="toggleFaq(i)">
-                            <span class="mk-faq__q">{{ item.q }}</span>
-                            <span class="mk-faq__chevron" :class="{ 'mk-faq__chevron--open': faqOpen === i }">
+                <div class="flex flex-col gap-2.5 mt-12 sm:mt-8">
+                    <div v-for="(item, i) in faqs" :key="i" class="bg-brand-surface border-[1.5px] border-brand-line rounded-[14px] overflow-hidden">
+                        <button class="w-full py-5 px-6 bg-transparent border-none cursor-pointer flex items-center justify-between gap-4 font-inherit text-left" @click="toggleFaq(i)">
+                            <span class="text-base font-bold text-brand-ink tracking-[-0.005em]">{{ item.q }}</span>
+                            <span :class="[
+                                'w-9 h-9 rounded-full bg-brand-panel text-brand-ink flex items-center justify-center flex-shrink-0 transition-transform duration-200',
+                                faqOpen === i && 'rotate-180'
+                            ]">
                                 <svg
                                     width="18"
                                     height="18"
@@ -780,11 +804,11 @@ const features = [
                                 </svg>
                             </span>
                         </button>
-                        <div v-if="faqOpen === i" class="mk-faq__a" v-html="item.a"></div>
+                        <div v-if="faqOpen === i" class="px-6 pb-5 text-sm text-brand-ink-mid leading-[1.65] m-0 max-w-2xl" v-html="item.a"></div>
                     </div>
                 </div>
-                <p class="mk-faq__note">
-                    Still got questions? <a href="mailto:support@321sites.com" class="mk-faq__note-link">Drop us a line</a> — a real person will reply
+                <p class="text-center mt-9 text-sm text-brand-ink-soft">
+                    Still got questions? <a href="mailto:support@321sites.com" class="text-brand-ink font-bold underline-offset-1 hover:underline">Drop us a line</a> — a real person will reply
                     within a day.
                 </p>
             </div>
@@ -793,20 +817,20 @@ const features = [
         <!-- ══════════════════════════════════════════════
              CTA BAND
         ══════════════════════════════════════════════ -->
-        <section class="mk-section mk-section--flush-top">
-            <div class="mk-container">
-                <div class="mk-cta-band">
-                    <div class="mk-cta-band__copy">
-                        <h2 class="mk-cta-band__h2">A website for your business in the time it takes to make a brew.</h2>
-                        <p class="mk-cta-band__sub">Free to start, no credit card, no pushy sales calls. Give it a go — there's no commitment.</p>
+        <section class="py-10 sm:py-8">
+            <div class="max-w-[1200px] mx-auto px-6 w-full box-border">
+                <div class="bg-brand-ink text-white rounded-[24px] py-[clamp(36px,5vw,72px)] px-[clamp(28px,5vw,64px)] grid lg:grid-cols-[1.4fr_1fr] gap-12 items-center sm:grid-cols-1">
+                    <div>
+                        <h2 class="text-[clamp(26px,3.5vw,42px)] font-black tracking-[-0.02em] leading-[1.08] m-0">A website for your business in the time it takes to make a brew.</h2>
+                        <p class="text-base text-white/72 leading-[1.5] mt-4 max-w-xs">Free to start, no credit card, no pushy sales calls. Give it a go — there's no commitment.</p>
                     </div>
-                    <div class="mk-cta-band__action">
-                        <button class="mk-btn mk-btn--accent-white mk-btn--lg" @click="scrollToSearch">
+                    <div class="flex flex-col gap-4 sm:items-center">
+                        <button class="inline-flex items-center justify-center gap-2 h-14 px-7 rounded-lg font-bold text-base cursor-pointer border border-brand-blue transition-opacity bg-brand-blue text-white hover:opacity-90" @click="scrollToSearch">
                             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
                             Find my business
                         </button>
-                        <div class="mk-cta-band__trust">
-                            <span>
+                        <div class="flex items-center justify-center gap-5 text-sm text-white/55">
+                            <span class="inline-flex items-center gap-1.5">
                                 <svg
                                     width="16"
                                     height="16"
@@ -822,7 +846,7 @@ const features = [
                                 </svg>
                                 Free forever
                             </span>
-                            <span>
+                            <span class="inline-flex items-center gap-1.5">
                                 <svg
                                     width="16"
                                     height="16"
@@ -847,39 +871,39 @@ const features = [
         <!-- ══════════════════════════════════════════════
              FOOTER
         ══════════════════════════════════════════════ -->
-        <footer class="mk-footer">
-            <div class="mk-container">
-                <div class="mk-footer__top">
-                    <div class="mk-footer__brand">
-                        <div class="mk-footer__logo" style="color: #ffffff">
+        <footer class="bg-brand-ink text-white/70 mt-0">
+            <div class="max-w-[1200px] mx-auto px-6 w-full box-border">
+                <div class="grid lg:grid-cols-[1.4fr_1fr] gap-12 py-12 lg:py-28 border-b border-white/10 sm:grid-cols-1">
+                    <div class="max-w-sm">
+                        <div class="flex items-center gap-2.5 mb-4" style="color: #ffffff">
                             <AppLogo />
                         </div>
-                        <p class="mk-footer__tagline">A website for your business in the time it takes to make a brew.</p>
+                        <p class="text-sm leading-[1.6] m-0">A website for your business in the time it takes to make a brew.</p>
                     </div>
-                    <div class="mk-footer__cols">
-                        <div class="mk-footer__col">
-                            <div class="mk-footer__col-head">Product</div>
-                            <a class="mk-footer__link" @click.prevent="scrollTo('how')">How it works</a>
-                            <a class="mk-footer__link" @click.prevent="scrollTo('features')">Features</a>
-                            <a class="mk-footer__link" @click.prevent="scrollTo('pricing')">Pricing</a>
-                            <a class="mk-footer__link" @click.prevent="scrollTo('faq')">FAQ</a>
+                    <div class="grid grid-cols-3 gap-8 sm:grid-cols-3">
+                        <div class="flex flex-col gap-2.5">
+                            <div class="text-xs font-black text-white uppercase tracking-wider mb-1">Product</div>
+                            <a class="text-sm text-white/65 no-underline cursor-pointer transition-colors hover:text-white" @click.prevent="scrollTo('how')">How it works</a>
+                            <a class="text-sm text-white/65 no-underline cursor-pointer transition-colors hover:text-white" @click.prevent="scrollTo('features')">Features</a>
+                            <a class="text-sm text-white/65 no-underline cursor-pointer transition-colors hover:text-white" @click.prevent="scrollTo('pricing')">Pricing</a>
+                            <a class="text-sm text-white/65 no-underline cursor-pointer transition-colors hover:text-white" @click.prevent="scrollTo('faq')">FAQ</a>
                         </div>
-                        <div class="mk-footer__col">
-                            <div class="mk-footer__col-head">Support</div>
-                            <Link href="/help" class="mk-footer__link">Help centre</Link>
-                            <a href="mailto:support@321sites.com" class="mk-footer__link">Contact us</a>
+                        <div class="flex flex-col gap-2.5">
+                            <div class="text-xs font-black text-white uppercase tracking-wider mb-1">Support</div>
+                            <Link href="/help" class="text-sm text-white/65 no-underline cursor-pointer transition-colors hover:text-white">Help centre</Link>
+                            <a href="mailto:support@321sites.com" class="text-sm text-white/65 no-underline cursor-pointer transition-colors hover:text-white">Contact us</a>
                         </div>
-                        <div class="mk-footer__col">
-                            <div class="mk-footer__col-head">Legal</div>
-                            <Link href="/terms" class="mk-footer__link">Terms</Link>
-                            <Link href="/privacy" class="mk-footer__link">Privacy</Link>
+                        <div class="flex flex-col gap-2.5">
+                            <div class="text-xs font-black text-white uppercase tracking-wider mb-1">Legal</div>
+                            <Link href="/terms" class="text-sm text-white/65 no-underline cursor-pointer transition-colors hover:text-white">Terms</Link>
+                            <Link href="/privacy" class="text-sm text-white/65 no-underline cursor-pointer transition-colors hover:text-white">Privacy</Link>
                         </div>
                     </div>
                 </div>
-                <div class="mk-footer__bottom">
+                <div class="max-w-[1200px] mx-auto px-6 w-full box-border py-7 flex justify-between items-center text-sm flex-wrap gap-3 sm:text-center">
                     <div>© 2026 321Sites Ltd. Made in the UK.</div>
-                    <div class="mk-footer__status">
-                        <span class="mk-footer__status-dot"></span>
+                    <div class="flex items-center gap-2">
+                        <span class="w-2.5 h-2.5 rounded-full" style="background: #5bd46a"></span>
                         All systems go
                     </div>
                 </div>
@@ -888,1578 +912,3 @@ const features = [
     </div>
 </template>
 
-<style>
-/* ── Design tokens ──────────────────────────────────────────────────────────── */
-:root {
-    --mk-bg: #ffffff;
-    --mk-surface: #ffffff;
-    --mk-ink: #0f172a;
-    --mk-ink-mid: #3d4a5c;
-    --mk-ink-soft: #64748b;
-    --mk-line: #dde1e8;
-    --mk-line-soft: #e8ecf1;
-    --mk-panel: #edf1f8;
-    --mk-accent: #1e66f5;
-    --mk-accent-soft: #e6eefe;
-    --mk-accent-fg: #ffffff;
-}
-@keyframes mk-spin {
-    to {
-        transform: rotate(360deg);
-    }
-}
-</style>
-
-<style scoped>
-/* ── Base ───────────────────────────────────────────────────────────────────── */
-.mk-page {
-    font-family: 'Inter', ui-sans-serif, system-ui, sans-serif;
-    background: var(--mk-bg);
-    color: var(--mk-ink);
-    -webkit-font-smoothing: antialiased;
-    min-height: 100vh;
-    overflow-x: hidden; /* clip is newer CSS; hidden is universally safe */
-    width: 100%;
-    max-width: 100%;
-}
-
-/* ── Container ──────────────────────────────────────────────────────────────── */
-.mk-container {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 0 24px;
-    width: 100%;
-    box-sizing: border-box;
-}
-.mk-container--narrow {
-    max-width: 860px;
-}
-
-/* ── Buttons ────────────────────────────────────────────────────────────────── */
-.mk-btn {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    height: 48px;
-    padding: 0 20px;
-    border-radius: 10px;
-    font-family: inherit;
-    font-size: 15px;
-    font-weight: 700;
-    cursor: pointer;
-    border: 1.5px solid transparent;
-    transition:
-        opacity 0.1s ease,
-        background 0.1s ease;
-    white-space: nowrap;
-    flex-shrink: 0;
-}
-.mk-btn--primary {
-    background: var(--mk-accent);
-    color: var(--mk-accent-fg);
-    border-color: var(--mk-accent);
-}
-.mk-btn--primary:hover {
-    opacity: 0.9;
-}
-.mk-btn--secondary {
-    background: var(--mk-surface);
-    color: var(--mk-ink);
-    border-color: var(--mk-line);
-}
-.mk-btn--secondary:hover {
-    background: var(--mk-panel);
-}
-.mk-btn--white {
-    background: #fff;
-    color: var(--mk-ink);
-    border-color: transparent;
-}
-.mk-btn--white:hover {
-    opacity: 0.9;
-}
-.mk-btn--accent-white {
-    background: var(--mk-accent);
-    color: #fff;
-    border-color: var(--mk-accent);
-    font-size: 17px;
-    height: 56px;
-    padding: 0 28px;
-}
-.mk-btn--accent-white:hover {
-    opacity: 0.9;
-}
-.mk-btn--lg {
-    height: 56px;
-    font-size: 17px;
-    padding: 0 28px;
-}
-.mk-btn--sm {
-    height: 38px;
-    font-size: 13px;
-    padding: 0 14px;
-}
-.mk-btn--full {
-    width: 100%;
-    justify-content: center;
-}
-.mk-btn--taken {
-    background: var(--mk-panel);
-    color: var(--mk-muted);
-    border: 1px solid var(--mk-border);
-    cursor: not-allowed;
-    pointer-events: none;
-    white-space: nowrap;
-}
-
-/* ── Nav ────────────────────────────────────────────────────────────────────── */
-.mk-nav {
-    position: sticky;
-    top: 0;
-    z-index: 40;
-    background: rgba(238, 244, 255, 0.92);
-    backdrop-filter: saturate(140%) blur(8px);
-    -webkit-backdrop-filter: saturate(140%) blur(8px);
-    border-bottom: 1px solid transparent;
-    transition: border-color 0.2s ease, background 0.2s ease;
-}
-.mk-nav--scrolled {
-    background: rgba(255, 255, 255, 0.92);
-    border-bottom-color: var(--mk-line-soft);
-}
-.mk-nav__inner {
-    display: flex;
-    align-items: center;
-    gap: 20px;
-    padding-top: 14px;
-    padding-bottom: 14px;
-    /* Prevent the nav from stretching wider than its container */
-    min-width: 0;
-    width: 100%;
-}
-.mk-nav__logo {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    text-decoration: none;
-    color: var(--mk-ink);
-    flex-shrink: 0;
-}
-.mk-nav__logo-mark {
-    width: 34px;
-    height: 34px;
-    border-radius: 8px;
-    background: var(--mk-ink);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-}
-.mk-nav__logo-name {
-    font-size: 20px;
-    font-weight: 800;
-    letter-spacing: -0.4px;
-}
-.mk-nav__links {
-    display: flex;
-    align-items: center;
-    gap: 4px;
-    flex: 1;
-    margin-left: 24px;
-}
-.mk-nav__link {
-    padding: 8px 12px;
-    border: none;
-    background: transparent;
-    cursor: pointer;
-    font-family: inherit;
-    font-size: 15px;
-    font-weight: 600;
-    color: var(--mk-ink-mid);
-    border-radius: 8px;
-    transition:
-        background 0.1s ease,
-        color 0.1s ease;
-}
-.mk-nav__link:hover {
-    background: var(--mk-panel);
-    color: var(--mk-ink);
-}
-.mk-nav__cta {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    flex-shrink: 0;
-}
-.mk-nav__signin {
-    height: 42px;
-    padding: 0 16px;
-    font-size: 15px;
-    font-weight: 600;
-    color: var(--mk-ink);
-    text-decoration: none;
-    display: inline-flex;
-    align-items: center;
-    border-radius: 8px;
-    transition: background 0.1s ease;
-}
-.mk-nav__signin:hover {
-    background: var(--mk-panel);
-}
-
-/* ── Hero ───────────────────────────────────────────────────────────────────── */
-.mk-hero {
-    padding: 0;
-    background: linear-gradient(180deg, #eef4ff 0%, #ffffff 100%);
-}
-.mk-hero__split {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 56px;
-    align-items: start;
-    padding: 80px 0 72px;
-}
-.mk-hero__left {
-    text-align: left;
-    padding-top: 24px;
-}
-.mk-hero__right {
-    position: relative;
-}
-
-/* ── Preview browser mockup ──────────────────────────────────────────────────── */
-.mk-preview-browser {
-    border-radius: 12px;
-    overflow: hidden;
-    border: 1.5px solid var(--mk-line);
-    box-shadow:
-        0 24px 60px -12px rgba(0, 0, 0, 0.14),
-        0 8px 20px -8px rgba(0, 0, 0, 0.08);
-}
-.mk-preview-browser__bar {
-    height: 40px;
-    background: #f5f7fa;
-    border-bottom: 1.5px solid var(--mk-line);
-    display: flex;
-    align-items: center;
-    padding: 0 14px;
-    gap: 10px;
-}
-.mk-preview-browser__dots {
-    display: flex;
-    gap: 5px;
-    flex-shrink: 0;
-}
-.mk-preview-browser__dot {
-    width: 10px;
-    height: 10px;
-    border-radius: 50%;
-}
-.mk-preview-browser__dot:nth-child(1) { background: #ff5f57; }
-.mk-preview-browser__dot:nth-child(2) { background: #febc2e; }
-.mk-preview-browser__dot:nth-child(3) { background: #28c840; }
-.mk-preview-browser__urlbar {
-    flex: 1;
-    height: 24px;
-    background: #e9ecf0;
-    border-radius: 12px;
-    display: flex;
-    align-items: center;
-    padding: 0 10px;
-    gap: 5px;
-    font-size: 11px;
-    color: #718096;
-    overflow: hidden;
-    white-space: nowrap;
-    font-family: ui-monospace, 'Menlo', monospace;
-}
-.mk-preview-iframe-clip {
-    width: 100%;
-    overflow: clip;
-    position: relative;
-    height: 520px;
-    background: white;
-    cursor: default;
-}
-.mk-preview-iframe {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 900px; /* JS overrides width (900 desktop / 390 mobile) and height at runtime */
-    height: 900px;
-    border: none;
-    transform-origin: top left;
-}
-.mk-preview-caption {
-    text-align: center;
-    font-size: 12px;
-    color: var(--mk-ink-soft);
-    margin-top: 10px;
-    font-weight: 500;
-}
-
-/* Pill badge */
-.mk-pill {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    padding: 8px 14px;
-    border-radius: 999px;
-    background: var(--mk-accent-soft);
-    color: var(--mk-accent);
-    border: 1.5px solid rgba(30, 102, 245, 0.15);
-    font-size: 14px;
-    font-weight: 700;
-    margin-bottom: 28px;
-}
-.mk-pill__dot {
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    background: var(--mk-accent);
-    flex-shrink: 0;
-}
-
-.mk-hero__h1 {
-    font-size: clamp(32px, 4.2vw, 54px);
-    font-weight: 900;
-    letter-spacing: -2px;
-    line-height: 1.05;
-    margin: 0;
-    color: var(--mk-ink);
-}
-
-.mk-hero__sub {
-    font-size: clamp(18px, 2vw, 22px);
-    color: var(--mk-ink-mid);
-    line-height: 1.5;
-    margin: 24px 0 0;
-    max-width: 520px;
-}
-
-/* Search */
-.mk-search-wrap {
-    margin-top: 44px;
-    position: relative;
-    max-width: 600px;
-}
-.mk-search-stack {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-}
-.mk-search-stack__btn {
-    width: 100%;
-    justify-content: center;
-    border-radius: 12px;
-}
-.mk-search {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    background: #fff;
-    border: 2px solid var(--mk-line);
-    border-radius: 16px;
-    padding: 8px;
-    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.06);
-    transition:
-        box-shadow 0.15s ease,
-        border-color 0.15s ease;
-}
-.mk-search--focused {
-    border-color: var(--mk-accent);
-    box-shadow:
-        0 0 0 6px rgba(30, 102, 245, 0.13),
-        0 8px 24px rgba(0, 0, 0, 0.08);
-}
-.mk-search__icon {
-    padding-left: 10px;
-    color: var(--mk-ink-soft);
-    flex-shrink: 0;
-}
-.mk-search__input {
-    flex: 1;
-    border: none;
-    outline: none;
-    background: transparent;
-    font-family: inherit;
-    font-size: 20px;
-    font-weight: 500;
-    color: var(--mk-ink);
-    padding: 14px 6px;
-    min-width: 0;
-}
-.mk-search__input::placeholder {
-    color: var(--mk-ink-soft);
-}
-
-/* Search states */
-.mk-search-state {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 12px;
-    padding: 24px;
-    background: #fff;
-    border: 1.5px solid var(--mk-line);
-    border-radius: 16px;
-    color: var(--mk-ink-mid);
-    font-size: 16px;
-    font-weight: 500;
-}
-.mk-spin {
-    animation: mk-spin 0.8s linear infinite;
-}
-
-.mk-results {
-    background: #fff;
-    border: 1.5px solid var(--mk-line);
-    border-radius: 16px;
-    overflow: hidden;
-    text-align: left;
-    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.08);
-}
-.mk-results__label {
-    font-size: 14px;
-    font-weight: 700;
-    color: var(--mk-ink-soft);
-    padding: 16px 20px 8px;
-    margin: 0;
-}
-.mk-results__sub {
-    font-size: 14px;
-    color: var(--mk-ink-soft);
-    padding: 0 20px 4px;
-    margin: 0;
-}
-.mk-result-row {
-    display: flex;
-    align-items: center;
-    gap: 14px;
-    padding: 14px 20px;
-    border-top: 1px solid var(--mk-line-soft);
-    cursor: pointer;
-    transition: background 0.1s ease;
-}
-.mk-result-row:hover {
-    background: var(--mk-bg);
-}
-.mk-result-row__icon {
-    width: 40px;
-    height: 40px;
-    border-radius: 10px;
-    background: var(--mk-panel);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: var(--mk-ink-mid);
-    flex-shrink: 0;
-}
-.mk-result-row__info {
-    flex: 1;
-    min-width: 0;
-}
-.mk-result-row__name {
-    font-size: 15px;
-    font-weight: 700;
-    color: var(--mk-ink);
-}
-.mk-result-row__addr {
-    font-size: 13px;
-    color: var(--mk-ink-soft);
-    margin-top: 2px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-.mk-result-row__taken {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-end;
-    gap: 4px;
-}
-.mk-result-row__taken-link {
-    font-size: 12px;
-    color: var(--mk-accent);
-    text-decoration: none;
-    white-space: nowrap;
-}
-.mk-result-row__taken-link:hover {
-    text-decoration: underline;
-}
-.mk-reset-btn {
-    display: block;
-    width: 100%;
-    padding: 12px 20px;
-    background: var(--mk-panel);
-    border: none;
-    font-family: inherit;
-    font-size: 14px;
-    font-weight: 600;
-    color: var(--mk-ink-mid);
-    cursor: pointer;
-    text-align: left;
-    border-top: 1px solid var(--mk-line-soft);
-    transition: background 0.1s ease;
-}
-.mk-reset-btn:hover {
-    background: var(--mk-line-soft);
-}
-
-/* Trust */
-.mk-trust {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 10px;
-    margin-top: 24px;
-}
-.mk-trust__item {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    font-size: 14px;
-    color: var(--mk-ink-soft);
-    font-weight: 500;
-}
-
-/* ── Before / After graphic ─────────────────────────────────────────────────── */
-.mk-hero__below {
-    margin-top: 72px;
-    padding-bottom: 0;
-}
-.mk-before-after {
-    display: grid;
-    grid-template-columns: 1fr auto 1fr;
-    gap: 32px;
-    align-items: center;
-    max-width: 960px;
-    margin: 0 auto;
-    padding: 40px 40px 40px;
-}
-.mk-ba-item {
-    min-width: 0;
-}
-.mk-ba-label {
-    font-size: 12px;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    color: var(--mk-ink-soft);
-    margin: 0 0 12px;
-}
-
-/* Google card mockup */
-.mk-google-card {
-    background: var(--mk-surface);
-    border: 1.5px solid var(--mk-line);
-    border-radius: 14px;
-    overflow: hidden;
-    font-size: 13px;
-}
-.mk-google-card__photos {
-    display: grid;
-    grid-template-columns: 1fr 80px;
-    height: 110px;
-    gap: 2px;
-}
-.mk-google-card__photo-main {
-    background: linear-gradient(135deg, #c8d8f0 0%, #a8c4e0 100%);
-}
-.mk-google-card__photo-grid {
-    display: grid;
-    grid-template-rows: 1fr 1fr;
-    gap: 2px;
-}
-.mk-google-card__photo-grid div:first-child {
-    background: #b8d4b0;
-}
-.mk-google-card__photo-grid div:last-child {
-    background: #d4c4a0;
-}
-.mk-google-card__body {
-    padding: 14px;
-}
-.mk-google-card__name {
-    font-size: 15px;
-    font-weight: 800;
-    color: var(--mk-ink);
-    margin: 0 0 2px;
-}
-.mk-google-card__type {
-    font-size: 13px;
-    color: var(--mk-ink-soft);
-    margin: 0 0 8px;
-}
-.mk-google-card__rating {
-    display: flex;
-    align-items: center;
-    gap: 4px;
-    margin-bottom: 8px;
-}
-.mk-stars {
-    display: inline-flex;
-    align-items: center;
-    gap: 1px;
-}
-.mk-google-card__rating-num {
-    font-weight: 700;
-    font-size: 13px;
-    color: var(--mk-ink);
-}
-.mk-google-card__rating-count {
-    color: var(--mk-ink-soft);
-    font-size: 13px;
-}
-.mk-google-card__open {
-    color: #1f7a3a;
-    font-size: 13px;
-    font-weight: 600;
-}
-.mk-google-card__addr {
-    font-size: 13px;
-    color: var(--mk-ink-mid);
-    margin: 0 0 4px;
-}
-.mk-google-card__no-web {
-    display: flex;
-    align-items: center;
-    gap: 4px;
-    font-size: 13px;
-    color: var(--mk-ink-soft);
-    margin-bottom: 10px;
-}
-.mk-strikethrough {
-    text-decoration: line-through;
-    color: var(--mk-ink-soft);
-}
-.mk-google-card__actions {
-    display: flex;
-    gap: 6px;
-    flex-wrap: wrap;
-}
-.mk-google-card__action-btn {
-    padding: 5px 10px;
-    border: 1.5px solid var(--mk-line);
-    border-radius: 6px;
-    background: transparent;
-    font-family: inherit;
-    font-size: 12px;
-    font-weight: 600;
-    color: var(--mk-ink-mid);
-    cursor: default;
-}
-
-/* Arrow */
-.mk-ba-arrow {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 10px;
-    flex-shrink: 0;
-}
-.mk-ba-arrow__logo {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-.mk-ba-arrow__label {
-    font-size: 10px;
-    font-weight: 800;
-    letter-spacing: 1.5px;
-    color: var(--mk-ink-soft);
-}
-
-/* Site card mockup */
-.mk-site-card {
-    background: var(--mk-surface);
-    border: 1.5px solid var(--mk-line);
-    border-radius: 14px;
-    overflow: hidden;
-}
-.mk-site-card__header {
-    background: var(--mk-ink);
-    padding: 20px 18px 16px;
-    position: relative;
-}
-.mk-site-card__accent-bar {
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 4px;
-    background: var(--mk-accent);
-}
-.mk-site-card__logo-mark {
-    width: 36px;
-    height: 36px;
-    border-radius: 8px;
-    background: var(--mk-accent);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 18px;
-    font-weight: 800;
-    color: #fff;
-    margin-bottom: 8px;
-}
-.mk-site-card__name {
-    font-size: 15px;
-    font-weight: 800;
-    color: #fff;
-    margin: 0 0 2px;
-}
-.mk-site-card__loc {
-    font-size: 12px;
-    color: rgba(255, 255, 255, 0.65);
-    margin: 0;
-}
-.mk-site-card__actions {
-    display: flex;
-    gap: 6px;
-    padding: 12px;
-    border-bottom: 1px solid var(--mk-line-soft);
-}
-.mk-site-card__btn {
-    flex: 1;
-    padding: 8px 4px;
-    border-radius: 8px;
-    font-family: inherit;
-    font-size: 12px;
-    font-weight: 700;
-    cursor: default;
-    border: 1.5px solid;
-}
-.mk-site-card__btn--primary {
-    background: var(--mk-accent);
-    color: #fff;
-    border-color: var(--mk-accent);
-}
-.mk-site-card__btn--outline {
-    background: transparent;
-    color: var(--mk-ink);
-    border-color: var(--mk-line);
-}
-.mk-site-card__btn--book {
-    background: transparent;
-    color: var(--mk-ink);
-    border-color: var(--mk-line);
-}
-.mk-site-card__about {
-    padding: 12px;
-    border-bottom: 1px solid var(--mk-line-soft);
-}
-.mk-site-card__reviews {
-    padding: 12px;
-}
-.mk-site-card__section-label {
-    font-size: 11px;
-    font-weight: 800;
-    text-transform: uppercase;
-    letter-spacing: 0.8px;
-    color: var(--mk-ink-soft);
-    margin: 0 0 6px;
-}
-.mk-site-card__about-text {
-    font-size: 12px;
-    color: var(--mk-ink-mid);
-    line-height: 1.5;
-    margin: 0;
-}
-.mk-site-card__review-row {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-}
-.mk-site-card__rating-num {
-    font-size: 14px;
-    font-weight: 700;
-    color: var(--mk-ink);
-}
-.mk-site-card__review-count {
-    font-size: 12px;
-    color: var(--mk-ink-soft);
-}
-
-/* ── Section shared ──────────────────────────────────────────────────────────── */
-.mk-section {
-    padding: 100px 0;
-}
-.mk-section--panel {
-    background: var(--mk-ink);
-}
-.mk-section--panel .mk-eyebrow {
-    color: #6ea3ff;
-}
-.mk-section--panel .mk-section-head__h2 {
-    color: #ffffff;
-}
-.mk-section--panel .mk-features-grid {
-    gap: 1px;
-    background: rgba(255, 255, 255, 0.08);
-}
-.mk-section--panel .mk-feature-cell {
-    background: var(--mk-ink);
-}
-.mk-section--panel .mk-feature-cell__icon {
-    background: rgba(30, 102, 245, 0.18);
-}
-.mk-section--panel .mk-feature-cell__title {
-    color: #ffffff;
-}
-.mk-section--panel .mk-feature-cell__desc {
-    color: rgba(255, 255, 255, 0.55);
-}
-.mk-section--flush-top {
-    padding-top: 40px;
-}
-.mk-section-head {
-    margin-bottom: 56px;
-}
-.mk-section-head--center {
-    text-align: center;
-}
-.mk-eyebrow {
-    font-size: 13px;
-    font-weight: 800;
-    color: var(--mk-ink-soft);
-    text-transform: uppercase;
-    letter-spacing: 1.4px;
-    margin-bottom: 12px;
-}
-.mk-section-head__h2 {
-    font-size: clamp(30px, 4vw, 48px);
-    font-weight: 800;
-    color: var(--mk-ink);
-    letter-spacing: -1px;
-    line-height: 1.08;
-    margin: 0;
-}
-.mk-section-head--center .mk-section-head__h2 {
-    max-width: 720px;
-    margin: 0 auto;
-}
-.mk-section-head__sub {
-    font-size: 18px;
-    color: var(--mk-ink-mid);
-    line-height: 1.55;
-    margin: 16px auto 0;
-    max-width: 620px;
-}
-
-/* ── How it works ────────────────────────────────────────────────────────────── */
-.mk-steps-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 24px;
-}
-.mk-step-card {
-    background: var(--mk-surface);
-    border: 1.5px solid var(--mk-line);
-    border-radius: 18px;
-    padding: 32px;
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-    position: relative;
-}
-.mk-step-card__icon {
-    width: 52px;
-    height: 52px;
-    border-radius: 14px;
-    background: var(--mk-accent-soft);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-}
-.mk-step-card__num {
-    position: absolute;
-    top: 24px;
-    right: 24px;
-    font-size: 60px;
-    font-weight: 900;
-    color: var(--mk-panel);
-    line-height: 1;
-    letter-spacing: -3px;
-}
-.mk-step-card__title {
-    font-size: 21px;
-    font-weight: 800;
-    color: var(--mk-ink);
-    letter-spacing: -0.3px;
-    margin: 6px 0 0;
-}
-.mk-step-card__desc {
-    font-size: 15px;
-    color: var(--mk-ink-mid);
-    line-height: 1.55;
-    margin: 0;
-}
-.mk-steps-cta {
-    margin-top: 48px;
-    text-align: center;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 12px;
-}
-.mk-steps-cta__note {
-    font-size: 14px;
-    color: var(--mk-ink-soft);
-}
-
-/* ── Features grid ───────────────────────────────────────────────────────────── */
-.mk-features-grid {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 2px;
-    background: var(--mk-line);
-    border: 1.5px solid var(--mk-line);
-    border-radius: 18px;
-    overflow: hidden;
-}
-.mk-feature-cell {
-    background: var(--mk-surface);
-    padding: 28px 24px;
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-}
-.mk-feature-cell__icon {
-    width: 44px;
-    height: 44px;
-    border-radius: 12px;
-    background: var(--mk-accent-soft);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-}
-.mk-feature-cell__title {
-    font-size: 16px;
-    font-weight: 800;
-    color: var(--mk-ink);
-    letter-spacing: -0.2px;
-}
-.mk-feature-cell__desc {
-    font-size: 14px;
-    color: var(--mk-ink-mid);
-    line-height: 1.55;
-}
-
-/* ── Pricing ─────────────────────────────────────────────────────────────────── */
-.mk-pricing-grid {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 24px;
-    max-width: 860px;
-    margin: 0 auto;
-}
-.mk-plan {
-    background: var(--mk-surface);
-    border: 1.5px solid var(--mk-line);
-    border-radius: 20px;
-    padding: 36px;
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
-    position: relative;
-}
-.mk-plan--premium {
-    background: var(--mk-ink);
-    color: #fff;
-    border-color: var(--mk-ink);
-}
-.mk-plan__popular {
-    position: absolute;
-    top: -14px;
-    right: 28px;
-    padding: 6px 14px;
-    border-radius: 999px;
-    background: var(--mk-accent);
-    color: #fff;
-    font-size: 13px;
-    font-weight: 800;
-}
-.mk-plan__tier {
-    font-size: 13px;
-    font-weight: 800;
-    text-transform: uppercase;
-    letter-spacing: 1.5px;
-    color: var(--mk-ink-soft);
-}
-.mk-plan__tier--light {
-    color: rgba(255, 255, 255, 0.65);
-}
-.mk-plan__price-row {
-    display: flex;
-    align-items: baseline;
-    gap: 8px;
-}
-.mk-plan__price {
-    font-size: 54px;
-    font-weight: 900;
-    letter-spacing: -2px;
-    line-height: 1;
-}
-.mk-plan__cadence {
-    font-size: 16px;
-    color: var(--mk-ink-soft);
-}
-.mk-plan__cadence--light {
-    color: rgba(255, 255, 255, 0.55);
-}
-.mk-plan__sub {
-    font-size: 15px;
-    color: var(--mk-ink-mid);
-    line-height: 1.5;
-    margin: 0;
-}
-.mk-plan__sub--light {
-    color: rgba(255, 255, 255, 0.7);
-}
-.mk-plan__feats {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-    flex: 1;
-}
-.mk-plan__feat {
-    display: flex;
-    align-items: flex-start;
-    gap: 12px;
-    font-size: 15px;
-    line-height: 1.45;
-}
-.mk-plan__feat-check {
-    width: 22px;
-    height: 22px;
-    border-radius: 50%;
-    background: var(--mk-accent-soft);
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-    margin-top: 1px;
-}
-.mk-plan__feat-check--light {
-    background: rgba(255, 255, 255, 0.15);
-}
-.mk-pricing-note {
-    text-align: center;
-    font-size: 14px;
-    color: var(--mk-ink-soft);
-    margin-top: 24px;
-}
-
-/* ── FAQ ─────────────────────────────────────────────────────────────────────── */
-.mk-faq {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    margin-top: 48px;
-}
-.mk-faq__item {
-    background: var(--mk-surface);
-    border: 1.5px solid var(--mk-line);
-    border-radius: 14px;
-    overflow: hidden;
-}
-.mk-faq__btn {
-    width: 100%;
-    padding: 20px 24px;
-    background: transparent;
-    border: none;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 16px;
-    font-family: inherit;
-    text-align: left;
-}
-.mk-faq__q {
-    font-size: 17px;
-    font-weight: 700;
-    color: var(--mk-ink);
-    letter-spacing: -0.2px;
-}
-.mk-faq__chevron {
-    width: 36px;
-    height: 36px;
-    border-radius: 50%;
-    background: var(--mk-panel);
-    color: var(--mk-ink);
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-    transition: transform 0.2s ease;
-}
-.mk-faq__chevron--open {
-    transform: rotate(180deg);
-}
-.mk-faq__a {
-    padding: 0 24px 20px;
-    font-size: 15px;
-    color: var(--mk-ink-mid);
-    line-height: 1.65;
-    margin: 0;
-    max-width: 760px;
-}
-.mk-faq__note {
-    text-align: center;
-    margin-top: 36px;
-    font-size: 15px;
-    color: var(--mk-ink-soft);
-}
-.mk-faq__note-link {
-    color: var(--mk-ink);
-    font-weight: 700;
-    text-underline-offset: 3px;
-}
-.mk-faq__link {
-    color: var(--mk-accent);
-    font-weight: 600;
-    text-decoration: none;
-    display: inline-block;
-    margin: 8px 0;
-}
-.mk-faq__link:hover {
-    text-decoration: underline;
-    text-underline-offset: 3px;
-}
-
-/* ── CTA Band ────────────────────────────────────────────────────────────────── */
-.mk-cta-band {
-    background: var(--mk-ink);
-    color: #fff;
-    border-radius: 24px;
-    padding: clamp(36px, 5vw, 72px) clamp(28px, 5vw, 64px);
-    display: grid;
-    grid-template-columns: 1.4fr 1fr;
-    gap: 48px;
-    align-items: center;
-}
-.mk-cta-band__h2 {
-    font-size: clamp(26px, 3.5vw, 42px);
-    font-weight: 900;
-    letter-spacing: -0.8px;
-    line-height: 1.08;
-    margin: 0;
-}
-.mk-cta-band__sub {
-    font-size: 17px;
-    color: rgba(255, 255, 255, 0.72);
-    line-height: 1.5;
-    margin: 16px 0 0;
-    max-width: 480px;
-}
-.mk-cta-band__action {
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-}
-.mk-cta-band__trust {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 20px;
-    font-size: 14px;
-    color: rgba(255, 255, 255, 0.55);
-}
-.mk-cta-band__trust span {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-}
-
-/* ── Footer ──────────────────────────────────────────────────────────────────── */
-.mk-footer {
-    background: var(--mk-ink);
-    color: rgba(255, 255, 255, 0.7);
-    margin-top: 0;
-}
-.mk-footer__top {
-    display: grid;
-    grid-template-columns: 1.4fr 1fr;
-    gap: 48px;
-    padding: 72px 24px 48px;
-    max-width: 1200px;
-    margin: 0 auto;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-}
-.mk-footer__brand {
-    max-width: 320px;
-}
-.mk-footer__logo {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    margin-bottom: 16px;
-}
-.mk-footer__logo-mark {
-    width: 34px;
-    height: 34px;
-    border-radius: 8px;
-    background: #fff;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: 900;
-    font-size: 15px;
-    color: var(--mk-ink);
-}
-.mk-footer__logo-name {
-    font-size: 20px;
-    font-weight: 800;
-    color: #fff;
-    letter-spacing: -0.4px;
-}
-.mk-footer__tagline {
-    font-size: 15px;
-    line-height: 1.6;
-    margin: 0;
-}
-.mk-footer__cols {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 32px;
-}
-.mk-footer__col {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-}
-.mk-footer__col-head {
-    font-size: 12px;
-    font-weight: 800;
-    color: #fff;
-    text-transform: uppercase;
-    letter-spacing: 1.4px;
-    margin-bottom: 4px;
-}
-.mk-footer__link {
-    font-size: 15px;
-    color: rgba(255, 255, 255, 0.65);
-    text-decoration: none;
-    cursor: pointer;
-    transition: color 0.1s ease;
-}
-.mk-footer__link:hover {
-    color: #fff;
-}
-.mk-footer__bottom {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 28px 24px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    font-size: 14px;
-    flex-wrap: wrap;
-    gap: 12px;
-}
-.mk-footer__status {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-.mk-footer__status-dot {
-    width: 10px;
-    height: 10px;
-    border-radius: 50%;
-    background: #5bd46a;
-}
-
-/* ── Hamburger button ────────────────────────────────────────────────────────── */
-.mk-nav__hamburger {
-    display: none;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    gap: 5px;
-    width: 40px;
-    height: 40px;
-    border: none;
-    background: transparent;
-    cursor: pointer;
-    padding: 4px;
-    border-radius: 8px;
-    flex-shrink: 0;
-    transition: background 0.1s ease;
-}
-.mk-nav__hamburger:hover {
-    background: var(--mk-panel);
-}
-.mk-nav__hamburger span {
-    display: block;
-    width: 22px;
-    height: 2px;
-    background: var(--mk-ink);
-    border-radius: 2px;
-    transition: transform 0.2s ease, opacity 0.2s ease;
-    transform-origin: center;
-}
-/* Animate to ✕ when open */
-.mk-nav__hamburger--open span:nth-child(1) {
-    transform: translateY(7px) rotate(45deg);
-}
-.mk-nav__hamburger--open span:nth-child(2) {
-    opacity: 0;
-    transform: scaleX(0);
-}
-.mk-nav__hamburger--open span:nth-child(3) {
-    transform: translateY(-7px) rotate(-45deg);
-}
-
-/* ── Mobile menu panel ───────────────────────────────────────────────────────── */
-.mk-mobile-menu {
-    display: none;
-    flex-direction: column;
-    background: #fff;
-    /* transparent border so the 1px line doesn't show when collapsed */
-    border-top: 1px solid transparent;
-    /* zero vertical padding — content-box sizing means padding bleeds past max-height:0 */
-    padding: 0 24px;
-    gap: 4px;
-    overflow: hidden;
-    max-height: 0;
-    transition: max-height 0.28s ease, padding 0.28s ease, border-color 0.15s ease;
-}
-.mk-mobile-menu--open {
-    max-height: 480px;
-    padding: 16px 24px 28px;
-    border-top-color: var(--mk-line-soft);
-}
-.mk-mobile-menu__links {
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-    margin-bottom: 16px;
-}
-.mk-mobile-menu__link {
-    width: 100%;
-    text-align: left;
-    padding: 13px 12px;
-    border: none;
-    background: transparent;
-    font-family: inherit;
-    font-size: 17px;
-    font-weight: 600;
-    color: var(--mk-ink);
-    cursor: pointer;
-    border-radius: 10px;
-    transition: background 0.1s ease;
-}
-.mk-mobile-menu__link:hover {
-    background: var(--mk-panel);
-}
-.mk-mobile-menu__actions {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    border-top: 1px solid var(--mk-line-soft);
-    padding-top: 16px;
-}
-.mk-mobile-menu__signin {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    height: 48px;
-    border-radius: 10px;
-    border: 1.5px solid var(--mk-line);
-    font-family: inherit;
-    font-size: 15px;
-    font-weight: 700;
-    color: var(--mk-ink);
-    text-decoration: none;
-    transition: background 0.1s ease;
-}
-.mk-mobile-menu__signin:hover {
-    background: var(--mk-panel);
-}
-
-/* ── Responsive ──────────────────────────────────────────────────────────────── */
-@media (max-width: 900px) {
-    .mk-nav__links {
-        display: none;
-    }
-    .mk-nav__cta--desktop {
-        display: none;
-    }
-    .mk-nav__hamburger {
-        display: flex;
-    }
-    .mk-mobile-menu {
-        display: flex;
-    }
-    .mk-nav__inner {
-        justify-content: space-between;
-    }
-    /* Stack hero split on tablet */
-    .mk-hero__split {
-        grid-template-columns: 1fr;
-        padding: 56px 0 48px;
-        gap: 40px;
-    }
-    .mk-hero__left {
-        text-align: center;
-    }
-    .mk-hero__sub {
-        max-width: 560px;
-        margin-left: auto;
-        margin-right: auto;
-    }
-    .mk-search-wrap {
-        margin-left: auto;
-        margin-right: auto;
-    }
-    /* Trust items: keep icon pinned to text on wrap */
-    .mk-trust {
-        display: flex;
-        flex-direction: column;
-        align-items: flex-start;
-        /* fit-content centres the block without creating an inline overflow risk */
-        width: fit-content;
-        max-width: 100%;
-        margin: 0 auto;
-    }
-    .mk-trust__item {
-        display: flex;
-        align-items: flex-start;
-        text-align: left;
-        max-width: 100%;
-    }
-    .mk-preview-iframe-clip {
-        height: 400px;
-    }
-    /* Tighter section spacing on tablet/mobile */
-    .mk-section {
-        padding: 72px 0;
-    }
-    .mk-section--flush-top {
-        padding-top: 32px;
-    }
-    .mk-section-head {
-        margin-bottom: 40px;
-    }
-    .mk-steps-grid {
-        grid-template-columns: 1fr;
-    }
-    .mk-features-grid {
-        grid-template-columns: repeat(2, 1fr);
-    }
-    .mk-pricing-grid {
-        grid-template-columns: 1fr;
-    }
-    /* CTA band: centre-align content on mobile */
-    .mk-cta-band {
-        grid-template-columns: 1fr;
-        text-align: center;
-    }
-    .mk-cta-band__sub {
-        margin-left: auto;
-        margin-right: auto;
-    }
-    .mk-cta-band__action {
-        align-items: center;
-    }
-    .mk-cta-band__action .mk-btn {
-        width: 100%;
-        max-width: 360px;
-        justify-content: center;
-    }
-    /* FAQ */
-    .mk-faq {
-        margin-top: 32px;
-    }
-    /* Footer: stack brand above a 3-col link grid */
-    .mk-footer__top {
-        grid-template-columns: 1fr;
-        gap: 32px;
-        padding-top: 48px;
-        padding-bottom: 32px;
-    }
-    .mk-footer__cols {
-        grid-template-columns: repeat(3, 1fr);
-    }
-}
-
-@media (max-width: 640px) {
-    .mk-hero__split {
-        padding: 44px 0 40px;
-    }
-    .mk-hero__h1 {
-        letter-spacing: -1px;
-    }
-    .mk-hero__right {
-        display: none;
-    }
-    .mk-section {
-        padding: 64px 0;
-    }
-    .mk-section-head {
-        margin-bottom: 32px;
-    }
-    .mk-features-grid {
-        grid-template-columns: 1fr;
-    }
-    /* Remove extra top padding on hero left col — split already has top padding */
-    .mk-hero__left {
-        padding-top: 0;
-    }
-    /* Reduce pill bottom margin so headline sits closer */
-    .mk-pill {
-        margin-bottom: 20px;
-        white-space: normal;
-        text-align: center;
-    }
-    /* Footer: 2-col links on small mobile, Legal below */
-    .mk-footer__cols {
-        grid-template-columns: repeat(2, 1fr);
-    }
-    /* Mobile menu links: tighter tap targets */
-    .mk-mobile-menu__link {
-        padding: 11px 12px;
-        font-size: 16px;
-    }
-    /* Step cards: tighter padding on small screens */
-    .mk-step-card {
-        padding: 24px;
-    }
-    /* Feature cells: tighter padding on small screens */
-    .mk-feature-cell {
-        padding: 24px;
-    }
-    /* Reduce search input font — 20px causes excessive height on small screens */
-    .mk-search__input {
-        font-size: 16px;
-        padding: 12px 6px;
-    }
-    /* Hero subtitle: constrain width so it can't overflow */
-    .mk-hero__sub {
-        max-width: 100%;
-    }
-}
-
-/* ── Extra-small phones (< 380px) ──────────────────────────────────────────── */
-@media (max-width: 380px) {
-    /* Tighter horizontal padding gives more content room */
-    .mk-container {
-        padding: 0 16px;
-    }
-    .mk-hero__h1 {
-        font-size: 28px;
-    }
-    .mk-hero__sub {
-        font-size: 16px;
-    }
-}
-
-</style>

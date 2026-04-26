@@ -10,6 +10,22 @@
 @theme inline {
     --font-sans: Instrument Sans, ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
 
+    /* ── Brand design tokens (shared across marketing + dashboard) ── */
+    --mk-accent:               #1e66f5;
+    --color-brand-blue:        #1e66f5;
+    --color-brand-blue-soft:   #e6eefe;
+    --color-brand-ink:         #0f172a;
+    --color-brand-ink-mid:     #3d4a5c;
+    --color-brand-ink-soft:    #64748b;
+    --color-brand-line:        #dde1e8;
+    --color-brand-line-soft:   #e8ecf1;
+    --color-brand-panel:       #edf1f8;
+    --color-brand-surface:     #ffffff;
+    --color-brand-bg:          #f8fafc;
+    --color-brand-success:     #15803d;
+    --color-brand-warning:     #b45309;
+    --color-brand-danger:      #b91c1c;
+
     --radius-lg: var(--radius);
     --radius-md: calc(var(--radius) - 2px);
     --radius-sm: calc(var(--radius) - 4px);

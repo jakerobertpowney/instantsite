@@ -42,19 +42,19 @@ defineProps<{
         <div class="w-full max-w-sm">
             <div class="flex flex-col gap-8">
                 <div class="flex flex-col items-center gap-4">
-                    <Link :href="home()" class="flex flex-col items-center gap-3">
+                    <Link :href="home()" class="flex flex-col items-center gap-3 no-underline">
                         <AppLogo />
                     </Link>
                     <div class="space-y-1.5 text-center">
-                        <h1 style="font-size: 21px; font-weight: 800; letter-spacing: -0.3px; color: #0f172a; line-height: 1.2;">{{ title }}</h1>
-                        <p style="font-size: 15px; color: #64748b; line-height: 1.5;">{{ description }}</p>
+                        <h1 class="text-xl font-black leading-tight text-brand-ink" style="letter-spacing: -0.02em;">{{ title }}</h1>
+                        <p class="text-sm leading-normal text-brand-ink-soft">{{ description }}</p>
                     </div>
                 </div>
                 <slot />
-                <div class="flex items-center justify-center gap-4" style="font-size: 13px; color: #64748b;">
-                    <Link href="/help" class="transition-opacity hover:opacity-60">Help</Link>
-                    <Link href="/terms" class="transition-opacity hover:opacity-60">Terms</Link>
-                    <Link href="/privacy" class="transition-opacity hover:opacity-60">Privacy</Link>
+                <div class="flex items-center justify-center gap-4 text-xs text-brand-ink-soft">
+                    <Link href="/help" class="transition-opacity hover:opacity-60 no-underline text-brand-ink-soft">Help</Link>
+                    <Link href="/terms" class="transition-opacity hover:opacity-60 no-underline text-brand-ink-soft">Terms</Link>
+                    <Link href="/privacy" class="transition-opacity hover:opacity-60 no-underline text-brand-ink-soft">Privacy</Link>
                 </div>
             </div>
         </div>
