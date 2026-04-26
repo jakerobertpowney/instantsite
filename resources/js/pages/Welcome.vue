@@ -279,7 +279,7 @@ const features = [
                 <div class="grid lg:grid-cols-2 gap-14 items-start py-12 sm:py-16 lg:py-28 lg:pb-24 sm:gap-10">
 
                     <!-- ── Left: content ── -->
-                    <div class="text-center lg:text-left lg:pt-6">
+                    <div class="min-w-0 text-center lg:text-left lg:pt-6">
                         <!-- Badge pill -->
                         <div class="inline-flex items-center gap-2 px-3.5 py-2 rounded-full bg-brand-blue-soft text-brand-blue border-[1.5px] border-brand-blue/15 text-sm font-bold mb-7">
                             <span class="w-2 h-2 rounded-full bg-brand-blue flex-shrink-0"></span>
