@@ -104,7 +104,7 @@ class PreviewController extends Controller
                 'id'          => $s['id'] ?? (string) Str::uuid(),
                 'name'        => $s['name'],
                 'description' => $s['description'] ?? null,
-                'price'       => $s['price'] ?? null,
+                'price'       => isset($s['price']) ? preg_replace('/^[\s£$€¥₹₩฿₺₨]+/', '', (string) $s['price']) ?: null : null,
                 'show_price'  => filter_var($s['show_price'] ?? true, FILTER_VALIDATE_BOOLEAN),
                 'featured'    => filter_var($s['featured'] ?? false, FILTER_VALIDATE_BOOLEAN),
             ])
@@ -187,7 +187,7 @@ class PreviewController extends Controller
                 'id'          => $s['id'] ?? (string) Str::uuid(),
                 'name'        => $s['name'],
                 'description' => $s['description'] ?? null,
-                'price'       => $s['price'] ?? null,
+                'price'       => isset($s['price']) ? preg_replace('/^[\s£$€¥₹₩฿₺₨]+/', '', (string) $s['price']) ?: null : null,
                 'show_price'  => filter_var($s['show_price'] ?? true, FILTER_VALIDATE_BOOLEAN),
                 'featured'    => filter_var($s['featured'] ?? false, FILTER_VALIDATE_BOOLEAN),
             ])

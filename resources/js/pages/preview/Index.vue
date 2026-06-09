@@ -5,6 +5,7 @@ import QuickActions from '@/components/site/QuickActions.vue';
 import Description from '@/components/site/Description.vue';
 import Header from '@/components/site/Header.vue';
 import Reviews from '@/components/site/Reviews.vue';
+import Services from '@/components/site/Services.vue';
 import { ArrowRight, ArrowLeft } from 'lucide-vue-next';
 import { router } from '@inertiajs/vue3';
 import { Button } from '@/components/ui/button';
@@ -33,6 +34,8 @@ const normalizedData = computed(() => props.data ?? {});
 // contact_form is intentionally hidden (requires a live account + premium).
 
 const description  = computed(() => normalizedData.value?.description);
+const services     = computed(() => normalizedData.value?.services ?? []);
+const hasServices  = computed(() => services.value.length > 0);
 const logo         = computed(() => normalizedData.value?.logo_path);
 const contactEmail = computed(() => normalizedData.value?.contact_email);
 const primaryBookingLink = computed(() => findPrimaryBookingLink(normalizedData.value?.quick_links ?? []));
@@ -147,6 +150,14 @@ onMounted(() => { /* intentionally empty */ });
                     :description="description"
                 />
                 <Gallery :photos="normalizedData?.images" />
+                <Services
+                    v-if="hasServices"
+                    :services="services"
+                    :heading="normalizedData?.services_heading ?? 'Our Services'"
+                    :cta-label="normalizedData?.services_cta_label ?? ''"
+                    :cta-link="normalizedData?.services_cta_link ?? ''"
+                    :phone-number="normalizedData?.phone ?? ''"
+                />
             </div>
         </div>
 

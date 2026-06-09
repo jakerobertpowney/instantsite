@@ -45,8 +45,14 @@ export function currencySymbol(code: string): string {
     return SYMBOL_MAP[code] ?? code;
 }
 
+/** Strips any leading currency symbols/codes from a price string. */
+export function stripCurrencyPrefix(price: string): string {
+    // Remove leading £, $, €, ¥, ₹, kr, CHF, AUD, CAD, NZD etc. and whitespace
+    return price.replace(/^[\s£$€¥₹₩฿₺₨]+/, '').trim();
+}
+
 /** Formats a price string with the currency symbol prepended. */
 export function formatPrice(price: string | null | undefined, currencyCode = 'GBP'): string {
     if (!price) return '';
-    return `${currencySymbol(currencyCode)}${price}`;
+    return `${currencySymbol(currencyCode)}${stripCurrencyPrefix(price)}`;
 }
