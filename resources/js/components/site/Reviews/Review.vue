@@ -1,35 +1,36 @@
 <script setup lang="ts">
 import { computed } from 'vue';
-import moment from 'moment';
 
 const props = defineProps({
-    review: Object
+    review: Object,
 });
 
-const publishTime = computed(() =>
-    props.review?.publishTime
-        ? moment(props.review.publishTime).fromNow()
-        : ''
-);
-
-// Generate a two-letter initial from the reviewer's display name
+// Testimonial format: { author, text, rating, date }
 const initials = computed(() => {
-    const name: string = props.review?.authorAttribution?.displayName ?? '?';
+    const name: string = props.review?.author ?? '?';
     const parts = name.trim().split(' ').filter(Boolean);
     if (parts.length >= 2) return (parts[0][0] + parts[1][0]).toUpperCase();
     return (parts[0]?.[0] ?? '?').toUpperCase();
 });
 
-// Deterministic background colour from name (keeps avatars visually varied)
 const AVATAR_COLOURS = [
     '#6366f1', '#8b5cf6', '#ec4899', '#f43f5e',
     '#f97316', '#eab308', '#22c55e', '#14b8a6',
     '#3b82f6', '#06b6d4',
 ];
 const avatarBg = computed(() => {
-    const name: string = props.review?.authorAttribution?.displayName ?? '';
+    const name: string = props.review?.author ?? '';
     const hash = name.split('').reduce((acc, c) => acc + c.charCodeAt(0), 0);
     return AVATAR_COLOURS[hash % AVATAR_COLOURS.length];
+});
+
+const formattedDate = computed(() => {
+    if (!props.review?.date) return '';
+    try {
+        return new Date(props.review.date).toLocaleDateString('en-GB', { month: 'long', year: 'numeric' });
+    } catch {
+        return '';
+    }
 });
 </script>
 
@@ -40,7 +41,6 @@ const avatarBg = computed(() => {
     >
         <!-- Reviewer row -->
         <div class="flex items-center gap-3">
-            <!-- Avatar with initials -->
             <div
                 class="h-9 w-9 rounded-full flex items-center justify-center text-white text-xs font-bold shrink-0 select-none"
                 :style="{ backgroundColor: avatarBg }"
@@ -50,13 +50,10 @@ const avatarBg = computed(() => {
             </div>
 
             <div class="min-w-0 flex-1">
-                <p class="text-sm font-semibold text-gray-900 truncate">
-                    {{ review.authorAttribution?.displayName }}
-                </p>
-                <p class="text-xs text-gray-400">{{ publishTime }}</p>
+                <p class="text-sm font-semibold text-gray-900 truncate">{{ review.author }}</p>
+                <p v-if="formattedDate" class="text-xs text-gray-400">{{ formattedDate }}</p>
             </div>
 
-            <!-- Star rating -->
             <div class="flex items-center gap-0.5 shrink-0">
                 <svg
                     v-for="n in 5"
@@ -73,9 +70,6 @@ const avatarBg = computed(() => {
             </div>
         </div>
 
-        <!-- Review text -->
-        <p class="text-sm text-gray-600 leading-relaxed line-clamp-5">
-            {{ review.text?.text }}
-        </p>
+        <p class="text-sm text-gray-600 leading-relaxed">{{ review.text }}</p>
     </div>
 </template>

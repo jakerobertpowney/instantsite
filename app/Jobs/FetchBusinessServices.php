@@ -31,12 +31,10 @@ class FetchBusinessServices implements ShouldQueue
     public function handle(): void
     {
         try {
-            $data = $this->site->data;
-
-            $businessName = $data['displayName']['text']             ?? null;
-            $businessType = $data['primaryTypeDisplayName']['text']  ?? null;
-            $websiteUri   = $data['websiteUri']                      ?? null;
-            $city         = $this->extractCity($data['addressComponents'] ?? []);
+            $businessName = $this->site->business_name;
+            $businessType = $this->site->business_type;
+            $websiteUri   = $this->site->website_url;
+            $city         = $this->site->city;
 
             // ── Tier 1: scrape their own website ──────────────────────────
             if ($websiteUri) {
@@ -458,10 +456,8 @@ PROMPT;
             return;
         }
 
-        $data = $this->site->data;
-        $data['suggested_services']        = array_values($services);
-        $data['suggested_services_source'] = $source;
-        $this->site->update(['data' => $data]);
+        $this->site->services = array_values($services);
+        $this->site->save();
 
         Log::info('FetchBusinessServices: saved ' . count($services) . " services from \"{$source}\" for site {$this->site->id}.");
     }
@@ -502,17 +498,4 @@ PROMPT;
         return trim($text);
     }
 
-    /**
-     * Extract the city / locality from Google Places addressComponents.
-     */
-    private function extractCity(array $addressComponents): ?string
-    {
-        foreach ($addressComponents as $component) {
-            $types = $component['types'] ?? [];
-            if (in_array('locality', $types, true) || in_array('postal_town', $types, true)) {
-                return $component['longText'] ?? $component['shortText'] ?? null;
-            }
-        }
-        return null;
-    }
 }

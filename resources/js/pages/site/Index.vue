@@ -39,10 +39,10 @@ const components = computed(() => {
     };
 });
 
-// Use overrides when present, fall back to Google Places data
-const description   = computed(() => props.data?.overrides?.description || props.data?.editorialSummary?.text || props.data?.description);
-const logo          = computed(() => props.data?.overrides?.logo_path || props.data?.logo);
-const contactEmail  = computed(() => props.data?.overrides?.contact_email || props.data?.contact);
+// Direct flat fields — no more overrides nesting
+const description   = computed(() => props.data?.description);
+const logo          = computed(() => props.data?.logo_path);
+const contactEmail  = computed(() => props.data?.contact_email);
 
 // Services
 const services         = computed(() => props.data?.services ?? []);
@@ -53,9 +53,9 @@ const hasServices      = computed(() => services.value.length > 0);
 
 // Schema.org JSON-LD for services (injected into <head> via Inertia Head)
 const schemaOrgJson = computed(() => {
-    const name    = props.data?.displayName?.text ?? '';
-    const address = props.data?.formattedAddress ?? '';
-    const phone   = props.data?.nationalPhoneNumber ?? '';
+    const name    = props.data?.business_name ?? '';
+    const address = props.data?.formatted_address ?? '';
+    const phone   = props.data?.phone ?? '';
     const payload: Record<string, unknown> = {
         '@context':    'https://schema.org',
         '@type':       'LocalBusiness',
@@ -80,33 +80,31 @@ const schemaOrgJson = computed(() => {
         };
     }
 
-    if (props.data?.rating && props.data?.userRatingCount) {
+    if (props.data?.rating && props.data?.review_count) {
         payload.aggregateRating = {
             '@type': 'AggregateRating',
             'ratingValue': props.data.rating,
-            'reviewCount': props.data.userRatingCount,
+            'reviewCount': props.data.review_count,
         };
     }
 
     return JSON.stringify(payload);
 });
 
-// Colour palette — user-chosen custom colours take priority over auto-detected
+// Colour palette — user-chosen custom colours (stored in settings) take priority
 const palette    = computed(() => getEffectivePalette(props.data));
 const cssVars    = computed(() => paletteToCssVars(palette.value));
 
-// Hero background — respects the user-chosen override, falls back to auto behaviour
-const headerBg = computed(() => props.data?.overrides?.header_bg ?? null);
+// Hero background — respects the user-chosen override from settings, falls back to auto behaviour
+const headerBg = computed(() => props.data?.settings?.header_bg ?? null);
 
 const heroStyle = computed<Record<string, string>>(() => {
     const bg = headerBg.value;
 
-    // Explicit colour
     if (bg?.type === 'color' && bg.value) {
         return { backgroundColor: bg.value };
     }
 
-    // Google image — relative path stored in site.data.images[]
     if (bg?.type === 'google_image' && bg.value) {
         return {
             backgroundImage:    `url('/${bg.value}')`,
@@ -115,7 +113,6 @@ const heroStyle = computed<Record<string, string>>(() => {
         };
     }
 
-    // Custom uploaded image or stock photo — absolute URL
     if ((bg?.type === 'custom_image' || bg?.type === 'stock') && bg.value) {
         return {
             backgroundImage:    `url('${bg.value}')`,
@@ -124,7 +121,6 @@ const heroStyle = computed<Record<string, string>>(() => {
         };
     }
 
-    // Auto (default) — first Google photo if available, else gradient
     const first = props.data?.images?.[0];
     if (first) {
         return {
@@ -139,10 +135,10 @@ const heroStyle = computed<Record<string, string>>(() => {
 });
 
 // SEO / analytics settings
-const googleAnalyticsId = computed(() => props.data?.google_analytics_id || '');
-const allowIndexing     = computed(() => props.data?.allow_indexing !== false);
-const siteTitle         = computed(() => props.metaTitle || props.data?.displayName?.text || 'Our Website');
-const metaDescription   = computed(() => props.metaDescription || description.value || props.data?.editorialSummary?.text || '');
+const googleAnalyticsId = computed(() => props.data?.settings?.google_analytics_id || '');
+const allowIndexing     = computed(() => (props.data?.settings?.allow_indexing ?? true) !== false);
+const siteTitle         = computed(() => props.metaTitle || props.data?.business_name || 'Our Website');
+const metaDescription   = computed(() => props.metaDescription || description.value || '');
 const canonicalUrl      = computed(() => props.canonicalUrl || props.siteUrl || '');
 
 const absoluteAssetUrl = (path?: string | null) => {
@@ -161,12 +157,12 @@ const shareImageUrl = computed(() => {
         return absoluteAssetUrl(firstImage);
     }
 
-    const backgroundValue = props.data?.overrides?.header_bg?.value;
+    const backgroundValue = props.data?.settings?.header_bg?.value;
     if (backgroundValue) {
         return absoluteAssetUrl(backgroundValue);
     }
 
-    return absoluteAssetUrl(props.data?.overrides?.logo_path || props.data?.logo);
+    return absoluteAssetUrl(props.data?.logo_path);
 });
 
 const twitterCard = computed(() => shareImageUrl.value ? 'summary_large_image' : 'summary');
@@ -192,7 +188,7 @@ onMounted(() => {
         <title>{{ siteTitle }}</title>
         <meta v-if="metaDescription" name="description" :content="metaDescription" />
         <meta v-if="!allowIndexing" name="robots" content="noindex,nofollow" />
-        <!-- Favicon is injected server-side via app.blade.php from $page.props.data.overrides.favicon_path -->
+        <!-- Favicon is injected server-side via app.blade.php from $page.props.data.settings.favicon_path -->
         <link v-if="canonicalUrl" rel="canonical" :href="canonicalUrl" />
         <link v-if="sitemapUrl" rel="sitemap" type="application/xml" :href="sitemapUrl" />
         <meta property="og:type" content="business.business" />
@@ -263,9 +259,10 @@ onMounted(() => {
                     <Header
                         v-if="components.header"
                         :logo="logo"
-                        :name="props.data?.displayName?.text"
-                        :business-type="props.data?.primaryTypeDisplayName?.text"
-                        :address-components="props.data?.addressComponents"
+                        :name="props.data?.business_name"
+                        :business-type="props.data?.business_type"
+                        :city="props.data?.city"
+                        :region="props.data?.region"
                     />
                 </div>
             </div>
@@ -279,11 +276,11 @@ onMounted(() => {
         >
             <div class="max-w-5xl mx-auto px-6 md:px-14 py-4">
                 <QuickActions
-                    :phone-number="props.data?.nationalPhoneNumber"
+                    :phone-number="props.data?.phone"
                     :whatsapp-number="props.data?.whatsapp_number"
                     :contact="contactEmail"
                     :show-form="components.contact_form && !!contactEmail"
-                    :quick-links="props.data?.quickLinks"
+                    :quick-links="props.data?.quick_links"
                     :preview="true"
                 />
             </div>
@@ -312,7 +309,7 @@ onMounted(() => {
                     :heading="servicesHeading"
                     :cta-label="servicesCtaLabel"
                     :cta-link="servicesCtaLink"
-                    :phone-number="props.data?.nationalPhoneNumber ?? ''"
+                    :phone-number="props.data?.phone ?? ''"
                 />
 
             </div>
@@ -322,10 +319,10 @@ onMounted(() => {
         <div v-if="components.reviews" class="py-14" style="background-color: var(--site-primary-muted)">
             <div class="max-w-5xl mx-auto px-6 md:px-14">
                 <Reviews
-                    :reviews="props.data?.reviews"
-                    :rating="props.data?.rating"
-                    :review-count="props.data?.userRatingCount"
-                    :hidden-reviews="props.data?.overrides?.hidden_reviews ?? []"
+                    :reviews="props.data?.reviews ?? []"
+                    :rating="props.data?.rating ?? 0"
+                    :review-count="props.data?.review_count ?? 0"
+                    :google-places-id="props.data?.google_places_id ?? ''"
                 />
             </div>
         </div>
@@ -333,13 +330,13 @@ onMounted(() => {
         <!-- ── Contact / info strip + inline form ─────────────────────────── -->
         <Contact
             v-if="components.contact || (components.contact_form && contactEmail)"
-            :formatted-address="props.data?.formattedAddress"
-            :phone-number="props.data?.nationalPhoneNumber"
-            :opening-hours="props.data?.regularOpeningHours"
+            :formatted-address="props.data?.formatted_address"
+            :phone-number="props.data?.phone"
+            :opening-hours="props.data?.opening_hours"
             :socials="props.data?.socials"
             :contact="contactEmail"
             :show-form="components.contact_form && !!contactEmail"
-            :business-type="props.data?.primaryTypeDisplayName?.text"
+            :business-type="props.data?.business_type"
             :preview="false"
         />
 

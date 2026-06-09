@@ -11,7 +11,7 @@ const siteData = inject<any>('siteData', null);
 const siteId = inject<string | null>('siteId', null);
 
 const googleDescription = computed<string | null>(() =>
-    siteData?.editorialSummary?.text ?? null
+    siteData?.description ?? null
 );
 
 const isGenerating = ref(false);
@@ -69,7 +69,12 @@ const showGooglePrefill = computed(() =>
             :placeholder="placeholderText"
             v-model="form.description"
             class="min-h-36 resize-none text-base leading-relaxed"
+            :class="{ 'border-destructive ring-destructive': form.errors.description }"
         />
+        <p v-if="form.errors.description" class="text-sm text-destructive flex items-center gap-1.5">
+            <AlertCircle class="h-4 w-4 shrink-0" />
+            {{ form.errors.description }}
+        </p>
 
         <!-- Error -->
         <div v-if="generateError" class="flex items-start gap-2 text-sm text-destructive">

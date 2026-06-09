@@ -23,9 +23,33 @@ class Site extends Model
         'provider_token',
         'provider_zone_id',
         'dns_auto_configured',
-        'data',
         'meta_title',
         'meta_description',
+        'business_name',
+        'business_type',
+        'description',
+        'logo_path',
+        'formatted_address',
+        'city',
+        'region',
+        'phone',
+        'whatsapp_number',
+        'website_url',
+        'contact_email',
+        'socials',
+        'opening_hours',
+        'quick_links',
+        'services',
+        'images',
+        'rating',
+        'review_count',
+        'reviews',
+        'components',
+        'services_heading',
+        'services_cta_label',
+        'services_cta_link',
+        'settings',
+        'premium_intent',
     ];
 
     /**
@@ -34,10 +58,20 @@ class Site extends Model
      * @var array<string, string>
      */
     protected $casts = [
-        'data'                => 'array',
+        'socials'             => 'array',
+        'opening_hours'       => 'array',
+        'quick_links'         => 'array',
+        'services'            => 'array',
+        'images'              => 'array',
+        'reviews'             => 'array',
+        'components'          => 'array',
+        'settings'            => 'array',
+        'rating'              => 'float',
+        'review_count'        => 'integer',
         'domain_verified'     => 'boolean',
         'is_private'          => 'boolean',
         'dns_auto_configured' => 'boolean',
+        'premium_intent'      => 'boolean',
     ];
 
     /**

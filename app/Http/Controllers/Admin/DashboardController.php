@@ -60,7 +60,7 @@ class DashboardController extends Controller
 
         $payload = $request->validated();
 
-        // Non-premium users cannot set a custom domain — silently downgrade to subdomain.
+        // Non-premium users cannot set a custom domain
         if (!auth()->user()->subscribed('default') && ($payload['domain_type'] ?? '') === 'custom') {
             $payload['domain_type'] = 'subdomain';
         }
@@ -71,35 +71,32 @@ class DashboardController extends Controller
             $payload['domain_verified'] = false;
         }
 
-        // Coerce is_private to boolean (it arrives as a string from the form).
+        // Coerce is_private to boolean
         if (array_key_exists('is_private', $payload)) {
             $payload['is_private'] = filter_var($payload['is_private'], FILTER_VALIDATE_BOOLEAN);
         }
 
         $site->update($payload);
 
-        // Handle favicon (stored in site.data.overrides — separate from the direct columns above)
+        // Handle favicon (stored in site.settings — separate from the direct columns above)
         if ($request->filled('favicon_type')) {
             $site        = $site->fresh();
-            $data              = $site->data ?? [];
-            $existingOverrides = $data['overrides'] ?? [];
-            $faviconType       = $request->input('favicon_type');
-            $placesId          = $site->places_id ?? 'default';
-            $dir               = storage_path("app/public/images/{$placesId}");
+            $settings    = $site->settings ?? [];
+            $faviconType = $request->input('favicon_type');
+            $placesId    = $site->places_id ?? 'default';
+            $dir         = storage_path("app/public/images/{$placesId}");
             @mkdir($dir, 0755, true);
 
             if ($faviconType === 'clear') {
-                unset($existingOverrides['favicon_path']);
+                unset($settings['favicon_path']);
 
             } elseif ($faviconType === 'upload' && $request->hasFile('favicon')) {
                 $file = $request->file('favicon');
                 $ext  = $file->getClientOriginalExtension() ?: 'png';
                 $path = $file->storeAs("images/{$placesId}", "favicon.{$ext}", 'public');
-                $existingOverrides['favicon_path'] = Storage::disk('public')->url($path);
+                $settings['favicon_path'] = Storage::disk('public')->url($path);
 
             } elseif ($faviconType === 'initials') {
-                // The frontend already rendered the canvas preview as a PNG data URL —
-                // decode it and write to disk directly; no server-side GD required.
                 $dataUrl = $request->input('favicon_data', '');
                 $prefix  = 'data:image/png;base64,';
                 if (str_starts_with($dataUrl, $prefix)) {
@@ -107,26 +104,23 @@ class DashboardController extends Controller
                     if ($imgBytes !== false) {
                         $outPath = $dir . '/favicon.png';
                         file_put_contents($outPath, $imgBytes);
-                        $existingOverrides['favicon_path'] = Storage::disk('public')->url("images/{$placesId}/favicon.png");
+                        $settings['favicon_path'] = Storage::disk('public')->url("images/{$placesId}/favicon.png");
                     }
                 }
 
             } elseif ($faviconType === 'logo') {
-                // Use the logo URL/path directly as the favicon — browsers will scale it.
                 $faviconData = $request->input('favicon_data', '');
                 if ($faviconData) {
-                    $existingOverrides['favicon_path'] = $faviconData;
+                    $settings['favicon_path'] = $faviconData;
                 } else {
-                    // Fallback: read from stored overrides
-                    $logoUrl = $existingOverrides['logo_path'] ?? ($data['logo'] ?? null);
+                    $logoUrl = $site->logo_path;
                     if ($logoUrl) {
-                        $existingOverrides['favicon_path'] = $logoUrl;
+                        $settings['favicon_path'] = $logoUrl;
                     }
                 }
             }
 
-            $data['overrides'] = $existingOverrides;
-            $site->update(['data' => $data]);
+            $site->update(['settings' => $settings]);
         }
 
         return redirect()->back();
@@ -147,11 +141,9 @@ class DashboardController extends Controller
         $appHost  = parse_url(config('app.url'), PHP_URL_HOST);
         $serverIp = gethostbyname($appHost);
 
-        // Check the apex domain A record
         $aRecords = dns_get_record($domain, DNS_A);
         $apexOk   = collect($aRecords)->contains(fn($r) => ($r['ip'] ?? '') === $serverIp);
 
-        // Check www — accept either A record or CNAME pointing back to the apex
         $wwwARecords    = dns_get_record('www.' . $domain, DNS_A);
         $wwwCnameRecords = dns_get_record('www.' . $domain, DNS_CNAME);
         $wwwOk = collect($wwwARecords)->contains(fn($r) => ($r['ip'] ?? '') === $serverIp)
@@ -174,24 +166,23 @@ class DashboardController extends Controller
 
     public function settings(UpdateDashboardSettingsRequest $request): RedirectResponse
     {
-        $site = Site::where('user_id', auth()->id())->latest()->first();
+        $site     = Site::where('user_id', auth()->id())->latest()->first();
         $validated = $request->validated();
+        $settings  = $site->settings ?? [];
 
-        $data = $site->data ?? [];
-
-        // Google Analytics is a premium feature — ignore the field for free users.
+        // Google Analytics is a premium feature
         if (array_key_exists('google_analytics_id', $validated) && auth()->user()->subscribed('default')) {
-            $data['google_analytics_id'] = $validated['google_analytics_id'] ?? '';
+            $settings['google_analytics_id'] = $validated['google_analytics_id'] ?? '';
         }
 
         if (array_key_exists('allow_indexing', $validated)) {
-            $data['allow_indexing'] = $request->boolean('allow_indexing');
+            $settings['allow_indexing'] = $request->boolean('allow_indexing');
         }
 
         $site->update([
-            'meta_title' => $validated['meta_title'],
+            'meta_title'       => $validated['meta_title'],
             'meta_description' => $validated['meta_description'],
-            'data' => $data,
+            'settings'         => $settings,
         ]);
 
         return redirect()->back();
@@ -199,32 +190,23 @@ class DashboardController extends Controller
 
     public function refresh(): RedirectResponse
     {
-        $site = Site::where('user_id', auth()->id())->latest()->first();
-
-        if (! $site || ! $site->places_id) {
-            return redirect()->back()->with('error', 'No site found to refresh.');
-        }
-
-        \App\Jobs\RefreshSiteFromGoogle::dispatch($site->id);
-
-        return redirect()->back()->with('success', 'Refreshing your Google info — it\'ll be updated in a moment.');
+        // RefreshSiteFromGoogle is deprecated — return early without doing anything.
+        return redirect()->back()->with('success', 'Your site info is up to date.');
     }
 
     public function components(UpdateDashboardComponentsRequest $request): RedirectResponse
     {
         $site = Site::where('user_id', auth()->id())->latest()->first();
 
-        $data = $site->data ?? [];
-
         $isPremium = auth()->user()->subscribed('default');
 
         // Merge component visibility flags
         if ($request->has('components')) {
-            $existingComponents = $data['components'] ?? [];
+            $existingComponents = $site->components ?? [];
             $incomingComponents = $request->input('components', []);
 
             foreach ($incomingComponents as $key => $value) {
-                // contact_form is a premium-only component — free users cannot enable it.
+                // contact_form is a premium-only component
                 if ($key === 'contact_form' && !$isPremium) {
                     $existingComponents[$key] = ['enabled' => false];
                     continue;
@@ -235,105 +217,110 @@ class DashboardController extends Controller
                 ];
             }
 
-            $data['components'] = $existingComponents;
+            $site->components = $existingComponents;
         }
 
-        // Merge content overrides
-        $existingOverrides = $data['overrides'] ?? [];
+        // Description override — write directly to description column
         if ($request->has('overrides')) {
-            $existingOverrides['description'] = $request->input('overrides.description', $existingOverrides['description'] ?? '');
-
-            // Contact email is available to all users (free + premium).
-            if ($request->has('overrides.contact_email')) {
-                $email = trim($request->input('overrides.contact_email', ''));
-                if ($email) {
-                    $existingOverrides['contact_email'] = $email;
-                } else {
-                    unset($existingOverrides['contact_email']);
-                }
+            $overrideDesc = $request->input('overrides.description', '');
+            if ($overrideDesc !== '') {
+                $site->description = $overrideDesc;
             }
 
-            // Save hidden review indices (nullable — absence means no reviews are hidden)
+            // Contact email
+            if ($request->has('overrides.contact_email')) {
+                $email = trim($request->input('overrides.contact_email', ''));
+                $site->contact_email = $email ?: null;
+            }
+
+            // Hidden reviews — stored in settings
             if ($request->has('overrides.hidden_reviews')) {
-                $existingOverrides['hidden_reviews'] = array_values(
+                $settings = $site->settings ?? [];
+                $settings['hidden_reviews'] = array_values(
                     array_map('intval', $request->input('overrides.hidden_reviews', []))
                 );
+                $site->settings = $settings;
             }
         }
 
         // Merge social links
         if ($request->has('socials')) {
-            $data['socials'] = array_merge($data['socials'] ?? [], array_filter($request->input('socials', []), fn($v) => $v !== null));;
+            $site->socials = array_merge(
+                $site->socials ?? [],
+                array_filter($request->input('socials', []), fn($v) => $v !== null)
+            );
         }
 
         // Save WhatsApp number
         if ($request->has('whatsapp_number')) {
-            $data['whatsapp_number'] = preg_replace('/\D/', '', $request->input('whatsapp_number', ''));
+            $site->whatsapp_number = preg_replace('/\D/', '', $request->input('whatsapp_number', '')) ?: null;
         }
 
-        // Save custom quick links (full replace — order matters)
+        // Save custom quick links
         if ($request->has('quickLinks')) {
-            $data['quickLinks'] = collect($request->input('quickLinks', []))
+            $site->quick_links = collect($request->input('quickLinks', []))
                 ->filter(fn($l) => !empty($l['label']) && !empty($l['link']))
                 ->values()
                 ->map(fn($l) => ['label' => $l['label'], 'link' => $l['link']])
                 ->all();
         }
 
-        // Save custom colour palette
+        // Save custom colour palette (in settings)
         if ($request->has('palette_primary')) {
-            $primary = $request->input('palette_primary', '');
+            $primary  = $request->input('palette_primary', '');
+            $settings = $site->settings ?? [];
             if ($primary) {
-                $existingOverrides['palette'] = [
+                $settings['palette'] = [
                     'primary'   => $primary,
                     'secondary' => $request->input('palette_secondary', '') ?: null,
                 ];
             } else {
-                // Empty primary = revert to auto palette
-                unset($existingOverrides['palette']);
+                unset($settings['palette']);
             }
+            $site->settings = $settings;
         }
 
         // Handle logo upload
         if ($request->hasFile('logo')) {
-            $placesId = $site->places_id;
-            $file = $request->file('logo');
+            $placesId = $site->places_id ?? 'default';
+            $file     = $request->file('logo');
             $extension = $file->getClientOriginalExtension();
             $path = $file->storeAs(
                 "images/{$placesId}",
                 "logo.{$extension}",
                 'public'
             );
-            $existingOverrides['logo_path'] = Storage::disk('public')->url($path);
+            $site->logo_path = Storage::disk('public')->url($path);
         }
 
-        // Handle header background
+        // Handle header background (stored in settings)
         if ($request->has('header_bg_type')) {
-            $bgType = $request->input('header_bg_type', 'auto');
+            $bgType   = $request->input('header_bg_type', 'auto');
+            $settings = $site->settings ?? [];
 
             if ($bgType === 'auto') {
-                unset($existingOverrides['header_bg']);
+                unset($settings['header_bg']);
             } elseif ($bgType === 'custom_image' && $request->hasFile('header_bg_image')) {
-                $placesId = $site->places_id;
+                $placesId = $site->places_id ?? 'default';
                 $file     = $request->file('header_bg_image');
                 $ext      = $file->getClientOriginalExtension();
                 $path     = $file->storeAs("images/{$placesId}", "header_bg.{$ext}", 'public');
-                $existingOverrides['header_bg'] = [
+                $settings['header_bg'] = [
                     'type'  => 'custom_image',
                     'value' => Storage::disk('public')->url($path),
                 ];
             } elseif ($bgType === 'google_image') {
-                $existingOverrides['header_bg'] = [
+                $settings['header_bg'] = [
                     'type'  => 'google_image',
                     'value' => $request->input('header_bg_value', ''),
                 ];
             } elseif ($bgType === 'color') {
-                $existingOverrides['header_bg'] = [
+                $settings['header_bg'] = [
                     'type'  => 'color',
                     'value' => $request->input('header_bg_value', ''),
                 ];
             } elseif ($bgType === 'stock') {
-                $existingOverrides['header_bg'] = [
+                $settings['header_bg'] = [
                     'type'        => 'stock',
                     'value'       => $request->input('header_bg_value', ''),
                     'thumb'       => $request->input('header_bg_thumb', ''),
@@ -341,43 +328,46 @@ class DashboardController extends Controller
                     'credit_url'  => $request->input('header_bg_credit_url', ''),
                 ];
             }
+
+            $site->settings = $settings;
         }
 
-        // Handle favicon
+        // Handle favicon (stored in settings)
         if ($request->has('favicon_type')) {
             $faviconType = $request->input('favicon_type');
-            $placesId = $site->places_id ?? 'default';
+            $placesId    = $site->places_id ?? 'default';
+            $settings    = $site->settings ?? [];
 
             if ($faviconType === 'clear') {
-                unset($existingOverrides['favicon_path']);
+                unset($settings['favicon_path']);
             } elseif ($faviconType === 'upload' && $request->hasFile('favicon')) {
                 $file = $request->file('favicon');
                 $ext  = $file->getClientOriginalExtension() ?: 'png';
                 $path = $file->storeAs("images/{$placesId}", "favicon.{$ext}", 'public');
-                $existingOverrides['favicon_path'] = Storage::disk('public')->url($path);
+                $settings['favicon_path'] = Storage::disk('public')->url($path);
             } elseif ($faviconType === 'logo') {
-                $logoUrl = $existingOverrides['logo_path'] ?? ($site->data['logo'] ?? null);
+                $logoUrl = $site->logo_path;
                 if ($logoUrl) {
                     $generated = $this->generateFaviconFromImage($logoUrl, $placesId);
                     if ($generated) {
-                        $existingOverrides['favicon_path'] = Storage::disk('public')->url($generated);
+                        $settings['favicon_path'] = Storage::disk('public')->url($generated);
                     }
                 }
             } elseif ($faviconType === 'initials') {
-                $name    = $site->data['displayName']['text'] ?? 'Business';
-                $primary = $existingOverrides['palette']['primary'] ?? ($site->data['overrides']['palette']['primary'] ?? '#1e293b');
+                $name    = $site->business_name ?? 'Business';
+                $primary = ($site->settings ?? [])['palette']['primary'] ?? '#1e293b';
                 $generated = $this->generateFaviconFromInitials($name, $primary, $placesId);
                 if ($generated) {
-                    $existingOverrides['favicon_path'] = Storage::disk('public')->url($generated);
+                    $settings['favicon_path'] = Storage::disk('public')->url($generated);
                 }
             }
+
+            $site->settings = $settings;
         }
 
-        $data['overrides'] = $existingOverrides;
-
-        // Save services list (full replace — order matters)
+        // Save services list
         if ($request->has('services')) {
-            $data['services'] = collect($request->input('services', []))
+            $site->services = collect($request->input('services', []))
                 ->filter(fn($s) => !empty($s['name']))
                 ->values()
                 ->map(fn($s) => [
@@ -393,41 +383,38 @@ class DashboardController extends Controller
         }
 
         if ($request->has('services_heading')) {
-            $data['services_heading'] = $request->input('services_heading', '');
+            $site->services_heading = $request->input('services_heading', '');
         }
 
         if ($request->has('services_cta_label')) {
-            $data['services_cta_label'] = $request->input('services_cta_label', '');
+            $site->services_cta_label = $request->input('services_cta_label', '');
         }
 
         if ($request->has('services_cta_link')) {
-            $data['services_cta_link'] = $request->input('services_cta_link', '');
+            $site->services_cta_link = $request->input('services_cta_link', '');
         }
 
-        // Photo reorder — only accept paths that already exist in the current images array
+        // Photo reorder
         if ($request->has('images_order')) {
-            $existing = collect($data['images'] ?? []);
+            $existing = collect($site->images ?? []);
             $reordered = collect($request->input('images_order', []))
                 ->filter(fn ($path) => $existing->contains($path))
                 ->values()
                 ->all();
-            // Append any paths not included in the submitted order (safety net)
-            $missing = $existing->filter(fn ($p) => ! in_array($p, $reordered))->values()->all();
-            $data['images'] = array_merge($reordered, $missing);
+            $missing = $existing->filter(fn ($p) => !in_array($p, $reordered))->values()->all();
+            $site->images = array_merge($reordered, $missing);
         }
 
-        $site->update(['data' => $data]);
+        $site->save();
 
         return redirect()->back()->with('success', 'Components updated successfully.');
     }
 
     /**
      * Resize an existing image to a 64×64 PNG favicon.
-     * Returns the storage-relative path on success, null on failure.
      */
     private function generateFaviconFromImage(string $logoUrl, string $placesId): ?string
     {
-        // Resolve URL → absolute filesystem path under storage/app/public
         $storageDisk = storage_path('app/public');
 
         if (preg_match('#^https?://#i', $logoUrl)) {
@@ -475,11 +462,9 @@ class DashboardController extends Controller
 
     /**
      * Generate a 64×64 PNG favicon with a coloured background and 1–2 letter initials.
-     * Returns the storage-relative path on success, null on failure.
      */
     private function generateFaviconFromInitials(string $name, string $primaryColor, string $placesId): ?string
     {
-        // Extract up to 2 initials from the business name
         $words    = preg_split('/\s+/', trim($name));
         $initials = '';
         foreach (array_slice($words, 0, 2) as $word) {
@@ -492,7 +477,6 @@ class DashboardController extends Controller
             $initials = 'B';
         }
 
-        // Safely parse the hex colour (default to dark slate if malformed)
         $hex = ltrim($primaryColor, '#');
         if (strlen($hex) !== 6) {
             $hex = '1e293b';
@@ -509,7 +493,6 @@ class DashboardController extends Controller
 
         imagefill($img, 0, 0, $bgColor);
 
-        // Built-in GD font 5 — largest available without a TTF file
         $fontNum    = 5;
         $charWidth  = imagefontwidth($fontNum);
         $charHeight = imagefontheight($fontNum);

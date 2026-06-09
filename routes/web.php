@@ -44,40 +44,28 @@ Route::get('demo-photo/{id}', function (string $id) {
 // ─── Demo preview (used by the marketing hero iframe) ─────────────────────────
 Route::get('demo', function () {
     $data = [
-        'displayName'              => ['text' => "Dave's Painting & Decorating"],
-        'primaryTypeDisplayName'   => ['text' => 'Painter & Decorator'],
-        'formattedAddress'         => '42 Ancoats Street, Manchester, M4 5AB',
-        'addressComponents'        => [
-            ['longText' => 'Manchester', 'shortText' => 'Manchester', 'types' => ['locality', 'political']],
-            ['longText' => 'England',    'shortText' => 'England',    'types' => ['administrative_area_level_1', 'political']],
-            ['longText' => 'United Kingdom', 'shortText' => 'GB',    'types' => ['country', 'political']],
+        'business_name'     => "Dave's Painting & Decorating",
+        'business_type'     => 'Painter & Decorator',
+        'formatted_address' => '42 Ancoats Street, Manchester, M4 5AB',
+        'city'              => 'Manchester',
+        'region'            => 'England',
+        'description'       => "Family-run painting & decorating service covering Manchester and the surrounding areas. Over 20 years of experience transforming homes and commercial spaces. Fully insured, fully certified, and always tidy. Free no-obligation quotes available seven days a week.",
+        'phone'             => '0161 234 5678',
+        'whatsapp_number'   => '447961234567',
+        'contact_email'     => 'dave@davespainting.co.uk',
+        'logo_path'         => null,
+        'rating'            => 4.9,
+        'review_count'      => 47,
+        'opening_hours'     => [
+            ['day' => 'Sunday',    'open' => '09:00', 'close' => '17:00', 'closed' => true],
+            ['day' => 'Monday',    'open' => '08:00', 'close' => '18:00', 'closed' => false],
+            ['day' => 'Tuesday',   'open' => '08:00', 'close' => '18:00', 'closed' => false],
+            ['day' => 'Wednesday', 'open' => '08:00', 'close' => '18:00', 'closed' => false],
+            ['day' => 'Thursday',  'open' => '08:00', 'close' => '18:00', 'closed' => false],
+            ['day' => 'Friday',    'open' => '08:00', 'close' => '17:00', 'closed' => false],
+            ['day' => 'Saturday',  'open' => '09:00', 'close' => '17:00', 'closed' => true],
         ],
-        'editorialSummary' => ['text' => "Family-run painting & decorating service covering Manchester and the surrounding areas. Over 20 years of experience transforming homes and commercial spaces. Fully insured, fully certified, and always tidy. Free no-obligation quotes available seven days a week."],
-        'nationalPhoneNumber'      => '0161 234 5678',
-        'internationalPhoneNumber' => '+44 161 234 5678',
-        'rating'                   => 4.9,
-        'userRatingCount'          => 47,
-        'regularOpeningHours'      => [
-            'periods' => [
-                ['open' => ['day' => 1, 'hour' => 8, 'minute' => 0], 'close' => ['day' => 1, 'hour' => 18, 'minute' => 0]],
-                ['open' => ['day' => 2, 'hour' => 8, 'minute' => 0], 'close' => ['day' => 2, 'hour' => 18, 'minute' => 0]],
-                ['open' => ['day' => 3, 'hour' => 8, 'minute' => 0], 'close' => ['day' => 3, 'hour' => 18, 'minute' => 0]],
-                ['open' => ['day' => 4, 'hour' => 8, 'minute' => 0], 'close' => ['day' => 4, 'hour' => 18, 'minute' => 0]],
-                ['open' => ['day' => 5, 'hour' => 8, 'minute' => 0], 'close' => ['day' => 5, 'hour' => 17, 'minute' => 0]],
-            ],
-            'weekdayDescriptions' => [
-                'Monday: 8:00 AM – 6:00 PM',
-                'Tuesday: 8:00 AM – 6:00 PM',
-                'Wednesday: 8:00 AM – 6:00 PM',
-                'Thursday: 8:00 AM – 6:00 PM',
-                'Friday: 8:00 AM – 5:00 PM',
-                'Saturday: Closed',
-                'Sunday: Closed',
-            ],
-        ],
-        'whatsapp_number' => '447961234567',
-        'contact'         => 'dave@davespainting.co.uk',
-        'images'  => [
+        'images' => [
             'demo-photo/5691677',
             'demo-photo/6474471',
             'demo-photo/5798984',
@@ -87,31 +75,15 @@ Route::get('demo', function () {
             'demo-photo/34046208',
         ],
         'reviews' => [
-            [
-                'relativePublishTimeDescription' => '2 months ago',
-                'rating' => 5,
-                'text'   => ['text' => "Dave and his team did a fantastic job on our living room and hallway. Neat, tidy, and finished on time. Would highly recommend to anyone looking for a reliable decorator.", 'languageCode' => 'en'],
-                'authorAttribution' => ['displayName' => 'Sarah Mitchell', 'uri' => '', 'photoUri' => ''],
-                'publishTime' => '2024-02-15T10:00:00Z',
-            ],
-            [
-                'relativePublishTimeDescription' => '4 months ago',
-                'rating' => 5,
-                'text'   => ['text' => "Excellent service from start to finish. Very professional and the results speak for themselves. Our kitchen looks absolutely incredible.", 'languageCode' => 'en'],
-                'authorAttribution' => ['displayName' => 'James Thornton', 'uri' => '', 'photoUri' => ''],
-                'publishTime' => '2023-12-10T14:00:00Z',
-            ],
-            [
-                'relativePublishTimeDescription' => '6 months ago',
-                'rating' => 5,
-                'text'   => ['text' => "Used Dave's for a full interior repaint of our 3-bed semi. Great attention to detail and very reasonable prices. Will definitely be using them again.", 'languageCode' => 'en'],
-                'authorAttribution' => ['displayName' => 'Lisa Patel', 'uri' => '', 'photoUri' => ''],
-                'publishTime' => '2023-10-05T09:00:00Z',
-            ],
+            ['author' => 'Sarah Mitchell', 'rating' => 5, 'date' => '2024-02-01', 'text' => "Dave and his team did a fantastic job on our living room and hallway. Neat, tidy, and finished on time. Would highly recommend to anyone looking for a reliable decorator."],
+            ['author' => 'James Thornton', 'rating' => 5, 'date' => '2023-12-01', 'text' => "Excellent service from start to finish. Very professional and the results speak for themselves. Our kitchen looks absolutely incredible."],
+            ['author' => 'Lisa Patel',     'rating' => 5, 'date' => '2023-10-01', 'text' => "Used Dave's for a full interior repaint of our 3-bed semi. Great attention to detail and very reasonable prices. Will definitely be using them again."],
         ],
-        'quickLinks' => [
+        'google_places_id' => null,
+        'quick_links' => [
             ['label' => 'Book Appointment', 'link' => '#'],
         ],
+        'socials' => [],
         'services' => [
             [
                 'id'          => 'svc-1',
@@ -169,17 +141,17 @@ Route::get('demo', function () {
             'contact_form'  => ['enabled' => true],
             'services'      => ['enabled' => true],
         ],
-        'overrides' => [
-            'description'   => '',
-            'logo_path'     => '',
-            'contact_email' => 'dave@davespainting.co.uk',
-            'header_bg'     => [
+        'settings' => [
+            'header_bg' => [
                 'type'       => 'stock',
                 'value'      => 'https://images.pexels.com/photos/6474471/pexels-photo-6474471.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2',
                 'credit'     => 'Tima Miroshnichenko',
                 'credit_url' => 'https://www.pexels.com/photo/man-in-white-dress-shirt-painting-wall-6474471/',
             ],
         ],
+        'services_heading'   => 'Our Services',
+        'services_cta_label' => '',
+        'services_cta_link'  => '',
     ];
 
     return Inertia::render('site/Index', [
@@ -211,9 +183,9 @@ Route::get('sitemap.xml', function () {
 
     $urls = Site::query()
         ->where('domain_type', '!=', 'draft')
-        ->get(['subdomain', 'custom_domain', 'domain_type', 'domain_verified', 'updated_at', 'data'])
+        ->get(['subdomain', 'custom_domain', 'domain_type', 'domain_verified', 'updated_at', 'settings'])
         ->filter(function (Site $site) {
-            if (data_get($site->data, 'allow_indexing', true) === false) {
+            if (($site->settings['allow_indexing'] ?? true) === false) {
                 return false;
             }
 
@@ -258,6 +230,8 @@ XML;
     ]);
 })->name('sitemap');
 
+Route::get('setup/new', [PreviewController::class, 'create'])->name('preview.create');
+Route::post('setup/new', [PreviewController::class, 'storeBlank'])->name('preview.storeBlank');
 Route::get('discover/{id}', [PreviewController::class, 'discover'])->name('preview.discover');
 Route::get('setup/{id}', [PreviewController::class, 'setup'])->name('preview.setup');
 Route::post('setup/{id}', [PreviewController::class, 'store'])->name('preview.store');

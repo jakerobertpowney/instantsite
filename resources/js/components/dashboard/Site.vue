@@ -29,7 +29,7 @@ const verifyError        = ref('');
 
 // Suggest a subdomain slug derived from the business name when none has been set
 const suggestedSubdomain = computed(() => {
-    const name: string = site?.data?.displayName?.text ?? '';
+    const name: string = site?.business_name ?? '';
     return name
         .toLowerCase()
         .replace(/[^a-z0-9]+/g, '-')
@@ -38,14 +38,14 @@ const suggestedSubdomain = computed(() => {
 
 // ── Favicon ───────────────────────────────────────────────────────────────────
 const faviconInput      = ref<HTMLInputElement | null>(null);
-const faviconPreview    = ref<string | null>(site?.data?.overrides?.favicon_path ?? null);
+const faviconPreview    = ref<string | null>(site?.settings?.favicon_path ?? null);
 const faviconPendingType = ref<'upload' | 'logo' | 'initials' | ''>('');
 
 // Render a 64×64 initials favicon on a canvas and return a data URL for
 // immediate preview — mirrors the server-side GD logic so the user sees
 // exactly what will be saved.
 function buildInitialsDataUrl(): string {
-    const name    = (site?.data?.displayName?.text as string | undefined) ?? 'Business';
+    const name    = (site?.business_name as string | undefined) ?? 'Business';
     const words   = name.trim().split(/\s+/);
     let initials  = words
         .slice(0, 2)
@@ -54,7 +54,7 @@ function buildInitialsDataUrl(): string {
         .join('');
     if (!initials) initials = 'B';
 
-    const primary  = (site?.data?.overrides?.palette?.primary as string | undefined) ?? '#1e293b';
+    const primary  = (site?.settings?.palette?.primary as string | undefined) ?? '#1e293b';
     const canvas   = document.createElement('canvas');
     canvas.width   = 64;
     canvas.height  = 64;
@@ -84,7 +84,7 @@ function selectFaviconType(type: 'upload' | 'logo' | 'initials') {
         faviconPreview.value = dataUrl;
     } else if (type === 'logo') {
         // Pass the logo path so the backend can copy/alias it as the favicon.
-        const logoPath = site?.data?.overrides?.logo_path as string | undefined;
+        const logoPath = site?.logo_path as string | undefined;
         form.favicon_data = logoPath ?? '';
         faviconPreview.value = logoPath ?? faviconPreview.value;
     }
@@ -149,7 +149,7 @@ const saveForm = () => {
             form.favicon = null;
             form.favicon_data = '';
             faviconPendingType.value = '';
-            faviconPreview.value = (page.props.site as any)?.data?.overrides?.favicon_path ?? null;
+            faviconPreview.value = (page.props.site as any)?.settings?.favicon_path ?? null;
             toast('Saved!');
             saving.value = false;
         },
@@ -585,9 +585,9 @@ const providerLabel = computed(() => {
                         type="button"
                         class="flex items-center gap-2 px-3.5 py-2.5 rounded-[10px] border-[1.5px] border-brand-line bg-brand-surface text-brand-ink font-family-inherit text-sm font-semibold cursor-pointer transition-all duration-100 hover:border-brand-blue hover:bg-brand-blue-soft hover:text-brand-blue disabled:opacity-40 disabled:cursor-not-allowed"
                         :class="{ 'border-brand-blue bg-brand-blue-soft text-brand-blue': faviconPendingType === 'logo' }"
-                        :disabled="!site?.data?.overrides?.logo_path"
+                        :disabled="!site?.logo_path"
                         @click="selectFaviconType('logo')"
-                        :title="!site?.data?.overrides?.logo_path ? 'Upload a logo first' : 'Generate from your logo'"
+                        :title="!site?.logo_path ? 'Upload a logo first' : 'Generate from your logo'"
                     >
                         <Image class="flex-shrink-0" :size="18" />
                         <span>Use logo</span>

@@ -45,7 +45,7 @@ class FetchSitePhoto implements ShouldQueue
 
         Storage::disk('public')->put($diskPath, $response->body());
 
-        // Atomically append the new path to data.images.
+        // Atomically append the new path to images column.
         // Using a DB transaction + lockForUpdate prevents concurrent jobs from
         // overwriting each other's writes (the classic lost-update race condition).
         DB::transaction(function () use ($publicPath) {
@@ -54,16 +54,14 @@ class FetchSitePhoto implements ShouldQueue
                 return;
             }
 
-            $data             = $site->data ?? [];
-            $existing         = $data['images'] ?? [];
+            $existing = $site->images ?? [];
 
             // Avoid duplicates if the job retries
             if (in_array($publicPath, $existing, true)) {
                 return;
             }
 
-            $data['images']   = array_merge($existing, [$publicPath]);
-            $site->data       = $data;
+            $site->images = array_merge($existing, [$publicPath]);
             $site->save();
         });
     }

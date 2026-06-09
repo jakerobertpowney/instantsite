@@ -13,13 +13,12 @@ const page = usePage();
 const isPremium = inject('isPremium') as boolean;
 const appDomain = inject('appDomain') as string;
 const site = computed(() => (page.props.site as any) ?? {});
-const siteData = computed(() => site.value.data ?? {});
 
 const form = useForm({
     meta_title: site.value.meta_title ?? '',
     meta_description: site.value.meta_description ?? '',
-    google_analytics_id: siteData.value.google_analytics_id ?? '',
-    allow_indexing: siteData.value.allow_indexing !== false,
+    google_analytics_id: site.value.settings?.google_analytics_id ?? '',
+    allow_indexing: (site.value.settings?.allow_indexing ?? true) !== false,
 });
 
 const saving = ref(false);

@@ -16,15 +16,27 @@ const props = defineProps({
 
 const poll = ref(0)
 const progress = ref(10)
+const error = ref<string | null>(null)
+
+const stopPolling = () => {
+    clearInterval(poll.value)
+}
 
 const checkBatch = () => {
     axios.get(discoverPoll.url(props.batchId!)).then(response => {
-        if (response.data) {
+        const { status, message } = response.data ?? {}
+        if (status === 'completed') {
             progress.value = 100
             router.visit(previewSetup.url(props.id!))
+        } else if (status === 'failed') {
+            stopPolling()
+            error.value = message ?? 'Something went wrong. Please go back and try again.'
         } else {
             progress.value = Math.min(progress.value + 15, 90)
         }
+    }).catch(() => {
+        stopPolling()
+        error.value = 'Something went wrong. Please go back and try again.'
     })
 }
 
@@ -35,7 +47,7 @@ onMounted(() => {
 })
 
 onUnmounted(() => {
-    clearInterval(poll.value)
+    stopPolling()
 })
 </script>
 
@@ -57,42 +69,59 @@ onUnmounted(() => {
         <div class="flex flex-1 flex-col items-center justify-center px-6 pb-16">
             <div class="max-w-md w-full flex flex-col gap-8">
 
-                <!-- Spinner + headline -->
-                <div class="flex flex-col items-center gap-4 text-center">
-                    <!-- Animated ring -->
-                    <div class="relative flex h-14 w-14 items-center justify-center">
-                        <svg class="absolute inset-0 animate-spin" width="56" height="56" viewBox="0 0 56 56" fill="none" style="animation-duration: 1.1s;">
-                            <circle cx="28" cy="28" r="24" stroke="#dde1e8" stroke-width="4"/>
-                            <path d="M28 4a24 24 0 0 1 24 24" stroke="#1E66F5" stroke-width="4" stroke-linecap="round"/>
-                        </svg>
-                        <div class="flex items-center justify-center text-brand-ink">
-                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 160" width="32" height="10" aria-hidden="true">
-                                <text x="60" y="115" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif" font-size="100" font-weight="600" fill="currentColor">3</text>
-                                <circle cx="143" cy="90" r="9" fill="#1e66f5"/>
-                                <text x="170" y="115" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif" font-size="100" font-weight="600" fill="currentColor">2</text>
-                                <circle cx="253" cy="90" r="9" fill="#1e66f5"/>
-                                <text x="280" y="115" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif" font-size="100" font-weight="600" fill="currentColor">1</text>
-                            </svg>
-                        </div>
+                <!-- Error state -->
+                <div v-if="error" class="flex flex-col items-center gap-6 text-center">
+                    <div class="w-14 h-14 rounded-full bg-red-50 flex items-center justify-center">
+                        <svg class="w-7 h-7 text-red-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
                     </div>
                     <div>
-                        <p class="text-xl font-bold text-brand-ink">Pulling in your Google info…</p>
-                        <p class="mt-1 text-sm text-brand-ink-soft">This only takes a few seconds.</p>
+                        <p class="text-lg font-bold text-gray-900">Something went wrong</p>
+                        <p class="mt-1 text-sm text-gray-500">{{ error }}</p>
                     </div>
+                    <a href="/" class="inline-flex items-center justify-center gap-2 h-11 px-6 rounded-lg font-bold text-sm border border-gray-200 bg-white text-gray-800 hover:bg-gray-50 transition-colors">
+                        ← Go back and try again
+                    </a>
                 </div>
 
-                <!-- Progress bar — blue to match brand accent -->
-                <div style="--primary: #1e66f5; --secondary: #dde1e8;">
-                    <Progress :model-value="progress" class="w-full h-2" />
-                </div>
+                <!-- Loading state -->
+                <template v-else>
+                    <!-- Spinner + headline -->
+                    <div class="flex flex-col items-center gap-4 text-center">
+                        <!-- Animated ring -->
+                        <div class="relative flex h-14 w-14 items-center justify-center">
+                            <svg class="absolute inset-0 animate-spin" width="56" height="56" viewBox="0 0 56 56" fill="none" style="animation-duration: 1.1s;">
+                                <circle cx="28" cy="28" r="24" stroke="#dde1e8" stroke-width="4"/>
+                                <path d="M28 4a24 24 0 0 1 24 24" stroke="#1E66F5" stroke-width="4" stroke-linecap="round"/>
+                            </svg>
+                            <div class="flex items-center justify-center text-brand-ink">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 160" width="32" height="10" aria-hidden="true">
+                                    <text x="60" y="115" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif" font-size="100" font-weight="600" fill="currentColor">3</text>
+                                    <circle cx="143" cy="90" r="9" fill="#1e66f5"/>
+                                    <text x="170" y="115" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif" font-size="100" font-weight="600" fill="currentColor">2</text>
+                                    <circle cx="253" cy="90" r="9" fill="#1e66f5"/>
+                                    <text x="280" y="115" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif" font-size="100" font-weight="600" fill="currentColor">1</text>
+                                </svg>
+                            </div>
+                        </div>
+                        <div>
+                            <p class="text-xl font-bold text-brand-ink">Pulling in your Google info…</p>
+                            <p class="mt-1 text-sm text-brand-ink-soft">This only takes a few seconds.</p>
+                        </div>
+                    </div>
 
-                <!-- Skeleton placeholders -->
-                <div class="flex flex-col gap-3 rounded-2xl p-5 bg-brand-panel">
-                    <Skeleton class="h-5 w-3/4 rounded-lg" style="background: #dde1e8;" />
-                    <Skeleton class="h-4 w-1/2 rounded-lg" style="background: #dde1e8;" />
-                    <Skeleton class="h-4 w-2/3 rounded-lg" style="background: #dde1e8;" />
-                    <Skeleton class="mt-2 h-28 w-full rounded-xl" style="background: #dde1e8;" />
-                </div>
+                    <!-- Progress bar — blue to match brand accent -->
+                    <div style="--primary: #1e66f5; --secondary: #dde1e8;">
+                        <Progress :model-value="progress" class="w-full h-2" />
+                    </div>
+
+                    <!-- Skeleton placeholders -->
+                    <div class="flex flex-col gap-3 rounded-2xl p-5 bg-brand-panel">
+                        <Skeleton class="h-5 w-3/4 rounded-lg" style="background: #dde1e8;" />
+                        <Skeleton class="h-4 w-1/2 rounded-lg" style="background: #dde1e8;" />
+                        <Skeleton class="h-4 w-2/3 rounded-lg" style="background: #dde1e8;" />
+                        <Skeleton class="mt-2 h-28 w-full rounded-xl" style="background: #dde1e8;" />
+                    </div>
+                </template>
 
             </div>
         </div>

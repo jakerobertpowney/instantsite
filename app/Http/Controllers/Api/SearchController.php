@@ -74,9 +74,16 @@ class SearchController extends Controller
         $batch = Bus::findBatch($batchId);
 
         if (!$batch) {
-            return response()->json(['error' => 'Batch not found'], 404);
+            return response()->json(['status' => 'failed', 'message' => 'Could not find your request. Please go back and try again.']);
         }
 
-        return response()->json($batch->finished());
+        if ($batch->finished()) {
+            if ($batch->failedJobs > 0) {
+                return response()->json(['status' => 'failed', 'message' => 'We couldn\'t load your business details from Google. Please go back and try again.']);
+            }
+            return response()->json(['status' => 'completed']);
+        }
+
+        return response()->json(['status' => 'pending']);
     }
 }

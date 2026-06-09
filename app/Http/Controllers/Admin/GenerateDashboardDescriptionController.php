@@ -19,13 +19,11 @@ class GenerateDashboardDescriptionController extends Controller
             return response()->json(['error' => 'Site not found'], 404);
         }
 
-        $data = $site->data ?? [];
-
-        $name       = $data['displayName']['text'] ?? null;
-        $type       = $data['primaryTypeDisplayName']['text'] ?? null;
-        $address    = $data['formattedAddress'] ?? null;
-        $googleDesc = $data['editorialSummary']['text'] ?? $data['description'] ?? null;
-        $phone      = $data['nationalPhoneNumber'] ?? null;
+        $name       = $site->business_name;
+        $type       = $site->business_type;
+        $address    = $site->formatted_address;
+        $googleDesc = $site->description;
+        $phone      = $site->phone;
 
         $contextParts = array_filter([
             $name       ? "Business name: {$name}"            : null,

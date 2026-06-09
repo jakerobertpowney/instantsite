@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { inject, computed } from 'vue';
-import { Instagram, Facebook, Twitter, Linkedin, CheckCircle } from 'lucide-vue-next';
+import { Instagram, Facebook, Twitter, Linkedin, CheckCircle, AlertCircle } from 'lucide-vue-next';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
@@ -11,7 +11,7 @@ const siteData = inject<any>('siteData', null);
 type SocialKey = 'instagram' | 'facebook' | 'x' | 'linkedin';
 
 const suggested = computed<Partial<Record<SocialKey, string>>>(() =>
-    siteData?.suggested_socials ?? {}
+    siteData?.socials ?? {}
 );
 
 const hasSuggestions = computed(() => Object.keys(suggested.value).length > 0);
@@ -108,8 +108,13 @@ const socials: { key: SocialKey; label: string; hint: string; icon: any; placeho
                 :placeholder="social.placeholder"
                 v-model="form.socials[social.key]"
                 class="h-11"
+                :class="{ 'border-destructive ring-destructive': form.errors[`socials.${social.key}`] }"
                 inputmode="url"
             />
+            <p v-if="form.errors[`socials.${social.key}`]" class="text-sm text-destructive flex items-center gap-1.5">
+                <AlertCircle class="h-4 w-4 shrink-0" />
+                {{ form.errors[`socials.${social.key}`] }}
+            </p>
         </div>
 
         <p class="text-sm text-muted-foreground text-center">

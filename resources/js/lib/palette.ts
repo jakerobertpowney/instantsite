@@ -337,14 +337,17 @@ export function getRecommendedThemeId(primaryType?: string): string {
 
 /**
  * Returns the effective palette for a site, respecting user-set custom colours.
- * Priority: overrides.palette (custom) → business-type auto palette
+ * Priority: settings.palette (custom) → business-type auto palette
  */
 export function getEffectivePalette(data: Record<string, any> | null | undefined): SitePalette {
-    const custom = data?.overrides?.palette;
+    // Support both new shape (settings.palette) and legacy shape (overrides.palette)
+    const custom = data?.settings?.palette ?? data?.overrides?.palette;
     if (custom?.primary) {
         return buildPaletteFromPrimary(custom.primary, custom.secondary || undefined);
     }
-    return getPalette(data?.primaryType);
+    // Support both new shape (business_type) and old shape (primaryType / primaryTypeDisplayName.text)
+    const type = data?.business_type ?? data?.primaryType ?? data?.primaryTypeDisplayName?.text;
+    return getPalette(type);
 }
 
 /**

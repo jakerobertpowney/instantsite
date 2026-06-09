@@ -24,13 +24,11 @@ class SiteController extends Controller
         }
 
         // Private sites are only accessible to the logged-in owner.
-        // Non-owners (including guests) see a polite "private site" page instead of a redirect,
-        // with a login button pointing at the root app's login page.
         if ($site->is_private) {
             $authUser = auth()->user();
             if (!$authUser || $authUser->id !== $site->user_id) {
                 $loginUrl     = rtrim(config('app.url'), '/') . '/login';
-                $businessName = $site->data['displayName']['text'] ?? null;
+                $businessName = $site->business_name;
                 return Inertia::render('site/Private', [
                     'businessName' => $businessName,
                     'loginUrl'     => $loginUrl,
@@ -42,24 +40,23 @@ class SiteController extends Controller
         $siteUrl = rtrim($request->getSchemeAndHttpHost(), '/');
         $canonicalUrl = $this->canonicalUrlForSite($site, $siteUrl);
 
-        // Determine whether the currently authenticated user owns this site.
         $authUser = auth()->user();
         $isOwner  = $authUser && $authUser->id === $site->user_id;
 
-        // Build the dashboard URL against the root app domain, not the current subdomain,
-        // because the dashboard route only exists on the main domain.
         $dashboardUrl = rtrim(config('app.url'), '/') . '/dashboard';
 
+        $siteData = $this->buildSiteData($site);
+
         return Inertia::render('site/Index', [
-            'data' => $site->data,
-            'isPremium' => $isPremium,
-            'metaTitle' => $site->meta_title,
+            'data'            => $siteData,
+            'isPremium'       => $isPremium,
+            'metaTitle'       => $site->meta_title,
             'metaDescription' => $site->meta_description,
-            'siteUrl' => $siteUrl,
-            'canonicalUrl' => $canonicalUrl,
-            'sitemapUrl' => $siteUrl . '/sitemap.xml',
-            'isOwner' => $isOwner,
-            'dashboardUrl' => $dashboardUrl,
+            'siteUrl'         => $siteUrl,
+            'canonicalUrl'    => $canonicalUrl,
+            'sitemapUrl'      => $siteUrl . '/sitemap.xml',
+            'isOwner'         => $isOwner,
+            'dashboardUrl'    => $dashboardUrl,
         ]);
     }
 
@@ -101,13 +98,12 @@ XML;
             return response()->json(['error' => 'Site not found.'], 404);
         }
 
-        // Contact form is a premium feature — reject submissions for non-premium sites.
+        // Contact form is a premium feature
         if (!($site->user?->subscribed('default') ?? false)) {
             return response()->json(['error' => 'Contact form is not available on this site.'], 403);
         }
 
-        // Prefer the owner-supplied override email, fall back to the Google Places email.
-        $contactEmail = $site->data['overrides']['contact_email'] ?? $site->data['contact'] ?? null;
+        $contactEmail = $site->contact_email;
 
         if (!$contactEmail) {
             return response()->json(['error' => 'This site does not have a contact email configured.'], 422);
@@ -124,10 +120,9 @@ XML;
             return response()->json(['errors' => $validator->errors()], 422);
         }
 
-        $businessName = $site->data['displayName']['text'] ?? $domain;
+        $businessName = $site->business_name ?? $domain;
         $preferredContactTime = trim((string) $request->input('preferred_contact_time', ''));
 
-        // Persist the submission so the owner can review it in the dashboard
         ContactSubmission::create([
             'site_id' => $site->id,
             'email'   => $request->input('email'),
@@ -145,6 +140,54 @@ XML;
         ));
 
         return response()->json(['success' => true]);
+    }
+
+    /**
+     * Build a flat data array from a Site's individual columns.
+     */
+    private function buildSiteData(Site $site): array
+    {
+        return [
+            'business_name'      => $site->business_name,
+            'business_type'      => $site->business_type,
+            'description'        => $site->description,
+            'logo_path'          => $site->logo_path,
+            'formatted_address'  => $site->formatted_address,
+            'city'               => $site->city,
+            'region'             => $site->region,
+            'phone'              => $site->phone,
+            'whatsapp_number'    => $site->whatsapp_number,
+            'website_url'        => $site->website_url,
+            'contact_email'      => $site->contact_email,
+            'socials'            => $site->socials ?? [],
+            'opening_hours'      => $site->opening_hours ?? [],
+            'quick_links'        => $site->quick_links ?? [],
+            'services'           => $site->services ?? [],
+            'images'             => $site->images ?? [],
+            'rating'             => $site->rating,
+            'review_count'       => $site->review_count,
+            'reviews'            => $site->reviews ?? [],
+            'google_places_id'   => ($site->places_id && !str_starts_with($site->places_id ?? '', 'manual-')) ? $site->places_id : null,
+            'components'         => $site->components ?? $this->defaultComponents(),
+            'services_heading'   => $site->services_heading ?? 'Our Services',
+            'services_cta_label' => $site->services_cta_label ?? '',
+            'services_cta_link'  => $site->services_cta_link ?? '',
+            'settings'           => $site->settings ?? [],
+        ];
+    }
+
+    private function defaultComponents(): array
+    {
+        return [
+            'header'        => ['enabled' => true],
+            'description'   => ['enabled' => true],
+            'gallery'       => ['enabled' => true],
+            'quick_actions' => ['enabled' => true],
+            'reviews'       => ['enabled' => true],
+            'contact'       => ['enabled' => true],
+            'contact_form'  => ['enabled' => true],
+            'services'      => ['enabled' => true],
+        ];
     }
 
     private function findSiteForDomain(string $domain): ?Site

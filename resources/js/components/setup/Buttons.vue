@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { inject, ref, computed } from 'vue';
-import { Trash2, Plus, ExternalLink, CheckCircle } from 'lucide-vue-next';
+import { Trash2, Plus, ExternalLink, CheckCircle, AlertCircle } from 'lucide-vue-next';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 
@@ -10,9 +10,8 @@ const siteData = inject<any>('siteData', null);
 // Booking platform suggestions scraped from their website
 type BookingLink = { platform: string; label: string; url: string };
 
-const suggestedBookingLinks = computed<BookingLink[]>(() =>
-    siteData?.suggested_booking_links ?? []
-);
+// No longer using suggested_booking_links — FetchSocialLinks now writes directly to quick_links
+const suggestedBookingLinks = computed<BookingLink[]>(() => []);
 
 // Track which suggestions have been accepted or dismissed
 const acceptedUrls = ref<Set<string>>(new Set());
@@ -160,7 +159,12 @@ const displayUrl = (url: string) =>
                         placeholder="e.g. Book a visit"
                         v-model="form.quickLinks[index].label"
                         class="h-11"
+                        :class="{ 'border-destructive ring-destructive': form.errors[`quickLinks.${index}.label`] }"
                     />
+                    <p v-if="form.errors[`quickLinks.${index}.label`]" class="text-sm text-destructive flex items-center gap-1.5">
+                        <AlertCircle class="h-4 w-4 shrink-0" />
+                        {{ form.errors[`quickLinks.${index}.label`] }}
+                    </p>
                 </div>
 
                 <div class="flex flex-col gap-1.5">
@@ -173,9 +177,14 @@ const displayUrl = (url: string) =>
                         placeholder="e.g. https://calendly.com/yourname"
                         v-model="form.quickLinks[index].link"
                         class="h-11"
+                        :class="{ 'border-destructive ring-destructive': form.errors[`quickLinks.${index}.link`] }"
                         inputmode="url"
                         autocomplete="off"
                     />
+                    <p v-if="form.errors[`quickLinks.${index}.link`]" class="text-sm text-destructive flex items-center gap-1.5">
+                        <AlertCircle class="h-4 w-4 shrink-0" />
+                        {{ form.errors[`quickLinks.${index}.link`] }}
+                    </p>
                 </div>
             </div>
         </div>

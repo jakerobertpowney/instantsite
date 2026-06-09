@@ -5,10 +5,12 @@ import QuickActions from '@/components/site/QuickActions.vue';
 import Description from '@/components/site/Description.vue';
 import Header from '@/components/site/Header.vue';
 import Reviews from '@/components/site/Reviews.vue';
-import { ArrowRight } from 'lucide-vue-next';
+import { ArrowRight, ArrowLeft } from 'lucide-vue-next';
 import { router } from '@inertiajs/vue3';
 import { Button } from '@/components/ui/button';
-import { complete as previewComplete } from '@/routes/preview';
+import { complete as previewComplete, setup as previewSetup } from '@/routes/preview';
+
+const goBack = () => router.visit(previewSetup(props.id!).url);
 import { computed, onMounted } from 'vue';
 import { bookingCtaLabel, findPrimaryBookingLink } from '@/lib/bookingLinks';
 import { getEffectivePalette, paletteToCssVars } from '@/lib/palette';
@@ -22,42 +24,24 @@ const nextStep = () => {
     router.post(previewComplete.url(props.id!));
 };
 
-/**
- * Normalise the TemporarySite data blob so it looks identical to what
- * the live site receives from SiteController. During onboarding the user's
- * logo, description, and contact email are stored at the top level of data
- * rather than under `overrides`, so we bridge that here.
- */
-const normalizedData = computed(() => {
-    const d = props.data ?? {};
-    return {
-        ...d,
-        overrides: {
-            // Merge any existing overrides (shouldn't exist during onboarding
-            // but be safe) with the top-level setup fields.
-            ...(d.overrides ?? {}),
-            logo_path:     d.overrides?.logo_path     || d.logo         || undefined,
-            description:   d.overrides?.description   || d.description  || undefined,
-            contact_email: d.overrides?.contact_email || d.contact      || undefined,
-        },
-    };
-});
+// Data is now a flat shape from buildSiteData() — no normalisation needed
+const normalizedData = computed(() => props.data ?? {});
 
 // ── Everything below mirrors site/Index.vue exactly ──────────────────────────
 
 // All components are shown in preview — no flags during onboarding.
 // contact_form is intentionally hidden (requires a live account + premium).
 
-const description  = computed(() => normalizedData.value?.overrides?.description || normalizedData.value?.editorialSummary?.text || normalizedData.value?.description);
-const logo         = computed(() => normalizedData.value?.overrides?.logo_path || normalizedData.value?.logo);
-const contactEmail = computed(() => normalizedData.value?.overrides?.contact_email || normalizedData.value?.contact);
-const primaryBookingLink = computed(() => findPrimaryBookingLink(normalizedData.value?.quickLinks ?? []));
+const description  = computed(() => normalizedData.value?.description);
+const logo         = computed(() => normalizedData.value?.logo_path);
+const contactEmail = computed(() => normalizedData.value?.contact_email);
+const primaryBookingLink = computed(() => findPrimaryBookingLink(normalizedData.value?.quick_links ?? []));
 const primaryBookingLabel = computed(() => bookingCtaLabel(primaryBookingLink.value));
 
 const palette  = computed(() => getEffectivePalette(normalizedData.value));
 const cssVars  = computed(() => paletteToCssVars(palette.value));
 
-const headerBg = computed(() => normalizedData.value?.overrides?.header_bg ?? null);
+const headerBg = computed(() => normalizedData.value?.settings?.header_bg ?? null);
 
 const heroStyle = computed<Record<string, string>>(() => {
     const bg = headerBg.value;
@@ -88,11 +72,19 @@ onMounted(() => { /* intentionally empty */ });
 <template>
     <!-- Sticky "Continue" bar — floats above the site preview -->
     <div class="fixed bottom-0 left-0 right-0 z-50 border-t bg-white/95 backdrop-blur-sm px-5 py-3 shadow-lg dark:bg-background/95 dark:border-border">
-        <div class="flex flex-row items-center justify-between gap-4 w-full max-w-5xl mx-auto">
-            <p class="text-sm text-muted-foreground hidden sm:block">
+        <div class="flex flex-row items-center justify-between gap-3 w-full max-w-5xl mx-auto">
+            <Button
+                variant="outline"
+                size="lg"
+                class="gap-2 shrink-0"
+                @click="goBack"
+            >
+                <ArrowLeft class="h-4 w-4" /> Edit
+            </Button>
+            <p class="text-sm text-muted-foreground hidden sm:block flex-1 text-center">
                 Here's a preview of your website — looking good! 👇
             </p>
-            <Button @click="nextStep" type="button" size="lg" class="w-full sm:w-auto gap-2">
+            <Button @click="nextStep" type="button" size="lg" class="gap-2 shrink-0">
                 Create my account <ArrowRight class="h-4 w-4" />
             </Button>
         </div>
@@ -121,11 +113,10 @@ onMounted(() => { /* intentionally empty */ });
                 <div class="px-6 pb-8 md:px-14 md:pb-12 max-w-5xl mx-auto w-full">
                     <Header
                         :logo="logo"
-                        :name="normalizedData?.displayName?.text"
-                        :business-type="normalizedData?.primaryTypeDisplayName?.text"
-                        :address-components="normalizedData?.addressComponents"
-                        :booking-link="primaryBookingLink?.link"
-                        :booking-label="primaryBookingLabel"
+                        :name="normalizedData?.business_name"
+                        :business-type="normalizedData?.business_type"
+                        :city="normalizedData?.city"
+                        :region="normalizedData?.region"
                     />
                 </div>
             </div>
@@ -138,11 +129,11 @@ onMounted(() => { /* intentionally empty */ });
         >
             <div class="max-w-5xl mx-auto px-6 md:px-14 py-4">
                 <QuickActions
-                    :phone-number="normalizedData?.nationalPhoneNumber"
+                    :phone-number="normalizedData?.phone"
                     :whatsapp-number="normalizedData?.whatsapp_number"
                     :contact="contactEmail"
                     :show-form="false"
-                    :quick-links="normalizedData?.quickLinks"
+                    :quick-links="normalizedData?.quick_links"
                     :preview="true"
                 />
             </div>
@@ -160,26 +151,27 @@ onMounted(() => { /* intentionally empty */ });
         </div>
 
         <!-- ── Reviews ────────────────────────────────────────────────────── -->
-        <div v-if="normalizedData?.reviews?.length" class="py-14" style="background-color: var(--site-primary-muted)">
+        <div v-if="normalizedData?.rating || normalizedData?.review_count || normalizedData?.reviews?.length" class="py-14" style="background-color: var(--site-primary-muted)">
             <div class="max-w-5xl mx-auto px-6 md:px-14">
                 <Reviews
-                    :reviews="normalizedData?.reviews"
-                    :rating="normalizedData?.rating"
-                    :review-count="normalizedData?.userRatingCount"
-                    :hidden-reviews="[]"
+                    :reviews="normalizedData?.reviews ?? []"
+                    :rating="normalizedData?.rating ?? 0"
+                    :review-count="normalizedData?.review_count ?? 0"
+                    :google-places-id="normalizedData?.google_places_id ?? ''"
                 />
             </div>
         </div>
 
         <!-- ── Contact / info strip ───────────────────────────────────────── -->
         <Contact
-            :formatted-address="normalizedData?.formattedAddress"
-            :phone-number="normalizedData?.nationalPhoneNumber"
-            :opening-hours="normalizedData?.regularOpeningHours"
+            :formatted-address="normalizedData?.formatted_address"
+            :phone-number="normalizedData?.phone"
+            :opening-hours="normalizedData?.opening_hours"
             :socials="normalizedData?.socials"
             :contact="contactEmail"
             :show-form="false"
-            :business-type="normalizedData?.primaryTypeDisplayName?.text"
+            :show-premium-teaser="!!contactEmail"
+            :business-type="normalizedData?.business_type"
             :preview="true"
         />
 

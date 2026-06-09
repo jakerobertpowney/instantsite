@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { inject, ref, computed } from 'vue';
-import { CheckCircle, Pencil, Trash2, Plus, X, Star } from 'lucide-vue-next';
+import { CheckCircle, Pencil, Trash2, Plus, X, Star, AlertCircle } from 'lucide-vue-next';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 
@@ -22,13 +22,13 @@ const sourceLabels: Record<string, string> = {
     ai:           'Suggested — edit to match yours',
 };
 
-const source = computed<string>(() => siteData?.suggested_services_source ?? 'ai');
+const source = computed<string>(() => 'ai');
 const sourceLabel = computed<string>(() => sourceLabels[source.value] ?? 'Suggested services');
 
 // ─── Service type (service vs product label) ──────────────────────────────────
 
 const itemLabel = computed(() => {
-    const type = (siteData?.primaryTypeDisplayName?.text ?? '').toLowerCase();
+    const type = (siteData?.business_type ?? '').toLowerCase();
     if (type.includes('restaurant') || type.includes('cafe') || type.includes('bakery') || type.includes('food')) {
         return { singular: 'item', plural: 'items', verb: 'Add an item' };
     }
@@ -44,7 +44,7 @@ const itemLabel = computed(() => {
 const dismissed = ref<Set<string>>(new Set());
 
 const suggestions = computed(() =>
-    (siteData?.suggested_services ?? []).filter(
+    (siteData?.services ?? []).filter(
         (s: any) => !dismissed.value.has(s.id) && !form.services.some((f: any) => f.id === s.id)
     )
 );
@@ -229,7 +229,12 @@ const startEdit = (index: number) => {
                             v-model="form.services[index].name"
                             :placeholder="`e.g. Gents Haircut`"
                             class="h-10"
+                            :class="{ 'border-destructive ring-destructive': form.errors[`services.${index}.name`] }"
                         />
+                        <p v-if="form.errors[`services.${index}.name`]" class="text-sm text-destructive flex items-center gap-1.5">
+                            <AlertCircle class="h-4 w-4 shrink-0" />
+                            {{ form.errors[`services.${index}.name`] }}
+                        </p>
                     </div>
 
                     <div class="flex flex-col gap-1.5">

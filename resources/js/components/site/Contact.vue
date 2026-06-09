@@ -9,8 +9,8 @@ const props = defineProps({
     },
     phoneNumber: String,
     openingHours: {
-        type: Object,
-        default: () => ({})
+        type: Array as () => Array<{day: string, open: string, close: string, closed: boolean}>,
+        default: () => []
     },
     socials: {
         type: Object,
@@ -21,6 +21,10 @@ const props = defineProps({
         default: ''
     },
     showForm: {
+        type: Boolean,
+        default: false
+    },
+    showPremiumTeaser: {
         type: Boolean,
         default: false
     },
@@ -90,30 +94,20 @@ const submitForm = async () => {
     }
 };
 
-const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-
 const weekdayDescriptions = computed(() => {
-    const formattedHours: { day: string; hours: string }[] = [];
-
-    (props.openingHours?.periods ?? []).forEach((period: any) => {
-        if (period.open && period.close) {
-            const dayIndex = period.open.day;
-            const dayName  = dayNames[dayIndex];
-
-            const fmt = (h: number, m: number) => {
-                const ampm = h >= 12 ? 'pm' : 'am';
-                const hr   = h % 12 === 0 ? 12 : h % 12;
-                return `${hr}${m > 0 ? `:${String(m).padStart(2, '0')}` : ''}${ampm}`;
+    return (props.openingHours ?? [])
+        .filter((h: any) => !h.closed && h.open && h.close)
+        .map((h: any) => {
+            const fmt = (t: string) => {
+                const [hStr, mStr] = (t || '00:00').split(':');
+                const hr24 = parseInt(hStr);
+                const min = parseInt(mStr);
+                const ampm = hr24 >= 12 ? 'pm' : 'am';
+                const hr12 = hr24 % 12 === 0 ? 12 : hr24 % 12;
+                return `${hr12}${min > 0 ? `:${String(min).padStart(2, '0')}` : ''}${ampm}`;
             };
-
-            formattedHours[dayIndex] = {
-                day:   dayName,
-                hours: `${fmt(period.open.hour, period.open.minute)} – ${fmt(period.close.hour, period.close.minute)}`,
-            };
-        }
-    });
-
-    return formattedHours.filter((d): d is { day: string; hours: string } => d != null);
+            return { day: h.day, hours: `${fmt(h.open)} – ${fmt(h.close)}` };
+        });
 });
 
 const hasSocials = computed(() =>
@@ -392,6 +386,46 @@ const preferredTimePlaceholder = computed(() =>
                         </div>
 
                     </form>
+                </div>
+            </template>
+
+            <!-- ── Premium contact form teaser (preview only) ─────────────── -->
+            <template v-if="showPremiumTeaser && !showForm && contact">
+                <div class="mt-12 border-t border-white/12 pt-10">
+                    <p class="mb-6 text-xs font-semibold uppercase tracking-widest" style="color: var(--site-secondary)">
+                        Get in touch
+                    </p>
+
+                    <!-- Premium badge + unlock message -->
+                    <div class="flex items-start gap-3 rounded-xl px-4 py-3 mb-6" style="background-color: rgba(255,255,255,0.08)">
+                        <span class="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-bold bg-amber-400 text-amber-900 shrink-0 mt-0.5">
+                            ✦ Premium
+                        </span>
+                        <p class="text-sm" style="color: rgba(255,255,255,0.75)">
+                            Create your account and upgrade to Premium to let customers message you directly from your website.
+                        </p>
+                    </div>
+
+                    <!-- Form preview — non-interactive (pointer-events disabled) -->
+                    <div class="pointer-events-none opacity-60">
+                        <div class="flex flex-col gap-4">
+                            <div class="flex flex-col gap-1.5">
+                                <label class="text-sm font-medium text-white/80">Your email</label>
+                                <div class="h-11 rounded-xl px-4 flex items-center text-sm" style="background-color: rgba(255,255,255,0.08); color: rgba(255,255,255,0.35)">e.g. jane@example.com</div>
+                            </div>
+                            <div class="flex flex-col gap-1.5">
+                                <label class="text-sm font-medium text-white/80">Subject</label>
+                                <div class="h-11 rounded-xl px-4 flex items-center text-sm" style="background-color: rgba(255,255,255,0.08); color: rgba(255,255,255,0.35)">e.g. Appointment enquiry</div>
+                            </div>
+                            <div class="flex flex-col gap-1.5">
+                                <label class="text-sm font-medium text-white/80">Message</label>
+                                <div class="h-28 rounded-xl px-4 py-3 text-sm" style="background-color: rgba(255,255,255,0.08); color: rgba(255,255,255,0.35)">Your message…</div>
+                            </div>
+                            <div class="h-12 rounded-xl flex items-center justify-center text-sm font-semibold" style="background-color: var(--site-primary); color: var(--site-primary-fg)">
+                                Send message
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </template>
 

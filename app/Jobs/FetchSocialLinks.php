@@ -49,21 +49,31 @@ class FetchSocialLinks implements ShouldQueue
                 return;
             }
 
-            $data = $this->site->data;
-
-            if (!empty($socials)) {
-                $data['suggested_socials'] = $socials;
+            $site = $this->site->fresh();
+            if (! $site) {
+                return;
             }
 
-            if ($email) {
-                $data['suggested_email'] = $email;
+            if (!empty($socials)) {
+                $site->socials = array_merge($site->socials ?? [], $socials);
+            }
+
+            if ($email && !$site->contact_email) {
+                $site->contact_email = $email;
             }
 
             if (!empty($bookingLinks)) {
-                $data['suggested_booking_links'] = $bookingLinks;
+                $existingLinks = $site->quick_links ?? [];
+                foreach ($bookingLinks as $bookingLink) {
+                    $existingLinks[] = [
+                        'label' => $bookingLink['label'],
+                        'link'  => $bookingLink['url'],
+                    ];
+                }
+                $site->quick_links = $existingLinks;
             }
 
-            $this->site->update(['data' => $data]);
+            $site->save();
 
         } catch (\Throwable $e) {
             // Best-effort — log and move on without failing the batch

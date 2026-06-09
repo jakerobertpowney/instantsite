@@ -6,25 +6,12 @@ const props = defineProps({
     logo: String,
     name: String,
     businessType: String,
-    addressComponents: Array,
-});
-
-const town = computed(() => {
-    const c = props.addressComponents?.find((c: any) =>
-        c.types && c.types.includes('locality')
-    );
-    return (c as any)?.longText || '';
-});
-
-const region = computed(() => {
-    const c = props.addressComponents?.find((c: any) =>
-        c.types && c.types.includes('administrative_area_level_1')
-    );
-    return (c as any)?.longText || '';
+    city: String,
+    region: String,
 });
 
 const locationLabel = computed(() => {
-    const parts = [town.value, region.value].filter(Boolean);
+    const parts = [props.city, props.region].filter(Boolean);
     return parts.join(', ');
 });
 

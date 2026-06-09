@@ -33,7 +33,7 @@
         <title inertia>{{ config('app.name', '321Sites') }}</title>
 
         {{-- Use a site-specific favicon when the owner has set one, otherwise fall back to the default app icon --}}
-        @php $siteFavicon = ($page ?? [])['props']['data']['overrides']['favicon_path'] ?? null; @endphp
+        @php $siteFavicon = ($page ?? [])['props']['data']['settings']['favicon_path'] ?? null; @endphp
         @if($siteFavicon)
             <link rel="icon" href="{{ $siteFavicon }}" type="image/png">
         @else

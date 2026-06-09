@@ -13,7 +13,31 @@ class TemporarySite extends Model
      */
     protected $fillable = [
         'places_id',
-        'data',
+        'batch_id',
+        'business_name',
+        'business_type',
+        'description',
+        'logo_path',
+        'formatted_address',
+        'city',
+        'region',
+        'phone',
+        'whatsapp_number',
+        'website_url',
+        'contact_email',
+        'socials',
+        'opening_hours',
+        'quick_links',
+        'services',
+        'images',
+        'rating',
+        'review_count',
+        'reviews',
+        'components',
+        'services_heading',
+        'services_cta_label',
+        'services_cta_link',
+        'premium_intent',
     ];
 
     /**
@@ -22,7 +46,16 @@ class TemporarySite extends Model
      * @var array<string, string>
      */
     protected $casts = [
-        'data' => 'array',
+        'socials'       => 'array',
+        'opening_hours' => 'array',
+        'quick_links'   => 'array',
+        'services'      => 'array',
+        'images'        => 'array',
+        'reviews'       => 'array',
+        'components'    => 'array',
+        'rating'         => 'float',
+        'review_count'   => 'integer',
+        'premium_intent' => 'boolean',
     ];
 
     /**

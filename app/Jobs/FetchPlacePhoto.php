@@ -48,7 +48,7 @@ class FetchPlacePhoto implements ShouldQueue
         // a valid root-relative URL:  /storage/images/{uuid}.jpg
         $publicPath = 'storage/' . $filename;
 
-        // Atomically append to data.images — avoids the lost-update race condition
+        // Atomically append to images column — avoids the lost-update race condition
         // when multiple FetchPlacePhoto jobs run concurrently for the same site.
         $siteId = $this->site->id;
         DB::transaction(function () use ($siteId, $publicPath) {
@@ -57,15 +57,13 @@ class FetchPlacePhoto implements ShouldQueue
                 return;
             }
 
-            $data           = $site->data ?? [];
-            $existing       = $data['images'] ?? [];
+            $existing = $site->images ?? [];
 
             if (in_array($publicPath, $existing, true)) {
                 return; // idempotent on retry
             }
 
-            $data['images'] = array_merge($existing, [$publicPath]);
-            $site->data     = $data;
+            $site->images = array_merge($existing, [$publicPath]);
             $site->save();
         });
     }

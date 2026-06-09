@@ -144,7 +144,7 @@ const faqs = [
     },
     {
         q: "What if I don't have a Google Business Profile?",
-        a: "You'll need a Google Business Profile before we can build your site — but setting one up is free and takes about 10 minutes. <a href=\"https://business.google.com/en-all/business-profile/\" target=\"_blank\" rel=\"noopener noreferrer\" style=\"color:#1e66f5;font-weight:600;text-decoration:none;display:inline-block;margin:8px 0;\">Set up your Google Business Profile →</a> Once you're listed, come back here and we'll build your site.",
+        a: "No problem — you can now build your site without one. <a href=\"/setup/new\" style=\"color:#1e66f5;font-weight:600;text-decoration:none;display:inline-block;margin:8px 0;\">Start from scratch →</a> You'll fill in your business name, address, hours, and services manually. If you do have a Google listing, using it gives you a head start (your info, photos, and reviews are pulled in automatically). You can always <a href=\"https://business.google.com/en-all/business-profile/\" target=\"_blank\" rel=\"noopener noreferrer\" style=\"color:#1e66f5;font-weight:600;text-decoration:none;\">set one up for free</a> and sync later.",
     },
     {
         q: 'Can I edit things like my description and photos?',
@@ -328,6 +328,10 @@ const features = [
                                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
                                     Find my business
                                 </button>
+                                <p class="text-center text-xs text-brand-ink-soft">
+                                    No Google listing?
+                                    <Link href="/setup/new" class="text-brand-blue font-semibold no-underline hover:underline">Build your site manually →</Link>
+                                </p>
                             </div>
 
                             <!-- Loading -->
@@ -386,6 +390,9 @@ const features = [
                             <div v-else-if="searchPhase === 'empty'" class="bg-white border-[1.5px] border-brand-line rounded-lg overflow-hidden text-left shadow-lg">
                                 <p class="text-xs font-bold text-brand-ink-soft py-4 px-5 mb-2 m-0">No results found</p>
                                 <p class="text-xs text-brand-ink-soft px-5 mb-1 m-0">Try searching with your postcode or the full business name.</p>
+                                <div class="px-5 py-3 border-t border-brand-line-soft">
+                                    <Link href="/setup/new" class="text-xs font-semibold text-brand-blue no-underline hover:underline">No Google listing? Build your site manually →</Link>
+                                </div>
                                 <button class="w-full block py-3 px-5 bg-brand-panel border-none font-inherit text-sm font-semibold text-brand-ink-mid cursor-pointer text-left border-t border-brand-line-soft transition-colors hover:bg-brand-line-soft" @click="resetSearch">← Search again</button>
                             </div>
                         </div>

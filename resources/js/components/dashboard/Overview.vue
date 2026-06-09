@@ -49,7 +49,7 @@ const statusLabel = computed(() => {
 });
 
 const googleSyncedAt = computed(() => {
-    const raw = site?.data?.google_synced_at;
+    const raw = site?.settings?.google_synced_at;
     if (!raw) return null;
     return new Date(raw).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' });
 });
@@ -57,7 +57,7 @@ const googleSyncedAt = computed(() => {
 const lastUpdatedAt = computed(() => {
     const candidates = [
         site?.updated_at,
-        site?.data?.google_synced_at,
+        site?.settings?.google_synced_at,
     ].filter(Boolean).map(r => new Date(r as string).getTime());
     if (!candidates.length) return null;
     return new Date(Math.max(...candidates)).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' });
@@ -96,7 +96,7 @@ onUnmounted(stopAll);
 const refreshFromGoogle = () => {
     if (isRefreshing.value) return;
 
-    const previousSyncedAt = site?.data?.google_synced_at ?? null;
+    const previousSyncedAt = site?.settings?.google_synced_at ?? null;
     isRefreshing.value = true;
     refreshSuccess.value = false;
     refreshFailed.value = false;
@@ -116,7 +116,7 @@ const refreshFromGoogle = () => {
                 router.reload({
                     only: ['site'],
                     onSuccess: () => {
-                        const newSyncedAt = site?.data?.google_synced_at ?? null;
+                        const newSyncedAt = site?.settings?.google_synced_at ?? null;
                         if (newSyncedAt && newSyncedAt !== previousSyncedAt) {
                             stopAll();
                             progressStep.value = progressSteps.length - 1;
@@ -167,25 +167,25 @@ const copyLink = () => {
 
 // ── Task completion checks ────────────────────────────────────────────────
 // Logo: user has uploaded their own image via the Components tab
-const hasLogo = computed(() => !!site?.data?.overrides?.logo_path);
+const hasLogo = computed(() => !!site?.logo_path);
 
-// Description: user has typed their own override (Google's description doesn't count)
-const hasDescription = computed(() => !!(site?.data?.overrides?.description?.trim()));
+// Description: user has typed their own description
+const hasDescription = computed(() => !!(site?.description?.trim()));
 
 // Buttons: at least one custom quick-action link has been added
-const hasButtons = computed(() => (site?.data?.quickLinks?.length ?? 0) > 0);
+const hasButtons = computed(() => (site?.quick_links?.length ?? 0) > 0);
 
-// SEO: both meta fields filled in (top-level columns, not inside data blob)
+// SEO: both meta fields filled in (top-level columns)
 const hasSeo = computed(() => !!(site?.meta_title?.trim() && site?.meta_description?.trim()));
 
 // Contact form: the contact_form component has been explicitly enabled
-const hasContactForm = computed(() => site?.data?.components?.contact_form?.enabled === true);
+const hasContactForm = computed(() => site?.components?.contact_form?.enabled === true);
 
 // Custom domain: domain type is 'custom' and a domain has been entered
 const hasCustomDomain = computed(() => site?.domain_type === 'custom' && !!site?.custom_domain);
 
 // Analytics: a Google Analytics / GA4 measurement ID has been saved
-const hasAnalytics = computed(() => !!(site?.data?.google_analytics_id?.trim()));
+const hasAnalytics = computed(() => !!(site?.settings?.google_analytics_id?.trim()));
 
 // Hide the whole checklist once every task is done
 const allDone = computed(() =>

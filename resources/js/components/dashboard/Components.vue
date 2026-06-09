@@ -24,12 +24,15 @@ type SiteData = Record<string, any>;
 const componentKeys: ComponentKey[] = ['header', 'description', 'gallery', 'quick_actions', 'reviews', 'contact', 'contact_form', 'services'];
 const page = usePage();
 const isPremium = inject('isPremium') as boolean;
-const site = computed(() => (page.props.site as { data?: SiteData } | undefined) ?? {});
+const site = computed(() => (page.props.site as SiteData | undefined) ?? {});
 
-// Derive component flags from site.data, defaulting missing keys to enabled
-const siteData = computed(() => site.value.data ?? {});
-const siteComponents = computed(() => siteData.value.components ?? {});
-const siteOverrides = computed(() => siteData.value.overrides ?? {});
+// Derive component flags from site columns directly
+const siteData = computed(() => site.value);
+const siteComponents = computed(() => site.value.components ?? {});
+// settings holds misc settings (palette, header_bg, hidden_reviews, etc.)
+const siteSettings = computed(() => site.value.settings ?? {});
+// backwards-compat alias so existing code referencing siteOverrides still works
+const siteOverrides = computed(() => siteSettings.value);
 
 function normalizeEnabled(value: unknown): boolean {
     if (value === undefined || value === null) return true;
@@ -63,7 +66,7 @@ function buildInitialComponents(): ComponentState {
 
 // Logo upload
 const logoInput = ref<HTMLInputElement | null>(null);
-const logoPreview = ref<string | null>(siteOverrides.value.logo_path ?? null);
+const logoPreview = ref<string | null>(site.value.logo_path ?? null);
 
 // ─── Photo reorder ────────────────────────────────────────────────────────────
 const dragSourceIndex = ref<number | null>(null);
@@ -108,7 +111,7 @@ function onLogoChange(event: Event) {
     }
 }
 
-const siteSocials = computed(() => siteData.value.socials ?? {});
+const siteSocials = computed(() => site.value.socials ?? {});
 
 function buildInitialSocials(): Socials {
     return {
@@ -119,7 +122,7 @@ function buildInitialSocials(): Socials {
     };
 }
 
-const siteQuickLinks = computed<QuickLink[]>(() => siteData.value.quickLinks ?? []);
+const siteQuickLinks = computed<QuickLink[]>(() => site.value.quick_links ?? []);
 
 function buildInitialQuickLinks(): QuickLink[] {
     return siteQuickLinks.value.map((l) => ({ label: l.label ?? '', link: l.link ?? '' }));
@@ -152,8 +155,8 @@ function linkFavicon(url: string): string | null {
 }
 
 // ─── Colour palette ───────────────────────────────────────────────────────────
-const existingPalette = computed(() => siteOverrides.value.palette ?? {});
-const recommendedThemeId = computed(() => getRecommendedThemeId(siteData.value.primaryType));
+const existingPalette = computed(() => siteSettings.value.palette ?? {});
+const recommendedThemeId = computed(() => getRecommendedThemeId(site.value.business_type));
 const customPrimaryInput = ref('');
 const customSecondaryInput = ref('');
 const selectedThemeId = ref<string>(
@@ -190,7 +193,7 @@ function selectTheme(id: string) {
 watch(customPrimaryInput, v => { form.palette_primary = v; });
 watch(customSecondaryInput, v => { form.palette_secondary = v; });
 
-const existingBg = computed(() => siteOverrides.value.header_bg ?? { type: 'auto', value: '' });
+const existingBg = computed(() => siteSettings.value.header_bg ?? { type: 'auto', value: '' });
 
 // Derive initial palette form values from saved custom or auto theme
 const initPaletteValues = () => {
@@ -205,7 +208,7 @@ customPrimaryInput.value   = initPalette.primary;
 customSecondaryInput.value = initPalette.secondary;
 
 // Services
-const siteServices = computed<Service[]>(() => siteData.value.services ?? []);
+const siteServices = computed<Service[]>(() => site.value.services ?? []);
 
 function buildInitialServices(): Service[] {
     return siteServices.value.map((s) => ({
@@ -306,13 +309,13 @@ const form = useForm<{
 }>({
     components: buildInitialComponents(),
     overrides: {
-        description:   siteOverrides.value.description ?? '',
-        hidden_reviews: (siteOverrides.value.hidden_reviews as number[] | undefined) ?? [],
-        contact_email: (siteOverrides.value.contact_email as string | undefined) ?? '',
+        description:   site.value.description ?? '',
+        hidden_reviews: (siteSettings.value.hidden_reviews as number[] | undefined) ?? [],
+        contact_email: (site.value.contact_email as string | undefined) ?? '',
     },
     socials: buildInitialSocials(),
     quickLinks: buildInitialQuickLinks(),
-    whatsapp_number: siteData.value.whatsapp_number ?? '',
+    whatsapp_number: site.value.whatsapp_number ?? '',
     logo: null,
     palette_primary:   initPalette.primary,
     palette_secondary: initPalette.secondary,
@@ -323,30 +326,30 @@ const form = useForm<{
     header_bg_credit_url: existingBg.value.credit_url ?? '',
     header_bg_image: null,
     services:          buildInitialServices(),
-    services_heading:  siteData.value.services_heading  ?? '',
-    services_cta_label: siteData.value.services_cta_label ?? '',
-    services_cta_link:  siteData.value.services_cta_link  ?? '',
-    images_order: (siteData.value.images as string[] | undefined) ?? [],
+    services_heading:  site.value.services_heading  ?? '',
+    services_cta_label: site.value.services_cta_label ?? '',
+    services_cta_link:  site.value.services_cta_link  ?? '',
+    images_order: (site.value.images as string[] | undefined) ?? [],
 });
 
 watch(
     () => page.props.site,
     () => {
         form.components = buildInitialComponents();
-        form.overrides.description    = siteOverrides.value.description ?? '';
-        form.overrides.hidden_reviews = (siteOverrides.value.hidden_reviews as number[] | undefined) ?? [];
-        form.overrides.contact_email  = (siteOverrides.value.contact_email as string | undefined) ?? '';
+        form.overrides.description    = site.value.description ?? '';
+        form.overrides.hidden_reviews = (siteSettings.value.hidden_reviews as number[] | undefined) ?? [];
+        form.overrides.contact_email  = (site.value.contact_email as string | undefined) ?? '';
         form.socials = buildInitialSocials();
         form.quickLinks = buildInitialQuickLinks();
-        form.whatsapp_number = siteData.value.whatsapp_number ?? '';
+        form.whatsapp_number = site.value.whatsapp_number ?? '';
         form.services          = buildInitialServices();
-        form.services_heading  = siteData.value.services_heading  ?? '';
-        form.services_cta_label = siteData.value.services_cta_label ?? '';
-        form.services_cta_link  = siteData.value.services_cta_link  ?? '';
+        form.services_heading  = site.value.services_heading  ?? '';
+        form.services_cta_label = site.value.services_cta_label ?? '';
+        form.services_cta_link  = site.value.services_cta_link  ?? '';
         editingServiceIndex.value = null;
         form.logo = null;
-        logoPreview.value = siteOverrides.value.logo_path ?? null;
-        form.images_order = (siteData.value.images as string[] | undefined) ?? [];
+        logoPreview.value = site.value.logo_path ?? null;
+        form.images_order = (site.value.images as string[] | undefined) ?? [];
         const reinitPalette = initPaletteValues();
         form.palette_primary   = reinitPalette.primary;
         form.palette_secondary = reinitPalette.secondary;
@@ -355,7 +358,7 @@ watch(
         selectedThemeId.value = existingPalette.value.primary
             ? COLOUR_THEMES.find(t => t.palette.primary === existingPalette.value.primary)?.id ?? 'custom'
             : recommendedThemeId.value;
-        const bg = siteOverrides.value.header_bg ?? { type: 'auto', value: '' };
+        const bg = siteSettings.value.header_bg ?? { type: 'auto', value: '' };
         form.header_bg_type      = bg.type       ?? 'auto';
         form.header_bg_value     = bg.value      ?? '';
         form.header_bg_thumb     = bg.thumb      ?? '';
@@ -388,19 +391,18 @@ function saveForm() {
 // ─── Computed helpers for read-only preview data ──────────────────────────────
 
 // Header
-const businessName = computed(() => siteData.value.displayName?.text ?? '');
-const businessType = computed(() => siteData.value.primaryTypeDisplayName?.text ?? '');
+const businessName = computed(() => site.value.business_name ?? '');
+const businessType = computed(() => site.value.business_type ?? '');
 const businessLocation = computed(() => {
-    const components: Array<{ types: string[]; longText: string }> = siteData.value.addressComponents ?? [];
-    const locality = components.find((c) => c.types?.includes('locality'))?.longText ?? '';
-    const region = components.find((c) => c.types?.includes('administrative_area_level_1'))?.longText ?? '';
-    if (locality && region) return `${locality}, ${region}`;
-    return locality || region || '';
+    const city   = site.value.city   ?? '';
+    const region = site.value.region ?? '';
+    if (city && region) return `${city}, ${region}`;
+    return city || region || '';
 });
 
 // About / Description
 const googleDescription = computed(
-    () => siteData.value.editorialSummary?.text ?? siteData.value.description ?? '',
+    () => site.value.description ?? '',
 );
 
 const isGeneratingDescription = ref(false);
@@ -421,10 +423,8 @@ const generateDescription = async () => {
 };
 
 // Normalise photo paths for the header background picker.
-// New downloads store "storage/images/uuid.jpg" (correct — prepend '/' → '/storage/…').
-// Legacy entries (pre-fix) were stored as "images/uuid.jpg" — normalise those too.
 const googleImages = computed<string[]>(() =>
-    ((siteData.value.images ?? []) as string[]).map((img) => {
+    ((site.value.images ?? []) as string[]).map((img) => {
         if (img.startsWith('storage/') || img.startsWith('/') || /^https?:\/\//.test(img)) {
             return img;
         }
@@ -435,16 +435,16 @@ const googleImages = computed<string[]>(() =>
 
 // Quick Actions
 const phoneNumber = computed(
-    () => siteData.value.nationalPhoneNumber ?? siteData.value.internationalPhoneNumber ?? '',
+    () => site.value.phone ?? '',
 );
 
 // Reviews
-const rating = computed(() => siteData.value.rating ?? null);
+const rating = computed(() => site.value.rating ?? null);
 const reviewCount = computed(() =>
-    siteData.value.userRatingCount ?? siteData.value.reviews?.length ?? null,
+    site.value.review_count ?? site.value.reviews?.length ?? null,
 );
 const siteReviews = computed<Array<{ author: string; rating: number; text: string; time: string }>>(() =>
-    ((siteData.value.reviews ?? []) as Array<Record<string, any>>).map((r) => ({
+    ((site.value.reviews ?? []) as Array<Record<string, any>>).map((r) => ({
         author: r.authorAttribution?.displayName ?? 'Anonymous',
         rating: r.rating ?? 0,
         text:   r.text?.text ?? '',
@@ -463,10 +463,10 @@ function toggleReviewHidden(index: number) {
 }
 
 // Contact Info
-const formattedAddress = computed(() => siteData.value.formattedAddress ?? '');
-const googleEmail      = computed(() => (siteData.value.contact as string | undefined) ?? '');
+const formattedAddress = computed(() => site.value.formatted_address ?? '');
+const googleEmail      = computed(() => (site.value.contact_email as string | undefined) ?? '');
 const openingHoursPeriods = computed(
-    () => siteData.value.regularOpeningHours?.periods?.length ?? null,
+    () => (site.value.opening_hours as Array<any> | undefined)?.filter((h: any) => !h.closed).length ?? null,
 );
 // ─── Section navigation ────────────────────────────────────────────────────────
 type SectionId = 'design' | 'header' | 'about' | 'gallery' | 'quick_actions' | 'reviews' | 'contact' | 'services';
