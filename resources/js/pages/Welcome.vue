@@ -16,6 +16,7 @@ const query = ref('');
 const searchPhase = ref<SearchPhase>('idle');
 const places = ref<any[]>([]);
 const searchFocused = ref(false);
+const showSearch = ref(false);
 
 const searchPlaces = async () => {
     if (!query.value.trim()) return;
@@ -35,6 +36,12 @@ const resetSearch = () => {
     searchPhase.value = 'idle';
     query.value = '';
     places.value = [];
+    showSearch.value = false;
+};
+
+const openSearch = () => {
+    showSearch.value = true;
+    scrollToSearch();
 };
 
 // ── Nav scroll ────────────────────────────────────────────────────────────────
@@ -122,17 +129,16 @@ onUnmounted(() => {
 const freeFeats = [
     'Your own one-page website',
     'Free address: yourname.321sites.com',
-    'Manual Sync with Google Business Listing',
     'Photo gallery & reviews',
     'Call, message & WhatsApp buttons',
     'Works on any phone',
+    'Edit everything from your dashboard',
 ];
 
 const proFeats = [
     'Everything in Free',
     'Use your own web address (e.g. thompsondecorating.co.uk)',
     'Remove the "Powered by 321Sites" mark',
-    'Auto Sync with Google Business Listing',
     'On-page contact form',
     'Priority support',
 ];
@@ -143,47 +149,47 @@ const faqs = [
         a: "No. You get a free one — yourcompany.321sites.com — the minute you sign up. If you'd rather use your own (like thompsondecorating.co.uk), you can upgrade to Premium any time.",
     },
     {
-        q: "What if I don't have a Google Business Profile?",
-        a: "No problem — you can now build your site without one. <a href=\"/setup/new\" style=\"color:#1e66f5;font-weight:600;text-decoration:none;display:inline-block;margin:8px 0;\">Start from scratch →</a> You'll fill in your business name, address, hours, and services manually. If you do have a Google listing, using it gives you a head start (your info, photos, and reviews are pulled in automatically). You can always <a href=\"https://business.google.com/en-all/business-profile/\" target=\"_blank\" rel=\"noopener noreferrer\" style=\"color:#1e66f5;font-weight:600;text-decoration:none;\">set one up for free</a> and sync later.",
+        q: 'Do I need a Google Business Profile?',
+        a: "No. You can build your site entirely from scratch — just fill in your business name, address, hours, photos, and services yourself. If you do have a Google listing, you can search for it and we'll pre-fill the basics (name, address, phone, hours) for you to review before submitting.",
     },
     {
-        q: 'Can I edit things like my description and photos?',
-        a: 'Your business details (name, address, hours, photos, reviews) are pulled from Google, so you change them once there and they update everywhere. Everything else — the description, colours, buttons, which sections show — you edit inside 321Sites with plain toggles and text boxes.',
+        q: 'Can I edit my site after it goes live?',
+        a: 'Yes — everything is editable from your dashboard at any time. Update your description, swap photos, change your opening hours, add services or links. No technical knowledge needed.',
     },
     {
         q: "I'm not a technical person, can I still build my site?",
-        a: "That's exactly who it's built for — and there's no real 'building' involved on your end. We pull everything from your Google listing automatically. No drag-and-drop, no templates to pick, no jargon. If you can type your business name, you can use 321Sites.",
+        a: "That's exactly who it's built for. No drag-and-drop, no templates to pick, no jargon. Fill in a form, review what it looks like, and publish. If you can write an email, you can build a 321Sites website.",
     },
-    { q: 'Am I locked into a contract?', a: 'Not at all. Cancel Premium any time with one click — no questions asked. You\'ll drop back to the Free plan, your site stays up, and your web address stays yours.' },
+    { q: 'Am I locked into a contract?', a: "Not at all. Cancel Premium any time with one click — no questions asked. You'll drop back to the Free plan, your site stays up, and your web address stays yours." },
     {
         q: 'Will it show up on Google search?',
-        a: 'Your 321Sites website and your Google Business Profile work together — the same name, address, and info in both places is one of the most effective things you can do for local search. We also set up the technical bits (meta title, description, structured data) so Google can index your site correctly.',
+        a: "It can. Make sure indexing is turned on in your SEO settings, and fill in your meta title and description. 321Sites also sets up the technical bits — structured data, a sitemap, canonical URLs — so Google can index your site correctly.",
     },
 ];
 
 const features = [
-    { t: 'Your info, auto-filled', d: 'Name, address, hours, phone, photos, reviews — all pulled from Google. Change it there, it updates here.' },
+    { t: 'Set up in minutes', d: 'Fill in your details directly, or search for your Google listing to pre-fill the basics. Either way, you can be live in minutes.' },
     { t: 'Perfect on every phone', d: 'Most of your customers will find you on a phone. Your site works perfectly on the smallest screen.' },
     { t: 'One big "Call" button', d: 'Tap the number and it dials. No fiddly forms. Add WhatsApp too if you like.' },
     {
         t: 'Show your best work',
-        d: 'A gallery of your photos, right at the top. Add or change them in Google Business Profile and they appear here.',
+        d: 'A gallery of your photos, right at the top. Upload them during setup or add more any time from your dashboard.',
     },
-    { t: 'Let your reviews do the talking', d: 'Your Google star rating and best reviews shown on your site automatically. The social proof that turns visitors into customers.' },
+    { t: 'Let your reviews do the talking', d: 'Add your best reviews during setup. The social proof that turns visitors into customers.' },
     {
-        t: 'Linked to your Google listing',
-        d: 'Your site and your Google Business Profile work together — consistent info across both is one of the best things you can do for local search.',
+        t: 'Quick links & booking',
+        d: 'Add buttons for booking, quotes, menus, or any other link you want customers to tap first.',
     },
-    { t: 'Your site, your way', d: 'Toggle sections on or off, update your description, swap your logo. Done in a few taps.' },
+    { t: 'Your site, your way', d: 'Toggle sections on or off, update your description, swap your logo. Done in a few taps from your dashboard.' },
     {
         t: 'Your own web address',
-        d: 'You get a free web address like yourcompany.321sites.com. Upgrade to premium and use your own domain whenever you like.',
+        d: 'You get a free web address like yourcompany.321sites.com. Upgrade to Premium and use your own domain whenever you like.',
     },
 ];
 </script>
 
 <template>
-    <Head title="Your business website, built from Google — 321Sites">
+    <Head title="Your free business website — 321Sites">
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="" />
         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
@@ -218,9 +224,8 @@ const features = [
                     </template>
                     <template v-else>
                         <Link href="/login" class="h-10.5 px-4 text-sm font-semibold text-brand-ink no-underline inline-flex items-center rounded-lg transition-colors hover:bg-brand-panel">Sign in</Link>
-                        <button class="inline-flex items-center justify-center gap-2 h-12 px-5 rounded-lg font-bold text-sm cursor-pointer border border-brand-blue transition-opacity bg-brand-blue text-white hover:opacity-90" @click="scrollToSearch">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-                            Find my business
+                        <button class="inline-flex items-center justify-center gap-2 h-12 px-5 rounded-lg font-bold text-sm cursor-pointer border border-brand-blue transition-opacity bg-brand-blue text-white hover:opacity-90" @click="openSearch">
+                            Get started free
                         </button>
                     </template>
                 </div>
@@ -262,9 +267,8 @@ const features = [
                     </template>
                     <template v-else>
                         <Link href="/login" class="flex items-center justify-center h-12 rounded-lg border-[1.5px] border-brand-line font-inherit text-sm font-bold text-brand-ink no-underline transition-colors hover:bg-brand-panel" @click="closeMobileMenu">Sign in</Link>
-                        <button class="inline-flex items-center justify-center gap-2 h-12 px-5 rounded-lg font-bold text-sm cursor-pointer border border-brand-blue transition-opacity bg-brand-blue text-white hover:opacity-90 w-full justify-center" @click="scrollToSearch">
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-                            Find my business
+                        <button class="inline-flex items-center justify-center gap-2 h-12 px-5 rounded-lg font-bold text-sm cursor-pointer border border-brand-blue transition-opacity bg-brand-blue text-white hover:opacity-90 w-full justify-center" @click="openSearch">
+                            Get started free
                         </button>
                     </template>
                 </div>
@@ -283,33 +287,44 @@ const features = [
                         <!-- Badge pill -->
                         <div class="inline-flex items-center gap-2 px-3.5 py-2 rounded-full bg-brand-blue-soft text-brand-blue border-[1.5px] border-brand-blue/15 text-sm font-bold mb-5 lg:mb-7">
                             <span class="w-2 h-2 rounded-full bg-brand-blue flex-shrink-0"></span>
-                            Free · No credit card · 2 minute setup
+                            Free · No credit card · Live in under 5 minutes
                         </div>
 
                         <!-- Headline -->
-                        <h1 class="text-[clamp(32px,4.2vw,54px)] font-black tracking-[-0.05em] leading-[1.05] m-0 text-brand-ink">Your Google listing.<br>Now a free website.</h1>
-                        <p class="text-[clamp(18px,2vw,22px)] text-brand-ink-mid leading-[1.5] mt-3 lg:mt-6 max-w-[520px]">Turn your Google Business listing into a website in under 2 minutes. Free forever.</p>
+                        <h1 class="text-[clamp(32px,4.2vw,54px)] font-black tracking-[-0.05em] leading-[1.05] m-0 text-brand-ink">The free website your business deserves.</h1>
+                        <p class="text-[clamp(18px,2vw,22px)] text-brand-ink-mid leading-[1.5] mt-3 lg:mt-6 max-w-[520px]">Build a professional one-page website in under 5 minutes. No technical skill needed. Free forever.</p>
 
-                        <!-- Search box -->
+                        <!-- CTA / Search box -->
                         <div id="hero-search" class="mt-5 lg:mt-11 relative w-full">
-                            <!-- Idle: search form -->
-                            <div v-if="searchPhase === 'idle'" class="flex flex-col gap-3">
+
+                            <!-- Default: two-button choice -->
+                            <div v-if="!showSearch && searchPhase === 'idle'" class="flex flex-col gap-3">
+                                <div class="flex flex-col sm:flex-row gap-3">
+                                    <button
+                                        class="flex-1 inline-flex items-center justify-center gap-2 h-14 px-6 rounded-lg font-bold text-base cursor-pointer border border-brand-blue transition-opacity bg-brand-blue text-white hover:opacity-90"
+                                        @click="openSearch"
+                                    >
+                                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+                                        Search for my business
+                                    </button>
+                                    <Link
+                                        href="/setup/new"
+                                        class="flex-1 inline-flex items-center justify-center gap-2 h-14 px-6 rounded-lg font-bold text-base no-underline border-2 border-brand-line bg-white text-brand-ink transition-colors hover:bg-brand-panel"
+                                    >
+                                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                                        Start from scratch
+                                    </Link>
+                                </div>
+                                <p class="text-center text-xs text-brand-ink-soft">Search pre-fills your name, address &amp; hours · or enter everything yourself</p>
+                            </div>
+
+                            <!-- Search expanded -->
+                            <div v-else-if="showSearch && searchPhase === 'idle'" class="flex flex-col gap-3">
                                 <div :class="[
                                     'flex items-center gap-1.5 bg-white border-2 border-brand-line rounded-lg px-2 shadow-sm transition-all duration-150',
                                     searchFocused && 'border-brand-blue shadow-[0_0_0_6px_rgba(30,102,245,0.13),0_8px_24px_rgba(0,0,0,0.08)]'
                                 ]">
-                                    <svg
-                                        class="pl-2.5 text-brand-ink-soft flex-shrink-0"
-                                        width="26"
-                                        height="26"
-                                        viewBox="0 0 24 24"
-                                        fill="none"
-                                        stroke="currentColor"
-                                        stroke-width="2"
-                                        stroke-linecap="round"
-                                        stroke-linejoin="round"
-                                        aria-hidden="true"
-                                    >
+                                    <svg class="pl-2.5 text-brand-ink-soft flex-shrink-0" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                                         <circle cx="11" cy="11" r="8" />
                                         <path d="m21 21-4.35-4.35" />
                                     </svg>
@@ -317,7 +332,7 @@ const features = [
                                         v-model="query"
                                         type="text"
                                         class="flex-1 border-none outline-none bg-transparent font-inherit text-base lg:text-xl font-medium text-brand-ink py-3 lg:py-3.5 px-1.5 min-w-0 placeholder:text-brand-ink-soft"
-                                        placeholder="e.g. Thompson Decorating"
+                                        placeholder="e.g. Thompson Decorating, London"
                                         autofocus
                                         @focus="searchFocused = true"
                                         @blur="searchFocused = false"
@@ -326,32 +341,21 @@ const features = [
                                 </div>
                                 <button class="w-full inline-flex items-center justify-center gap-2 h-14 px-7 rounded-lg font-bold text-base cursor-pointer border border-brand-blue transition-opacity bg-brand-blue text-white hover:opacity-90" @click="searchPlaces">
                                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-                                    Find my business
+                                    Search for my business
                                 </button>
                                 <p class="text-center text-xs text-brand-ink-soft">
-                                    No Google listing?
-                                    <Link href="/setup/new" class="text-brand-blue font-semibold no-underline hover:underline">Build your site manually →</Link>
+                                    <button class="bg-transparent border-none p-0 cursor-pointer text-brand-blue font-semibold hover:underline font-inherit text-xs" @click="resetSearch">← Back</button>
+                                    &nbsp;·&nbsp;
+                                    <Link href="/setup/new" class="text-brand-blue font-semibold no-underline hover:underline">Start from scratch instead →</Link>
                                 </p>
                             </div>
 
                             <!-- Loading -->
                             <div v-else-if="searchPhase === 'loading'" class="flex items-center justify-center gap-3 py-6 px-6 bg-white border-[1.5px] border-brand-line rounded-lg text-brand-ink-mid text-base font-medium">
-                                <svg
-                                    class="animate-spin"
-                                    width="22"
-                                    height="22"
-                                    viewBox="0 0 24 24"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    stroke-width="2.5"
-                                    stroke-linecap="round"
-                                    aria-hidden="true"
-                                >
-                                    <path
-                                        d="M12 2v4m0 12v4M4.93 4.93l2.83 2.83m8.48 8.48 2.83 2.83M2 12h4m12 0h4M4.93 19.07l2.83-2.83m8.48-8.48 2.83-2.83"
-                                    />
+                                <svg class="animate-spin" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true">
+                                    <path d="M12 2v4m0 12v4M4.93 4.93l2.83 2.83m8.48 8.48 2.83 2.83M2 12h4m12 0h4M4.93 19.07l2.83-2.83m8.48-8.48 2.83-2.83" />
                                 </svg>
-                                <span>Searching Google Business…</span>
+                                <span>Searching…</span>
                             </div>
 
                             <!-- Results -->
@@ -359,16 +363,7 @@ const features = [
                                 <p class="text-xs font-bold text-brand-ink-soft py-4 px-5 mb-2 m-0">Is one of these your business?</p>
                                 <div v-for="place in places" :key="place.id" class="flex items-center gap-3.5 py-3.5 px-5 border-t border-brand-line-soft cursor-pointer transition-colors hover:bg-white">
                                     <div class="w-10 h-10 rounded-[10px] bg-brand-panel flex items-center justify-center text-brand-ink-mid flex-shrink-0">
-                                        <svg
-                                            width="18"
-                                            height="18"
-                                            viewBox="0 0 24 24"
-                                            fill="none"
-                                            stroke="currentColor"
-                                            stroke-width="2"
-                                            stroke-linecap="round"
-                                            stroke-linejoin="round"
-                                        >
+                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                             <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z" />
                                             <circle cx="12" cy="10" r="3" />
                                         </svg>
@@ -381,7 +376,7 @@ const features = [
                                         <span class="inline-flex items-center justify-center gap-2 h-9 px-3.5 rounded-lg font-bold text-xs cursor-not-allowed border-none bg-brand-panel text-brand-ink-mid pointer-events-none whitespace-nowrap" aria-disabled="true">Already claimed</span>
                                         <Link href="/login" class="text-xs text-brand-blue no-underline whitespace-nowrap hover:underline">Sign in →</Link>
                                     </span>
-                                    <Link v-else :href="show.url(place.id)" class="inline-flex items-center justify-center gap-2 h-9 px-3.5 rounded-lg font-bold text-xs cursor-pointer border border-brand-blue transition-opacity bg-brand-blue text-white hover:opacity-90"> This is me → </Link>
+                                    <Link v-else :href="show.url(place.id)" class="inline-flex items-center justify-center gap-2 h-9 px-3.5 rounded-lg font-bold text-xs cursor-pointer border border-brand-blue transition-opacity bg-brand-blue text-white hover:opacity-90">This is me →</Link>
                                 </div>
                                 <button class="w-full block py-3 px-5 bg-brand-panel border-none font-inherit text-sm font-semibold text-brand-ink-mid cursor-pointer text-left border-t border-brand-line-soft transition-colors hover:bg-brand-line-soft" @click="resetSearch">← Search again</button>
                             </div>
@@ -391,7 +386,7 @@ const features = [
                                 <p class="text-xs font-bold text-brand-ink-soft py-4 px-5 mb-2 m-0">No results found</p>
                                 <p class="text-xs text-brand-ink-soft px-5 mb-1 m-0">Try searching with your postcode or the full business name.</p>
                                 <div class="px-5 py-3 border-t border-brand-line-soft">
-                                    <Link href="/setup/new" class="text-xs font-semibold text-brand-blue no-underline hover:underline">No Google listing? Build your site manually →</Link>
+                                    <Link href="/setup/new" class="text-xs font-semibold text-brand-blue no-underline hover:underline">Start from scratch instead →</Link>
                                 </div>
                                 <button class="w-full block py-3 px-5 bg-brand-panel border-none font-inherit text-sm font-semibold text-brand-ink-mid cursor-pointer text-left border-t border-brand-line-soft transition-colors hover:bg-brand-line-soft" @click="resetSearch">← Search again</button>
                             </div>
@@ -409,7 +404,7 @@ const features = [
                             </span>
                             <span class="inline-flex items-center gap-1.5 text-sm text-brand-ink-soft font-medium">
                                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5" /></svg>
-                                Live in under 2 minutes
+                                Live in under 5 minutes
                             </span>
                         </div>
                     </div>
@@ -446,7 +441,7 @@ const features = [
                             </div>
                         </div>
                         <p class="text-center text-xs text-brand-ink-soft mt-2.5 font-medium">
-                            Example site — built from a Google Business listing
+                            Example site — yours could look just like this
                         </p>
                     </div>
 
@@ -461,9 +456,9 @@ const features = [
             <div class="max-w-[1200px] mx-auto px-6 w-full box-border">
                 <div class="mb-14 sm:mb-10 text-center">
                     <div class="text-xs font-black text-brand-ink-soft uppercase tracking-wider mb-3">How it works</div>
-                    <h2 class="text-[clamp(30px,4vw,48px)] font-black text-brand-ink tracking-[-0.025em] leading-[1.08] m-0 max-w-3xl mx-auto">A website from your Google Business listing in three steps.</h2>
+                    <h2 class="text-[clamp(30px,4vw,48px)] font-black text-brand-ink tracking-[-0.025em] leading-[1.08] m-0 max-w-3xl mx-auto">Your website, up in three steps.</h2>
                     <p class="text-lg text-brand-ink-mid leading-[1.55] mt-4 mx-auto max-w-2xl">
-                        No drag-and-drop. No templates to pick. We build the whole thing from what Google already knows about your business.
+                        No drag-and-drop. No templates to pick. Fill in a form, see your site, publish it.
                     </p>
                 </div>
                 <div class="grid sm:grid-cols-1 md:grid-cols-1 lg:grid-cols-3 gap-6">
@@ -471,14 +466,14 @@ const features = [
                         v-for="(step, i) in [
                             {
                                 n: '01',
-                                t: 'Search for your business',
-                                d: 'Type your business name. We\'ll find you on Google in seconds.',
+                                t: 'Fill in your details',
+                                d: 'Enter your business name, address, hours, and services yourself — or search for your Google listing to pre-fill the basics.',
                                 icon: 'search',
                             },
                             {
                                 n: '02',
                                 t: 'Add your finishing touches',
-                                d: 'Upload a logo, write a description, change colour schemes. Or skip — it works out of the box.',
+                                d: 'Upload a logo, write a description, add photos and reviews. Or skip — it works straight away.',
                                 icon: 'palette',
                             },
                             {
@@ -548,12 +543,14 @@ const features = [
                         <p class="text-sm text-brand-ink-mid leading-[1.55] m-0">{{ step.d }}</p>
                     </div>
                 </div>
-                <div class="mt-12 text-center flex flex-col items-center gap-3">
-                    <button class="inline-flex items-center justify-center gap-2 h-14 px-7 rounded-lg font-bold text-base cursor-pointer border border-brand-blue transition-opacity bg-brand-blue text-white hover:opacity-90" @click="scrollToSearch">
+                <div class="mt-12 flex flex-col sm:flex-row items-center justify-center gap-3">
+                    <button class="inline-flex items-center justify-center gap-2 h-14 px-7 rounded-lg font-bold text-base cursor-pointer border border-brand-blue transition-opacity bg-brand-blue text-white hover:opacity-90" @click="openSearch">
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-                        Find my business
+                        Search for my business
                     </button>
-                    <div class="text-sm text-brand-ink-soft">No sign-up needed to start. Really.</div>
+                    <Link href="/setup/new" class="inline-flex items-center justify-center gap-2 h-14 px-7 rounded-lg font-bold text-base no-underline border-2 border-brand-line bg-white text-brand-ink transition-colors hover:bg-brand-panel">
+                        Start from scratch
+                    </Link>
                 </div>
             </div>
         </section>
@@ -738,9 +735,8 @@ const features = [
                                 {{ f }}
                             </li>
                         </ul>
-                        <button class="w-full inline-flex items-center justify-center gap-2 h-12 px-5 rounded-lg font-bold text-sm cursor-pointer border border-brand-line transition-colors bg-brand-surface text-brand-ink hover:bg-brand-panel" @click="scrollToSearch">
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-                            Find my business
+                        <button class="w-full inline-flex items-center justify-center gap-2 h-12 px-5 rounded-lg font-bold text-sm cursor-pointer border border-brand-line transition-colors bg-brand-surface text-brand-ink hover:bg-brand-panel" @click="openSearch">
+                            Get started free
                         </button>
                     </div>
                     <!-- Premium plan -->
@@ -831,11 +827,16 @@ const features = [
                         <h2 class="text-[clamp(26px,3.5vw,42px)] font-black tracking-[-0.02em] leading-[1.08] m-0">A website for your business in the time it takes to make a brew.</h2>
                         <p class="text-base text-white/72 leading-[1.5] mt-4 max-w-xs">Free to start, no credit card, no pushy sales calls. Give it a go — there's no commitment.</p>
                     </div>
-                    <div class="flex flex-col gap-4 sm:items-center">
-                        <button class="inline-flex items-center justify-center gap-2 h-14 px-7 rounded-lg font-bold text-base cursor-pointer border border-brand-blue transition-opacity bg-brand-blue text-white hover:opacity-90" @click="scrollToSearch">
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-                            Find my business
-                        </button>
+                    <div class="flex flex-col gap-4">
+                        <div class="flex flex-col gap-3">
+                            <button class="w-full inline-flex items-center justify-center gap-2 h-14 px-7 rounded-lg font-bold text-base cursor-pointer border border-brand-blue transition-opacity bg-brand-blue text-white hover:opacity-90" @click="openSearch">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+                                Search for my business
+                            </button>
+                            <Link href="/setup/new" class="w-full inline-flex items-center justify-center gap-2 h-14 px-7 rounded-lg font-bold text-base no-underline border-2 border-white/25 bg-transparent text-white transition-colors hover:bg-white/10">
+                                Start from scratch
+                            </Link>
+                        </div>
                         <div class="flex items-center justify-center gap-5 text-sm text-white/55">
                             <span class="inline-flex items-center gap-1.5">
                                 <svg

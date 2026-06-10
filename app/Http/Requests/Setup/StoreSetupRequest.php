@@ -7,6 +7,24 @@ use Illuminate\Foundation\Http\FormRequest;
 class StoreSetupRequest extends FormRequest
 {
     /**
+     * Normalise fields before validation runs.
+     */
+    protected function prepareForValidation(): void
+    {
+        if ($this->has('whatsapp_number')) {
+            $raw = $this->input('whatsapp_number', '');
+            $digits = is_string($raw) ? preg_replace('/\D/', '', $raw) : '';
+            $this->merge(['whatsapp_number' => $digits ?: null]);
+        }
+
+        if ($this->has('phone')) {
+            $raw = $this->input('phone', '');
+            $normalised = is_string($raw) ? str_replace(' ', '', $raw) : '';
+            $this->merge(['phone' => $normalised ?: null]);
+        }
+    }
+
+    /**
      * Get the validation rules that apply to the request.
      *
      * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
@@ -20,7 +38,7 @@ class StoreSetupRequest extends FormRequest
             'city'                   => ['nullable', 'string', 'max:255'],
             'region'                 => ['nullable', 'string', 'max:255'],
             'phone'                  => ['nullable', 'string', 'max:50'],
-            'whatsapp_number'        => ['nullable', 'string', 'max:50'],
+            'whatsapp_number'        => ['nullable', 'string', 'digits_between:7,15'],
             'website_url'            => ['nullable', 'url:http,https'],
             'logo'                   => ['nullable', 'file', 'mimes:jpg,jpeg,png'],
             'suggested_logo_url'     => ['nullable', 'url:https'],

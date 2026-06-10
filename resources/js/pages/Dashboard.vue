@@ -13,8 +13,9 @@ import Messages from '@/components/dashboard/Messages.vue';
 import AccountSettings from '@/components/dashboard/AccountSettings.vue';
 import {
     Home, Globe, Pencil, Search, HelpCircle,
-    ExternalLink, Menu, X, ChevronRight, Inbox, User,
+    ExternalLink, Menu, X, ChevronRight, Inbox, User, Sparkles,
 } from 'lucide-vue-next';
+import billing from '@/routes/billing';
 
 const props = defineProps({
     site: Object,
@@ -75,13 +76,19 @@ const screenTitles: Record<NavId, { title: string; subtitle: string }> = {
     account:  { title: 'Account',          subtitle: 'Your details and sign-in'       },
 };
 
-function navigate(id: NavId) {
+const editInitialSection = ref<string | undefined>(undefined);
+
+function navigate(id: NavId, section?: string) {
     activeNav.value = id;
     mobileMenuOpen.value = false;
     window.scrollTo(0, 0);
+    if (id === 'edit') {
+        editInitialSection.value = section;
+    }
 }
 
 const unreadBadge = computed(() => (props.unreadCount ?? 0) > 0 ? props.unreadCount : null);
+const checkoutUrl = billing.checkout.url();
 </script>
 
 <template>
@@ -147,6 +154,23 @@ const unreadBadge = computed(() => (props.unreadCount ?? 0) > 0 ? props.unreadCo
                 </template>
             </nav>
 
+            <!-- Upgrade to Pro (free users only) -->
+            <div v-if="!isPremium" class="px-3.5 pb-3">
+                <div class="border-[1.5px] border-[#F0E6C8] rounded-[12px] bg-gradient-to-br from-[#FFFDF5] to-[#FFF8E6] p-4 flex flex-col gap-3">
+                    <div class="flex flex-col gap-1">
+                        <div class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-slate-950 text-[#F6D860] text-[11px] font-black tracking-wide uppercase w-fit">
+                            <Sparkles :size="11" />
+                            Upgrade to Pro
+                        </div>
+                        <p class="text-sm font-bold text-slate-950 m-0 mt-1 tracking-[-0.1px] leading-snug">Take your site to the next level</p>
+                        <p class="text-xs text-slate-600 m-0 leading-[1.5]">Custom domain, contact forms, Google Analytics, and more.</p>
+                    </div>
+                    <a :href="checkoutUrl" class="inline-flex items-center justify-center gap-1.5 w-full h-10 rounded-lg bg-slate-950 text-[#F6D860] font-bold text-sm cursor-pointer border-none transition-opacity duration-150 hover:opacity-88 no-underline">
+                        Upgrade <ChevronRight :size="14" />
+                    </a>
+                </div>
+            </div>
+
             <!-- Bottom: sign-in info -->
             <div class="px-3.5 py-3.5 border-t border-brand-line-soft flex flex-col gap-2">
                 <div class="px-3.5 py-3.5 rounded-[10px] bg-brand-panel">
@@ -203,7 +227,7 @@ const unreadBadge = computed(() => (props.unreadCount ?? 0) > 0 ? props.unreadCo
             <div class="flex-1 p-[28px_32px_48px] max-w-[1100px] w-full md:p-[28px_32px_48px] sm:p-[16px_16px_40px]">
                 <Overview       v-if="activeNav === 'home'"     @navigate="navigate" />
                 <Site           v-else-if="activeNav === 'address'" />
-                <Components     v-else-if="activeNav === 'edit'" />
+                <Components     v-else-if="activeNav === 'edit'" :initial-section="editInitialSection" />
                 <Messages       v-else-if="activeNav === 'messages'" :submissions="(submissions as any)" />
                 <Settings       v-else-if="activeNav === 'seo'" />
                 <AccountSettings v-else-if="activeNav === 'account'" :user-name="userName" :user-email="userEmail" />

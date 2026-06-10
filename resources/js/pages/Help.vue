@@ -111,7 +111,7 @@ const selectCategory = (slug: string) => {
                         v-model="searchQuery"
                         type="search"
                         class="w-full h-12 pl-11 pr-4 border-[1.5px] border-[#dde1e8] rounded-[10px] bg-white font-inherit text-sm text-[#0f172a] outline-none transition-colors focus:border-[#1e66f5]"
-                        placeholder="Search domains, SEO, contact forms, Google Business Profile…"
+                        placeholder="Search domains, SEO, contact forms, editing your site…"
                     />
                 </div>
                 <div class="flex flex-wrap gap-2">

@@ -42,11 +42,11 @@ class HelpCenter
         return [
             [
                 'question' => 'Do I need a Google Business Profile to use 321Sites?',
-                'answer' => 'Yes. 321Sites starts by pulling in the information from your Google Business Profile, so you need a live listing before you can generate a site. If you do not have one yet, our help team can point you in the right direction.',
+                'answer' => 'No. You can build a site entirely from scratch by entering your own business details — name, address, hours, photos, services, and anything else you want to show. If you do have a Google Business Profile, you can search for it on the homepage and 321Sites will pre-fill your business name, address, phone, and hours for you to review and submit.',
             ],
             [
                 'question' => 'What if my business information changes later?',
-                'answer' => 'You can update your website inside 321Sites, and your core Google Business Profile information can also be refreshed into the site later. That keeps your hours, reviews, photos, and contact details aligned.',
+                'answer' => 'You can update everything directly inside your 321Sites dashboard at any time — no external account needed. If you originally imported from Google and your listing has since changed, you can manually update the relevant fields in the dashboard to keep things current.',
             ],
             [
                 'question' => 'Can I use my own domain name?',
@@ -75,9 +75,9 @@ class HelpCenter
     {
         $featuredSlugs = [
             'get-your-business-online',
+            'google-or-from-scratch',
             'connect-a-custom-domain',
             'customer-enquiries-and-contact-forms',
-            'seo-and-google-visibility',
         ];
 
         return self::articles()
@@ -123,75 +123,74 @@ class HelpCenter
             [
                 'slug' => 'get-your-business-online',
                 'title' => 'Get your business online in five minutes',
-                'summary' => 'Search for your Google Business Profile, personalise the essentials, and publish your site.',
+                'summary' => 'Two ways to start: import from Google or fill in your own details. Either way, you can publish in minutes.',
                 'read_time' => '4 min read',
                 'category_slug' => 'getting-started',
-                'search_terms' => ['launch', 'setup', 'publish', 'start', 'new site'],
+                'search_terms' => ['launch', 'setup', 'publish', 'start', 'new site', 'from scratch', 'manual'],
                 'sections' => [
                     [
-                        'id' => 'before-you-start',
-                        'title' => 'Before you start',
+                        'id' => 'two-ways-to-start',
+                        'title' => 'Two ways to start',
                         'paragraphs' => [
-                            '321Sites works best when your Google Business Profile already has your business name, phone number, address, opening hours, and a few photos in place.',
-                            'You do not need any technical skills. If your listing is live on Google, you can usually have a website published in a few minutes.',
+                            'You do not need a Google Business Profile to build a site with 321Sites. There are two starting points — pick whichever suits you.',
                         ],
                         'bullets' => [
-                            'Search for your business on the 321Sites homepage.',
-                            'Choose the correct Google listing from the results.',
-                            'Add anything you want to personalise, such as a logo, description, links, or services.',
-                            'Create your account and publish the site.',
+                            'Search for your Google listing on the homepage — 321Sites will pre-fill your business name, address, phone, and hours for you to review before submitting.',
+                            'Or go straight to the setup form and fill everything in yourself — no Google account needed.',
                         ],
                     ],
                     [
                         'id' => 'what-you-can-change',
-                        'title' => 'What you can change during setup',
+                        'title' => 'What you fill in during setup',
                         'paragraphs' => [
-                            'The setup flow lets you add a logo, write a friendlier description, add booking or quote buttons, and fine-tune the content customers see first.',
-                            'You can come back and edit the site later from your dashboard, so do not worry about making everything perfect on day one.',
+                            'The setup flow walks you through your business name and type, contact details, opening hours, a description, logo, photos, quick links, and services.',
+                            'You can come back and edit everything later from your dashboard, so do not worry about making it perfect on day one.',
                         ],
                     ],
                     [
                         'id' => 'after-publishing',
                         'title' => 'What happens after publishing',
                         'paragraphs' => [
-                            'Once you create your account, your site goes live on your 321Sites web address. From there, you can edit content, connect a custom domain, manage enquiries, and update your SEO settings.',
+                            'Once you create your account, your site goes live on your 321Sites web address. From there, you can edit any content, connect a custom domain, manage customer enquiries, and update your SEO settings.',
                         ],
                     ],
                 ],
-                'related' => ['do-you-need-a-google-business-profile', 'edit-your-site-content', 'seo-and-google-visibility'],
+                'related' => ['google-or-from-scratch', 'edit-your-site-content', 'seo-and-google-visibility'],
             ],
             [
-                'slug' => 'do-you-need-a-google-business-profile',
-                'title' => 'Do you need a Google Business Profile?',
-                'summary' => 'Why 321Sites starts with Google, and what to do if you do not have a listing yet.',
+                'slug' => 'google-or-from-scratch',
+                'title' => 'Starting with Google or from scratch',
+                'summary' => 'Google Business Profile is optional. Understand the difference between the two starting points and pick the right one for you.',
                 'read_time' => '3 min read',
                 'category_slug' => 'getting-started',
-                'search_terms' => ['google listing', 'google business profile', 'GBP', 'need google'],
+                'search_terms' => ['google listing', 'google business profile', 'GBP', 'need google', 'from scratch', 'manual entry', 'no google'],
                 'sections' => [
                     [
-                        'id' => 'why-google-matters',
-                        'title' => 'Why Google matters',
+                        'id' => 'starting-from-google',
+                        'title' => 'Starting from a Google Business Profile',
                         'paragraphs' => [
-                            '321Sites uses your Google Business Profile as the starting point for your website. That means your business name, address, phone number, opening hours, reviews, and photos can all be pulled into the site automatically.',
-                            'For sole traders and small businesses, this saves a lot of time because you are not typing everything out from scratch.',
+                            'If your business already has a Google Business Profile, you can search for it on the 321Sites homepage. When you select your listing, 321Sites pre-fills your business name, address, phone number, and opening hours in the setup form.',
+                            'You review those fields before submitting — nothing is saved until you confirm. Photos, reviews, and any other content are added by you during setup.',
                         ],
                     ],
                     [
-                        'id' => 'if-you-do-not-have-one',
-                        'title' => 'If you do not have a listing yet',
+                        'id' => 'starting-from-scratch',
+                        'title' => 'Starting from scratch',
                         'paragraphs' => [
-                            'You will need to create and verify a Google Business Profile before you can build a site with 321Sites.',
-                            'If you are unsure where to start, email help@321sites.com and we can guide you through the basics.',
+                            'No Google account? No problem. Click "Start from scratch" on the homepage and fill in your business details directly — name, type, address, phone number, opening hours, description, photos, services, and links.',
+                            'Everything is stored in 321Sites and you can edit it any time from your dashboard. There is no need to connect a Google account at any point.',
                         ],
-                        'bullets' => [
-                            'Use your real business name and contact details.',
-                            'Choose the closest business category you can.',
-                            'Add a few photos and your opening hours.',
-                            'Wait until Google shows the listing publicly before searching for it inside 321Sites.',
+                    ],
+                    [
+                        'id' => 'which-to-choose',
+                        'title' => 'Which should you choose?',
+                        'paragraphs' => [
+                            'Use the Google import if your listing is complete and up to date — it is the fastest way to get a polished site live.',
+                            'Use the scratch form if you do not have a Google listing, your listing is incomplete or outdated, or you just prefer to control everything yourself.',
                         ],
                     ],
                 ],
-                'related' => ['get-your-business-online', 'refresh-google-business-profile-data'],
+                'related' => ['get-your-business-online', 'edit-your-site-content'],
             ],
             [
                 'slug' => 'edit-your-site-content',
@@ -206,7 +205,7 @@ class HelpCenter
                         'title' => 'Use the Edit My Site tab',
                         'paragraphs' => [
                             'Your dashboard includes an Edit My Site area where you can control which sections appear, update your description, upload a logo, manage links, and fine-tune the overall content.',
-                            'This is the best place to make day-to-day changes without touching your Google listing.',
+                            'All content on your site is editable here — there is no external account required to make changes.',
                         ],
                     ],
                     [
@@ -222,7 +221,7 @@ class HelpCenter
                         'title' => 'Logos, photos, and trust signals',
                         'paragraphs' => [
                             'A clear logo, a strong short description, and a couple of good photos usually make the biggest difference to how polished your site feels.',
-                            'If your business relies on visual proof, make sure your Google listing has recent photos as well as anything you upload directly inside 321Sites.',
+                            'You can upload photos and a logo directly inside 321Sites during setup or any time afterwards from your dashboard.',
                         ],
                     ],
                 ],
@@ -280,7 +279,7 @@ class HelpCenter
                         'bullets' => [
                             '321Sites subdomain',
                             'Editable content and design basics',
-                            'Google Business Profile-powered site setup',
+                            'Start from Google import or fill in your own details',
                         ],
                     ],
                     [
@@ -307,36 +306,38 @@ class HelpCenter
                 'related' => ['connect-a-custom-domain', 'customer-enquiries-and-contact-forms'],
             ],
             [
-                'slug' => 'refresh-google-business-profile-data',
-                'title' => 'Refresh your Google Business Profile data',
-                'summary' => 'Keep your site aligned with Google when your hours, photos, reviews, or contact details change.',
-                'read_time' => '4 min read',
+                'slug' => 'keeping-your-site-up-to-date',
+                'title' => 'Keeping your site content up to date',
+                'summary' => 'How to update your hours, photos, reviews, description, and contact details as your business changes.',
+                'read_time' => '3 min read',
                 'category_slug' => 'editing-your-site',
-                'search_terms' => ['refresh', 'google sync', 'update hours', 'reviews', 'photos'],
+                'search_terms' => ['refresh', 'update hours', 'reviews', 'photos', 'change details', 'edit content'],
                 'sections' => [
                     [
-                        'id' => 'when-to-refresh',
-                        'title' => 'When to refresh',
+                        'id' => 'edit-in-dashboard',
+                        'title' => 'Edit everything in your dashboard',
                         'paragraphs' => [
-                            'If you have updated your opening hours, photos, reviews, phone number, or other public information on Google, it makes sense to refresh your site data afterwards so the website stays current.',
+                            'All of your site content — business name, address, phone, opening hours, description, photos, services, and links — can be updated directly from your dashboard at any time.',
+                            'Head to the Edit My Site tab and change whatever needs updating. Save, and your site reflects the new information immediately.',
                         ],
                     ],
                     [
-                        'id' => 'what-updates',
-                        'title' => 'What refreshes from Google',
+                        'id' => 'if-you-started-from-google',
+                        'title' => 'If you started from a Google listing',
                         'paragraphs' => [
-                            'Core Google-driven details such as your business profile information, reviews, and photos can be pulled in again. Any direct overrides you added inside 321Sites should still take priority where relevant.',
+                            'When you chose your Google listing during setup, the details were pre-filled into the setup form and saved when you submitted. That information now lives in 321Sites and is not linked to Google — changes on your Google listing do not flow through automatically.',
+                            'To keep things current, just update the relevant fields in your dashboard directly.',
                         ],
                     ],
                     [
-                        'id' => 'best-practice',
-                        'title' => 'Best practice',
+                        'id' => 'reviews',
+                        'title' => 'Keeping reviews current',
                         'paragraphs' => [
-                            'Treat Google as the source of truth for your core business details, and use 321Sites for the extra polish that turns that listing into a proper website.',
+                            'Reviews are added manually during setup and stored in 321Sites. You can edit, remove, or add reviews from the dashboard at any time.',
                         ],
                     ],
                 ],
-                'related' => ['do-you-need-a-google-business-profile', 'seo-and-google-visibility'],
+                'related' => ['google-or-from-scratch', 'seo-and-google-visibility'],
             ],
             [
                 'slug' => 'customer-enquiries-and-contact-forms',
@@ -406,12 +407,12 @@ class HelpCenter
                         'id' => 'local-seo-basics',
                         'title' => 'Quick local SEO wins',
                         'paragraphs' => [
-                            'Make sure your business name, address, phone number, and category are accurate on Google. Add recent photos, keep your hours current, and write a clear service-focused description.',
+                            'Make sure your business name, address, phone number, and category are accurate in your 321Sites dashboard. Add recent photos, keep your hours current, and write a clear service-focused description.',
                             'These basics usually matter far more than trying to cram in lots of keywords.',
                         ],
                     ],
                 ],
-                'related' => ['connect-a-custom-domain', 'refresh-google-business-profile-data'],
+                'related' => ['connect-a-custom-domain', 'keeping-your-site-up-to-date'],
             ],
             [
                 'slug' => 'google-analytics-and-traffic',

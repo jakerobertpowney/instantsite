@@ -479,6 +479,11 @@ PROMPT;
 
             $service['description'] = $description ?: null;
 
+            // Strip leading currency symbols so the renderer doesn't double-prefix them
+            if (!empty($service['price'])) {
+                $service['price'] = preg_replace('/^[\s£$€¥₹₩฿₺₨]+/', '', (string) $service['price']) ?: null;
+            }
+
             return $service;
         }, $services));
     }

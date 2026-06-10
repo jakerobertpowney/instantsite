@@ -51,8 +51,8 @@ export function stripCurrencyPrefix(price: string): string {
     return price.replace(/^[\s£$€¥₹₩฿₺₨]+/, '').trim();
 }
 
-/** Formats a price string with the currency symbol prepended. */
-export function formatPrice(price: string | null | undefined, currencyCode = 'GBP'): string {
-    if (!price) return '';
-    return `${currencySymbol(currencyCode)}${stripCurrencyPrefix(price)}`;
+/** Formats a price value with the currency symbol prepended. Accepts string or number. */
+export function formatPrice(price: string | number | null | undefined, currencyCode = 'GBP'): string {
+    if (price === null || price === undefined || price === '') return '';
+    return `${currencySymbol(currencyCode)}${stripCurrencyPrefix(String(price))}`;
 }

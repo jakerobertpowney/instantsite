@@ -65,12 +65,12 @@ const showCta = computed(() =>
                 />
 
                 <div class="flex items-start justify-between gap-3 mt-1">
-                    <h3 class="font-semibold text-gray-900 text-base leading-snug">
+                    <h3 class="font-semibold text-gray-900 text-lg leading-snug">
                         {{ service.name }}
                     </h3>
                     <span
                         v-if="service.price && service.show_price"
-                        class="text-base font-bold shrink-0 tabular-nums"
+                        class="text-lg font-bold shrink-0 tabular-nums"
                         style="color: var(--site-primary)"
                     >
                         {{ formatPrice(service.price, service.currency) }}
@@ -79,7 +79,7 @@ const showCta = computed(() =>
 
                 <p
                     v-if="service.description"
-                    class="text-sm text-gray-500 leading-relaxed"
+                    class="text-base text-gray-500 leading-relaxed"
                 >
                     {{ service.description }}
                 </p>
@@ -97,24 +97,24 @@ const showCta = computed(() =>
                 class="flex items-start gap-4 py-4"
             >
                 <div class="flex-1 min-w-0">
-                    <p class="font-medium text-gray-900 text-sm">{{ service.name }}</p>
+                    <p class="font-medium text-gray-900 text-lg">{{ service.name }}</p>
                     <p
                         v-if="service.description"
-                        class="text-xs text-gray-500 mt-0.5 leading-relaxed"
+                        class="text-base text-gray-500 mt-0.5 leading-relaxed"
                     >
                         {{ service.description }}
                     </p>
                 </div>
                 <span
                     v-if="service.price && service.show_price"
-                    class="text-sm font-semibold shrink-0 tabular-nums"
+                    class="text-lg font-semibold shrink-0 tabular-nums"
                     style="color: var(--site-primary)"
                 >
                     {{ formatPrice(service.price, service.currency) }}
                 </span>
                 <span
                     v-else-if="!service.price || !service.show_price"
-                    class="text-xs text-gray-400 shrink-0 italic self-center"
+                    class="text-base text-gray-400 shrink-0 italic self-center"
                 >
                     Price on request
                 </span>

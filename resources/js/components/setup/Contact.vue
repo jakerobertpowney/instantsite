@@ -59,12 +59,12 @@ const dismissSuggestion = () => { dismissed.value = true; };
                 type="tel"
                 id="whatsapp"
                 inputmode="tel"
-                placeholder="e.g. 447961234567 (include country code, no +)"
+                placeholder="e.g. 447911123456"
                 v-model="form.whatsapp_number"
                 class="h-12 text-base"
             />
             <p class="text-xs text-muted-foreground">
-                Adds a WhatsApp button so customers can message you directly. Leave blank to skip.
+                Include your country code without the + sign — UK numbers start with 44, e.g. 447911123456. Leave blank to skip.
             </p>
         </div>
 

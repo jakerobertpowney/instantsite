@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { useForm, usePage } from '@inertiajs/vue3';
+import { useForm, usePage, router } from '@inertiajs/vue3';
 import { computed, inject, ref, watch } from 'vue';
 import { components as dashboardComponents } from '@/routes/dashboard';
 import { suggestLabelForUrl, getFaviconUrl, detectPlatformBrand } from '@/lib/platformBrands';
@@ -7,7 +7,7 @@ import { toast } from 'vue-sonner';
 import { Switch } from '@/components/ui/switch';
 import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
-import { CheckCircle2, Eye, EyeOff, ExternalLink, Image, Loader2, Lock, MapPin, MessageCircle, Palette, Pencil, Phone, Plus, Sparkles, Star, Trash2, Upload, Wand2, X } from 'lucide-vue-next';
+import { CheckCircle2, Image, Loader2, Lock, MapPin, MessageCircle, Palette, Pencil, Phone, Plus, Sparkles, Star, Trash2, Upload, Wand2, X } from 'lucide-vue-next';
 import axios from 'axios';
 import HeaderBackgroundPicker from '@/components/dashboard/HeaderBackgroundPicker.vue';
 import ServiceInlineEditor from '@/components/dashboard/ServiceInlineEditor.vue';
@@ -286,13 +286,98 @@ function toggleServiceFeatured(index: number) {
     }
 }
 
+type OpeningHourRow = { day: string; open: string; close: string; closed: boolean };
+type ReviewEntry = { id: string; author: string; text: string; rating: number; date: string };
+
+function buildInitialOpeningHours(): OpeningHourRow[] {
+    const raw = site.value.opening_hours as OpeningHourRow[] | undefined;
+    if (raw && raw.length > 0) {
+        return raw.map(h => ({
+            day:    h.day    ?? '',
+            open:   h.open   ?? '09:00',
+            close:  h.close  ?? '17:00',
+            closed: h.closed === true || (h.closed as any) === 1 || (h.closed as any) === '1',
+        }));
+    }
+    const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+    return days.map(day => ({ day, open: '09:00', close: '17:00', closed: day === 'Saturday' || day === 'Sunday' }));
+}
+
+function makeIsOpen(index: number) {
+    return computed({
+        get: () => !form.opening_hours[index].closed,
+        set: (v: boolean) => { form.opening_hours[index].closed = !v; },
+    });
+}
+
+function buildInitialReviews(): ReviewEntry[] {
+    const raw = site.value.reviews as Array<Record<string, any>> | undefined;
+    if (!raw) return [];
+    return raw.map(r => ({
+        id:     r.id     ?? Math.random().toString(36).slice(2),
+        author: r.author ?? '',
+        text:   r.text   ?? '',
+        rating: r.rating ?? 5,
+        date:   r.date   ?? '',
+    }));
+}
+
+function addReview() {
+    form.reviews.push({ id: Math.random().toString(36).slice(2), author: '', text: '', rating: 5, date: '' });
+}
+
+function removeReview(index: number) {
+    form.reviews.splice(index, 1);
+}
+
+// Photo upload state
+const photoInput = ref<HTMLInputElement | null>(null);
+const photoNewPreviews = ref<{ file: File; url: string }[]>([]);
+
+function triggerPhotoUpload() {
+    photoInput.value?.click();
+}
+
+function onPhotoFilesChange(event: Event) {
+    const target = event.target as HTMLInputElement;
+    if (!target.files) return;
+    for (const file of Array.from(target.files)) {
+        form.photos.push(file);
+        photoNewPreviews.value.push({ file, url: URL.createObjectURL(file) });
+    }
+    target.value = '';
+}
+
+function removeNewPhoto(index: number) {
+    URL.revokeObjectURL(photoNewPreviews.value[index].url);
+    photoNewPreviews.value.splice(index, 1);
+    form.photos.splice(index, 1);
+}
+
+function removeExistingPhoto(path: string) {
+    form.remove_photos.push(path);
+    form.images_order = form.images_order.filter(p => p !== path);
+}
+
 const form = useForm<{
     components: ComponentState;
-    overrides: { description: string; hidden_reviews: number[]; contact_email: string };
+    overrides: { description: string; contact_email: string };
+    business_name: string;
+    business_type: string;
+    city: string;
+    region: string;
+    phone: string;
+    formatted_address: string;
+    opening_hours: OpeningHourRow[];
+    rating: number | null;
+    review_count: number | null;
+    reviews: ReviewEntry[];
     socials: Socials;
     quickLinks: QuickLink[];
     whatsapp_number: string;
     logo: File | null;
+    photos: File[];
+    remove_photos: string[];
     palette_primary: string;
     palette_secondary: string;
     header_bg_type: string;
@@ -310,13 +395,24 @@ const form = useForm<{
     components: buildInitialComponents(),
     overrides: {
         description:   site.value.description ?? '',
-        hidden_reviews: (siteSettings.value.hidden_reviews as number[] | undefined) ?? [],
         contact_email: (site.value.contact_email as string | undefined) ?? '',
     },
+    business_name:     site.value.business_name     ?? '',
+    business_type:     site.value.business_type     ?? '',
+    city:              site.value.city              ?? '',
+    region:            site.value.region            ?? '',
+    phone:             site.value.phone             ?? '',
+    formatted_address: site.value.formatted_address ?? '',
+    opening_hours:     buildInitialOpeningHours(),
+    rating:            site.value.rating            ?? null,
+    review_count:      site.value.review_count      ?? null,
+    reviews:           buildInitialReviews(),
     socials: buildInitialSocials(),
     quickLinks: buildInitialQuickLinks(),
     whatsapp_number: site.value.whatsapp_number ?? '',
     logo: null,
+    photos: [],
+    remove_photos: [],
     palette_primary:   initPalette.primary,
     palette_secondary: initPalette.secondary,
     header_bg_type:      existingBg.value.type       ?? 'auto',
@@ -336,9 +432,18 @@ watch(
     () => page.props.site,
     () => {
         form.components = buildInitialComponents();
-        form.overrides.description    = site.value.description ?? '';
-        form.overrides.hidden_reviews = (siteSettings.value.hidden_reviews as number[] | undefined) ?? [];
-        form.overrides.contact_email  = (site.value.contact_email as string | undefined) ?? '';
+        form.overrides.description   = site.value.description ?? '';
+        form.overrides.contact_email = (site.value.contact_email as string | undefined) ?? '';
+        form.business_name     = site.value.business_name     ?? '';
+        form.business_type     = site.value.business_type     ?? '';
+        form.city              = site.value.city              ?? '';
+        form.region            = site.value.region            ?? '';
+        form.phone             = site.value.phone             ?? '';
+        form.formatted_address = site.value.formatted_address ?? '';
+        form.opening_hours     = buildInitialOpeningHours();
+        form.rating            = site.value.rating            ?? null;
+        form.review_count      = site.value.review_count      ?? null;
+        form.reviews           = buildInitialReviews();
         form.socials = buildInitialSocials();
         form.quickLinks = buildInitialQuickLinks();
         form.whatsapp_number = site.value.whatsapp_number ?? '';
@@ -348,6 +453,9 @@ watch(
         form.services_cta_link  = site.value.services_cta_link  ?? '';
         editingServiceIndex.value = null;
         form.logo = null;
+        form.photos = [];
+        form.remove_photos = [];
+        photoNewPreviews.value = [];
         logoPreview.value = site.value.logo_path ?? null;
         form.images_order = (site.value.images as string[] | undefined) ?? [];
         const reinitPalette = initPaletteValues();
@@ -371,20 +479,98 @@ watch(
 
 const saving = ref(false);
 
-function saveForm() {
-    // Commit any open inline service editor before submitting
-    flushDraft();
+/** Post only the specified section data — avoids other sections' validation blocking saves. */
+function postSection(data: Record<string, any>) {
     saving.value = true;
-
-    form.post(dashboardComponents.url(), {
+    router.post(dashboardComponents.url(), data, {
         forceFormData: true,
         onSuccess: () => {
             toast('Saved!');
             saving.value = false;
         },
-        onError: () => {
+        onError: (errors) => {
             saving.value = false;
+            const firstError = Object.values(errors as Record<string, string>)[0];
+            toast.error(firstError ?? 'Could not save — please check your inputs.');
         },
+    });
+}
+
+function saveDesign() {
+    postSection({
+        palette_primary:      form.palette_primary,
+        palette_secondary:    form.palette_secondary,
+        header_bg_type:       form.header_bg_type,
+        header_bg_value:      form.header_bg_value,
+        header_bg_thumb:      form.header_bg_thumb,
+        header_bg_credit:     form.header_bg_credit,
+        header_bg_credit_url: form.header_bg_credit_url,
+        header_bg_image:      form.header_bg_image,
+    });
+}
+
+function saveHeader() {
+    postSection({
+        components:    { header: form.components.header },
+        business_name: form.business_name,
+        business_type: form.business_type,
+        city:          form.city,
+        region:        form.region,
+        logo:          form.logo,
+    });
+}
+
+function saveAbout() {
+    postSection({
+        components: { description: form.components.description },
+        overrides:  { description: form.overrides.description },
+    });
+}
+
+function saveGallery() {
+    postSection({
+        components:   { gallery: form.components.gallery },
+        photos:       form.photos,
+        remove_photos: form.remove_photos,
+        images_order:  form.images_order,
+    });
+}
+
+function saveQuickActions() {
+    postSection({
+        components:      { quick_actions: form.components.quick_actions },
+        phone:           form.phone,
+        whatsapp_number: form.whatsapp_number,
+        quickLinks:      form.quickLinks,
+    });
+}
+
+function saveReviews() {
+    postSection({
+        components:   { reviews: form.components.reviews },
+        rating:       form.rating,
+        review_count: form.review_count,
+        reviews:      form.reviews,
+    });
+}
+
+function saveContact() {
+    postSection({
+        components:        { contact: form.components.contact },
+        formatted_address: form.formatted_address,
+        opening_hours:     form.opening_hours,
+        socials:           form.socials,
+    });
+}
+
+function saveServices() {
+    flushDraft();
+    postSection({
+        components:         { services: form.components.services },
+        services:           form.services,
+        services_heading:   form.services_heading,
+        services_cta_label: form.services_cta_label,
+        services_cta_link:  form.services_cta_link,
     });
 }
 
@@ -399,11 +585,6 @@ const businessLocation = computed(() => {
     if (city && region) return `${city}, ${region}`;
     return city || region || '';
 });
-
-// About / Description
-const googleDescription = computed(
-    () => site.value.description ?? '',
-);
 
 const isGeneratingDescription = ref(false);
 const generateDescriptionError = ref<string | null>(null);
@@ -438,44 +619,19 @@ const phoneNumber = computed(
     () => site.value.phone ?? '',
 );
 
-// Reviews
-const rating = computed(() => site.value.rating ?? null);
-const reviewCount = computed(() =>
-    site.value.review_count ?? site.value.reviews?.length ?? null,
-);
-const siteReviews = computed<Array<{ author: string; rating: number; text: string; time: string }>>(() =>
-    ((site.value.reviews ?? []) as Array<Record<string, any>>).map((r) => ({
-        author: r.authorAttribution?.displayName ?? 'Anonymous',
-        rating: r.rating ?? 0,
-        text:   r.text?.text ?? '',
-        time:   r.publishTime ?? '',
-    })),
-);
-
-function toggleReviewHidden(index: number) {
-    const hidden = form.overrides.hidden_reviews;
-    const pos = hidden.indexOf(index);
-    if (pos === -1) {
-        hidden.push(index);
-    } else {
-        hidden.splice(pos, 1);
-    }
-}
-
-// Contact Info
-const formattedAddress = computed(() => site.value.formatted_address ?? '');
-const googleEmail      = computed(() => (site.value.contact_email as string | undefined) ?? '');
-const openingHoursPeriods = computed(
-    () => (site.value.opening_hours as Array<any> | undefined)?.filter((h: any) => !h.closed).length ?? null,
-);
+// Contact Info — no Google read-only computed needed; form fields are directly editable
 // ─── Section navigation ────────────────────────────────────────────────────────
 type SectionId = 'design' | 'header' | 'about' | 'gallery' | 'quick_actions' | 'reviews' | 'contact' | 'services';
-const activeSec = ref<SectionId>('design');
+
+const props = defineProps<{ initialSection?: string }>();
+const activeSec = ref<SectionId>(
+    (props.initialSection as SectionId | undefined) ?? 'design'
+);
 const sections: { id: SectionId; label: string; hint: string; icon: any }[] = [
     { id: 'design',        label: 'Colours & look',     hint: 'Pick colours for buttons',   icon: Palette  },
     { id: 'header',        label: 'Top of page',         hint: 'Logo + header background',   icon: Image    },
     { id: 'about',         label: 'About',               hint: 'A sentence about you',       icon: Pencil   },
-    { id: 'gallery',       label: 'Photos',              hint: 'Photos from Google',         icon: Image    },
+    { id: 'gallery',       label: 'Photos',              hint: 'Upload your photos',         icon: Image    },
     { id: 'quick_actions', label: 'Buttons',             hint: 'Call, WhatsApp, links',      icon: Phone    },
     { id: 'reviews',       label: 'Reviews',             hint: 'Your star rating',           icon: Star     },
     { id: 'contact',       label: 'Contact details',     hint: 'Address, phone, hours',      icon: MapPin   },
@@ -488,7 +644,7 @@ const sections: { id: SectionId; label: string; hint: string; icon: any }[] = [
     <div class="flex gap-0 items-start min-h-0">
 
         <!-- ── Left nav ──────────────────────────────────────────────────────── -->
-        <nav class="w-64 flex-shrink-0 flex flex-col gap-0.5 p-1 sticky top-6">
+        <nav class="w-64 flex-shrink-0 flex flex-col gap-0.5 p-1 sticky top-24 self-start">
             <button
                 v-for="sec in sections"
                 :key="sec.id"
@@ -587,6 +743,11 @@ const sections: { id: SectionId; label: string; hint: string; icon: any }[] = [
                     </div>
                     <p v-if="form.errors.palette_primary" class="text-xs text-brand-danger font-medium mt-2">{{ form.errors.palette_primary }}</p>
                 </div>
+                <div class="flex justify-end pt-1">
+                    <button type="button" class="inline-flex items-center gap-2 h-11 px-7 rounded-lg bg-brand-blue text-white font-bold text-sm cursor-pointer border-none transition-opacity hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed" :disabled="saving" @click.prevent="saveDesign">
+                        <Loader2 v-show="saving" class="w-4 h-4 animate-spin" />{{ saving ? 'Saving…' : 'Save' }}
+                    </button>
+                </div>
             </div>
 
             <!-- ── 1. Header / Top of page ───────────────────────────────────── -->
@@ -603,19 +764,22 @@ const sections: { id: SectionId; label: string; hint: string; icon: any }[] = [
                 </div>
 
                 <div class="bg-brand-surface border border-brand-line rounded-2xl p-6">
-                    <p class="flex items-center gap-1.5 text-xs text-brand-ink-soft mb-4"><ExternalLink class="w-3.5 h-3.5 flex-shrink-0" /> This information is pulled from your Google Business Profile</p>
-                    <div class="grid grid-cols-[repeat(auto-fill,minmax(150px,1fr))] gap-2.5">
-                        <div class="bg-brand-panel rounded-lg px-3.5 py-3 flex flex-col gap-1">
-                            <p class="text-xs font-bold uppercase tracking-wide text-brand-ink-soft">Business name</p>
-                            <p class="text-sm font-medium text-brand-ink leading-relaxed">{{ businessName || '—' }}</p>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div class="flex flex-col gap-2">
+                            <label for="business-name" class="text-sm font-bold text-brand-ink">Business name</label>
+                            <Input id="business-name" v-model="form.business_name" placeholder="Your Business Name" class="w-full h-12 px-3 py-2 border border-brand-line rounded-lg text-sm text-brand-ink bg-white focus:outline-none focus:border-brand-blue" />
                         </div>
-                        <div class="bg-brand-panel rounded-lg px-3.5 py-3 flex flex-col gap-1">
-                            <p class="text-xs font-bold uppercase tracking-wide text-brand-ink-soft">Type of business</p>
-                            <p class="text-sm font-medium text-brand-ink leading-relaxed">{{ businessType || '—' }}</p>
+                        <div class="flex flex-col gap-2">
+                            <label for="business-type" class="text-sm font-bold text-brand-ink">Type of business</label>
+                            <Input id="business-type" v-model="form.business_type" placeholder="e.g. Plumber, Hair Salon" class="w-full h-12 px-3 py-2 border border-brand-line rounded-lg text-sm text-brand-ink bg-white focus:outline-none focus:border-brand-blue" />
                         </div>
-                        <div class="bg-brand-panel rounded-lg px-3.5 py-3 flex flex-col gap-1">
-                            <p class="text-xs font-bold uppercase tracking-wide text-brand-ink-soft">Location</p>
-                            <p class="text-sm font-medium text-brand-ink leading-relaxed">{{ businessLocation || '—' }}</p>
+                        <div class="flex flex-col gap-2">
+                            <label for="business-city" class="text-sm font-bold text-brand-ink">City</label>
+                            <Input id="business-city" v-model="form.city" placeholder="e.g. London" class="w-full h-12 px-3 py-2 border border-brand-line rounded-lg text-sm text-brand-ink bg-white focus:outline-none focus:border-brand-blue" />
+                        </div>
+                        <div class="flex flex-col gap-2">
+                            <label for="business-region" class="text-sm font-bold text-brand-ink">Region / County</label>
+                            <Input id="business-region" v-model="form.region" placeholder="e.g. Greater London" class="w-full h-12 px-3 py-2 border border-brand-line rounded-lg text-sm text-brand-ink bg-white focus:outline-none focus:border-brand-blue" />
                         </div>
                     </div>
                 </div>
@@ -657,6 +821,11 @@ const sections: { id: SectionId; label: string; hint: string; icon: any }[] = [
                         @update:image-file="(v) => form.header_bg_image = v"
                     />
                 </div>
+                <div class="flex justify-end pt-1">
+                    <button type="button" class="inline-flex items-center gap-2 h-11 px-7 rounded-lg bg-brand-blue text-white font-bold text-sm cursor-pointer border-none transition-opacity hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed" :disabled="saving" @click.prevent="saveHeader">
+                        <Loader2 v-show="saving" class="w-4 h-4 animate-spin" />{{ saving ? 'Saving…' : 'Save' }}
+                    </button>
+                </div>
             </div>
 
             <!-- ── 2. About ───────────────────────────────────────────────────── -->
@@ -673,38 +842,33 @@ const sections: { id: SectionId; label: string; hint: string; icon: any }[] = [
                 </div>
 
                 <div class="bg-brand-surface border border-brand-line rounded-2xl p-6">
-                    <p class="flex items-center gap-1.5 text-xs text-brand-ink-soft mb-4"><ExternalLink class="w-3.5 h-3.5 flex-shrink-0" /> From your Google Business Profile</p>
-                    <div class="bg-brand-panel rounded-lg px-3.5 py-3">
-                        <p class="text-xs font-bold uppercase tracking-wide text-brand-ink-soft">Google description</p>
-                        <p v-if="googleDescription" class="text-sm font-medium text-brand-ink leading-relaxed mt-1">{{ googleDescription }}</p>
-                        <p v-else class="text-sm italic text-brand-ink-soft mt-1">No description found on your Google Business Profile.</p>
-                    </div>
-                </div>
-
-                <div class="bg-brand-surface border border-brand-line rounded-2xl p-6">
                     <div class="flex flex-col gap-2">
-                        <label for="override-description" class="text-sm font-bold text-brand-ink">Write your own description</label>
+                        <label for="override-description" class="text-sm font-bold text-brand-ink">Description</label>
                         <Textarea
                             id="override-description"
                             v-model="form.overrides.description"
-                            :placeholder="googleDescription || 'Tell customers what you do, where you work, and what makes you stand out...'"
+                            placeholder="Tell customers what you do, where you work, and what makes you stand out..."
                             rows="5"
                             class="w-full px-3 py-2 border border-brand-line rounded-lg text-sm text-brand-ink bg-white focus:outline-none focus:border-brand-blue resize-vertical"
                         />
-                        <span class="text-xs text-brand-ink-soft leading-relaxed">Leave this empty to use the description from your Google Business Profile.</span>
                         <p v-if="form.errors['overrides.description']" class="text-xs text-brand-danger font-medium">{{ form.errors['overrides.description'] }}</p>
                         <button
                             type="button"
-                            class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-xs font-bold bg-brand-panel border border-brand-line text-brand-ink cursor-pointer transition-all hover:border-brand-blue hover:bg-blue-50 hover:text-brand-blue disabled:opacity-50 disabled:cursor-not-allowed"
+                            class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-xs font-bold bg-brand-panel border border-brand-line text-brand-ink cursor-pointer transition-all hover:border-brand-blue hover:bg-blue-50 hover:text-brand-blue disabled:opacity-50 disabled:cursor-not-allowed self-start"
                             :disabled="isGeneratingDescription"
                             @click="generateDescription"
                         >
                             <Loader2 v-if="isGeneratingDescription" :size="14" class="animate-spin" />
                             <Wand2 v-else :size="14" />
-                            {{ isGeneratingDescription ? 'Writing…' : 'Write it for me' }}
+                            {{ isGeneratingDescription ? 'Writing…' : 'Write it for me with AI' }}
                         </button>
                         <p v-if="generateDescriptionError" class="text-xs text-brand-danger font-medium">{{ generateDescriptionError }}</p>
                     </div>
+                </div>
+                <div class="flex justify-end pt-1">
+                    <button type="button" class="inline-flex items-center gap-2 h-11 px-7 rounded-lg bg-brand-blue text-white font-bold text-sm cursor-pointer border-none transition-opacity hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed" :disabled="saving" @click.prevent="saveAbout">
+                        <Loader2 v-show="saving" class="w-4 h-4 animate-spin" />{{ saving ? 'Saving…' : 'Save' }}
+                    </button>
                 </div>
             </div>
 
@@ -713,7 +877,7 @@ const sections: { id: SectionId; label: string; hint: string; icon: any }[] = [
                 <div class="bg-brand-surface border border-brand-line rounded-2xl p-5 flex items-center justify-between gap-4">
                     <div class="flex-1">
                         <div class="text-2xl font-black text-brand-ink">Photos</div>
-                        <div class="text-sm text-brand-ink-soft mt-1.5 leading-relaxed max-w-sm">A gallery of photos from your Google Business Profile.</div>
+                        <div class="text-sm text-brand-ink-soft mt-1.5 leading-relaxed max-w-sm">Photos shown in the gallery on your site. Drag to reorder — the first photo is used as the hero background.</div>
                     </div>
                     <div class="flex items-center gap-2.5 flex-shrink-0">
                         <span class="text-xs text-brand-ink-soft whitespace-nowrap">{{ form.components['gallery'].enabled ? 'Shows on your site' : 'Hidden from your site' }}</span>
@@ -722,19 +886,17 @@ const sections: { id: SectionId; label: string; hint: string; icon: any }[] = [
                 </div>
 
                 <div class="bg-brand-surface border border-brand-line rounded-2xl p-6">
-                    <p class="flex items-center gap-1.5 text-xs text-brand-ink-soft mb-4"><ExternalLink class="w-3.5 h-3.5 flex-shrink-0" /> Photos come from your Google Business Profile</p>
-
+                    <!-- Existing photos grid -->
                     <template v-if="form.images_order.length > 0">
                         <p class="text-sm font-bold text-brand-ink mb-2.5">
                             {{ form.images_order.length }} photo{{ form.images_order.length === 1 ? '' : 's' }}
-                            <span class="text-xs font-normal text-brand-ink-soft ml-1.5">Drag to reorder — the first photo is shown as the featured image.</span>
+                            <span class="text-xs font-normal text-brand-ink-soft ml-1.5">Drag to reorder.</span>
                         </p>
-
-                        <div class="grid grid-cols-[repeat(auto-fill,minmax(22,1fr))] gap-2 mb-1">
+                        <div class="grid grid-cols-[repeat(auto-fill,minmax(100px,1fr))] gap-2 mb-4">
                             <div
                                 v-for="(rawPath, index) in form.images_order"
                                 :key="rawPath"
-                                class="relative rounded-lg overflow-hidden cursor-grab border-2 border-transparent transition-all aspect-square bg-brand-panel user-select-none hover:border-brand-blue"
+                                class="relative rounded-lg overflow-hidden cursor-grab border-2 border-transparent transition-all aspect-square bg-brand-panel user-select-none hover:border-brand-blue group"
                                 :class="{
                                     'opacity-35 cursor-grabbing': dragSourceIndex === index,
                                     'border-brand-blue shadow-[0_0_0_3px_rgba(30,102,245,0.25)]': dragOverIndex === index && dragSourceIndex !== index,
@@ -751,12 +913,52 @@ const sections: { id: SectionId; label: string; hint: string; icon: any }[] = [
                                     draggable="false"
                                 />
                                 <span v-if="index === 0" class="absolute bottom-1 left-1 bg-black/65 text-white text-xs font-bold px-1.5 py-0.5 rounded pointer-events-none leading-relaxed">Featured</span>
-                                <span class="absolute top-1 right-1.5 text-white/80 text-sm text-shadow pointer-events-none leading-none opacity-0 transition-opacity hover:opacity-100">⠿</span>
+                                <button
+                                    type="button"
+                                    class="absolute top-1 right-1 w-6 h-6 rounded-full bg-black/60 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer border-none"
+                                    @click.stop="removeExistingPhoto(rawPath)"
+                                    title="Remove photo"
+                                >
+                                    <X class="w-3 h-3" />
+                                </button>
                             </div>
                         </div>
                     </template>
-                    <p v-else class="text-sm italic text-brand-ink-soft">No photos downloaded yet. Use "Refresh from Google" on the Home tab to import them.</p>
-                    <p class="text-xs text-brand-ink-soft leading-relaxed mt-3">To add or remove photos, update them on your Google Business Profile and use "Refresh from Google" to sync.</p>
+
+                    <!-- New photos queued for upload -->
+                    <template v-if="photoNewPreviews.length > 0">
+                        <p class="text-sm font-bold text-brand-ink mb-2">{{ photoNewPreviews.length }} new photo{{ photoNewPreviews.length === 1 ? '' : 's' }} ready to upload</p>
+                        <div class="grid grid-cols-[repeat(auto-fill,minmax(100px,1fr))] gap-2 mb-4">
+                            <div
+                                v-for="(preview, index) in photoNewPreviews"
+                                :key="preview.url"
+                                class="relative rounded-lg overflow-hidden border-2 border-brand-blue aspect-square bg-brand-panel group"
+                            >
+                                <img :src="preview.url" :alt="`New photo ${index + 1}`" class="w-full h-full object-cover block" />
+                                <button
+                                    type="button"
+                                    class="absolute top-1 right-1 w-6 h-6 rounded-full bg-black/60 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer border-none"
+                                    @click.stop="removeNewPhoto(index)"
+                                    title="Remove"
+                                >
+                                    <X class="w-3 h-3" />
+                                </button>
+                            </div>
+                        </div>
+                    </template>
+
+                    <p v-if="form.images_order.length === 0 && photoNewPreviews.length === 0" class="text-sm italic text-brand-ink-soft mb-4">No photos yet. Upload some to bring your site to life.</p>
+
+                    <button type="button" class="inline-flex items-center gap-2 h-12 px-5 rounded-lg border border-brand-line bg-transparent text-brand-ink font-bold text-sm cursor-pointer transition-colors hover:bg-brand-panel" @click="triggerPhotoUpload">
+                        <Upload class="w-4.5 h-4.5" /> Upload photos
+                    </button>
+                    <input ref="photoInput" type="file" accept="image/*" multiple class="hidden" @change="onPhotoFilesChange" />
+                    <p class="text-xs text-brand-ink-soft leading-relaxed mt-2">JPG, PNG or WEBP. Max 10 MB per photo.</p>
+                </div>
+                <div class="flex justify-end pt-1">
+                    <button type="button" class="inline-flex items-center gap-2 h-11 px-7 rounded-lg bg-brand-blue text-white font-bold text-sm cursor-pointer border-none transition-opacity hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed" :disabled="saving" @click.prevent="saveGallery">
+                        <Loader2 v-show="saving" class="w-4 h-4 animate-spin" />{{ saving ? 'Saving…' : 'Save' }}
+                    </button>
                 </div>
             </div>
 
@@ -774,10 +976,20 @@ const sections: { id: SectionId; label: string; hint: string; icon: any }[] = [
                 </div>
 
                 <div class="bg-brand-surface border border-brand-line rounded-2xl p-6">
-                    <p class="flex items-center gap-1.5 text-xs text-brand-ink-soft mb-4"><ExternalLink class="w-3.5 h-3.5 flex-shrink-0" /> Phone number is pulled from your Google Business Profile</p>
-                    <div class="bg-brand-panel rounded-lg px-3.5 py-3">
-                        <p class="text-xs font-bold uppercase tracking-wide text-brand-ink-soft">Phone number</p>
-                        <p class="text-sm font-medium text-brand-ink leading-relaxed mt-1">{{ phoneNumber || 'No phone number found on Google' }}</p>
+                    <div class="flex flex-col gap-2">
+                        <label for="phone-number" class="text-sm font-bold text-brand-ink flex items-center gap-1.5">
+                            <Phone class="w-4 h-4" />
+                            Phone number
+                        </label>
+                        <Input
+                            id="phone-number"
+                            v-model="form.phone"
+                            type="tel"
+                            placeholder="+44 7911 123456"
+                            class="w-full h-12 px-3 py-2 border border-brand-line rounded-lg text-sm text-brand-ink bg-white focus:outline-none focus:border-brand-blue"
+                        />
+                        <span class="text-xs text-brand-ink-soft leading-relaxed">Shown on the Call button and Contact section.</span>
+                        <p v-if="form.errors.phone" class="text-xs text-brand-danger font-medium">{{ form.errors.phone }}</p>
                     </div>
                 </div>
 
@@ -854,6 +1066,11 @@ const sections: { id: SectionId; label: string; hint: string; icon: any }[] = [
                         <Plus class="w-4.5 h-4.5" /> Add a button
                     </button>
                 </div>
+                <div class="flex justify-end pt-1">
+                    <button type="button" class="inline-flex items-center gap-2 h-11 px-7 rounded-lg bg-brand-blue text-white font-bold text-sm cursor-pointer border-none transition-opacity hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed" :disabled="saving" @click.prevent="saveQuickActions">
+                        <Loader2 v-show="saving" class="w-4 h-4 animate-spin" />{{ saving ? 'Saving…' : 'Save' }}
+                    </button>
+                </div>
             </div>
 
             <!-- ── 5. Reviews ──────────────────────────────────────────────────── -->
@@ -861,7 +1078,7 @@ const sections: { id: SectionId; label: string; hint: string; icon: any }[] = [
                 <div class="bg-brand-surface border border-brand-line rounded-2xl p-5 flex items-center justify-between gap-4">
                     <div class="flex-1">
                         <div class="text-2xl font-black text-brand-ink">Reviews</div>
-                        <div class="text-sm text-brand-ink-soft mt-1.5 leading-relaxed max-w-sm">Your Google star rating and customer reviews.</div>
+                        <div class="text-sm text-brand-ink-soft mt-1.5 leading-relaxed max-w-sm">Your overall star rating, review count, and any customer testimonials to highlight.</div>
                     </div>
                     <div class="flex items-center gap-2.5 flex-shrink-0">
                         <span class="text-xs text-brand-ink-soft whitespace-nowrap">{{ form.components['reviews'].enabled ? 'Shows on your site' : 'Hidden from your site' }}</span>
@@ -869,54 +1086,109 @@ const sections: { id: SectionId; label: string; hint: string; icon: any }[] = [
                     </div>
                 </div>
 
+                <!-- Aggregate rating + count -->
                 <div class="bg-brand-surface border border-brand-line rounded-2xl p-6">
-                    <p class="flex items-center gap-1.5 text-xs text-brand-ink-soft mb-4"><ExternalLink class="w-3.5 h-3.5 flex-shrink-0" /> Reviews are pulled from your Google Business Profile</p>
-                    <div class="grid grid-cols-[repeat(auto-fill,minmax(150px,1fr))] gap-2.5">
-                        <div class="bg-brand-panel rounded-lg px-3.5 py-3 flex flex-col gap-1">
-                            <p class="text-xs font-bold uppercase tracking-wide text-brand-ink-soft">Star rating</p>
-                            <p class="text-sm font-medium text-brand-ink leading-relaxed">{{ rating !== null ? `${rating} ★` : 'No rating yet' }}</p>
+                    <div class="text-sm font-bold text-brand-ink mb-4">Overall rating</div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="flex flex-col gap-2">
+                            <label for="review-rating" class="text-sm font-bold text-brand-ink">Star rating</label>
+                            <div class="flex items-center gap-2">
+                                <button
+                                    v-for="n in 5"
+                                    :key="n"
+                                    type="button"
+                                    class="border-none bg-transparent cursor-pointer p-0 leading-none"
+                                    @click="form.rating = n"
+                                >
+                                    <Star
+                                        class="w-7 h-7 transition-colors"
+                                        :class="n <= (form.rating ?? 0) ? 'text-yellow-400' : 'text-brand-line'"
+                                        :fill="n <= (form.rating ?? 0) ? 'currentColor' : 'none'"
+                                    />
+                                </button>
+                                <span class="text-sm text-brand-ink-soft ml-1">{{ form.rating ?? '—' }}</span>
+                            </div>
+                            <span class="text-xs text-brand-ink-soft">Click a star to set your rating.</span>
                         </div>
-                        <div class="bg-brand-panel rounded-lg px-3.5 py-3 flex flex-col gap-1">
-                            <p class="text-xs font-bold uppercase tracking-wide text-brand-ink-soft">Total reviews</p>
-                            <p class="text-sm font-medium text-brand-ink leading-relaxed">{{ reviewCount !== null ? `${reviewCount} review${reviewCount === 1 ? '' : 's'}` : 'No reviews yet' }}</p>
+                        <div class="flex flex-col gap-2">
+                            <label for="review-count" class="text-sm font-bold text-brand-ink">Number of reviews</label>
+                            <Input
+                                id="review-count"
+                                v-model.number="form.review_count"
+                                type="number"
+                                min="0"
+                                placeholder="e.g. 142"
+                                class="w-full h-12 px-3 py-2 border border-brand-line rounded-lg text-sm text-brand-ink bg-white focus:outline-none focus:border-brand-blue"
+                            />
+                            <span class="text-xs text-brand-ink-soft">Shown as "142 reviews" on your site.</span>
                         </div>
                     </div>
                 </div>
 
-                <div v-if="siteReviews.length > 0" class="bg-brand-surface border border-brand-line rounded-2xl p-6">
+                <!-- Testimonials -->
+                <div class="bg-brand-surface border border-brand-line rounded-2xl p-6">
                     <div class="mb-4">
-                        <div class="text-sm font-bold text-brand-ink">Individual reviews</div>
-                        <p class="text-xs text-brand-ink-soft leading-relaxed">Hide any reviews you don't want to show on your site. Hidden reviews are not deleted from Google — only from your site.</p>
+                        <div class="text-sm font-bold text-brand-ink">Testimonials</div>
+                        <p class="text-xs text-brand-ink-soft leading-relaxed">Add quotes from happy customers to show on your site.</p>
                     </div>
-                    <div class="flex flex-col gap-2">
+
+                    <div v-if="form.reviews.length > 0" class="flex flex-col gap-4 mb-4">
                         <div
-                            v-for="(review, i) in siteReviews"
-                            :key="i"
-                            class="flex items-start gap-3 border border-brand-line rounded-lg p-3.5 bg-brand-surface transition-opacity"
-                            :class="{ 'opacity-50 bg-brand-panel': form.overrides.hidden_reviews.includes(i) }"
+                            v-for="(review, i) in form.reviews"
+                            :key="review.id"
+                            class="border border-brand-line rounded-xl p-4 flex flex-col gap-3"
                         >
-                            <div class="flex-1 min-w-0">
-                                <div class="flex items-center gap-2 mb-1">
-                                    <span class="text-sm font-bold text-brand-ink">{{ review.author }}</span>
-                                    <span class="text-xs text-yellow-600 tracking-wider">{{ '★'.repeat(review.rating) }}{{ '☆'.repeat(5 - review.rating) }}</span>
+                            <div class="flex items-center justify-between gap-3">
+                                <div class="flex items-center gap-1">
+                                    <button
+                                        v-for="n in 5"
+                                        :key="n"
+                                        type="button"
+                                        class="border-none bg-transparent cursor-pointer p-0 leading-none"
+                                        @click="review.rating = n"
+                                    >
+                                        <Star
+                                            class="w-5 h-5 transition-colors"
+                                            :class="n <= review.rating ? 'text-yellow-400' : 'text-brand-line'"
+                                            :fill="n <= review.rating ? 'currentColor' : 'none'"
+                                        />
+                                    </button>
                                 </div>
-                                <p class="text-xs text-brand-ink-soft leading-relaxed">{{ review.text || 'No text' }}</p>
+                                <button
+                                    type="button"
+                                    class="inline-flex items-center justify-center w-8 h-8 border-none bg-transparent rounded-lg cursor-pointer text-brand-ink-soft transition-all hover:bg-red-50 hover:text-red-600"
+                                    @click="removeReview(i)"
+                                >
+                                    <Trash2 class="w-4 h-4" />
+                                </button>
                             </div>
-                            <button
-                                type="button"
-                                class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-brand-line bg-brand-panel text-xs font-medium text-brand-ink cursor-pointer transition-all flex-shrink-0 hover:bg-brand-line"
-                                :class="{ 'text-brand-ink-soft bg-transparent': form.overrides.hidden_reviews.includes(i) }"
-                                @click="toggleReviewHidden(i)"
-                                :aria-label="form.overrides.hidden_reviews.includes(i) ? `Show review from ${review.author}` : `Hide review from ${review.author}`"
-                            >
-                                <EyeOff v-if="form.overrides.hidden_reviews.includes(i)" class="w-3.5 h-3.5" />
-                                <Eye v-else class="w-3.5 h-3.5" />
-                                {{ form.overrides.hidden_reviews.includes(i) ? 'Hidden' : 'Visible' }}
-                            </button>
+                            <div class="grid grid-cols-2 gap-3">
+                                <div class="flex flex-col gap-1.5">
+                                    <label class="text-xs font-bold text-brand-ink-soft uppercase tracking-wide">Customer name</label>
+                                    <Input v-model="review.author" placeholder="Jane Smith" class="h-10 px-3 border border-brand-line rounded-lg text-sm text-brand-ink bg-white focus:outline-none focus:border-brand-blue" />
+                                </div>
+                                <div class="flex flex-col gap-1.5">
+                                    <label class="text-xs font-bold text-brand-ink-soft uppercase tracking-wide">Date (optional)</label>
+                                    <Input v-model="review.date" placeholder="e.g. March 2024" class="h-10 px-3 border border-brand-line rounded-lg text-sm text-brand-ink bg-white focus:outline-none focus:border-brand-blue" />
+                                </div>
+                            </div>
+                            <div class="flex flex-col gap-1.5">
+                                <label class="text-xs font-bold text-brand-ink-soft uppercase tracking-wide">Review text</label>
+                                <Textarea v-model="review.text" placeholder="What did they say about you?" rows="2" class="px-3 py-2 border border-brand-line rounded-lg text-sm text-brand-ink bg-white focus:outline-none focus:border-brand-blue resize-none" />
+                            </div>
                         </div>
                     </div>
+                    <p v-else class="text-sm text-brand-ink-soft italic mb-4">No testimonials added yet.</p>
+
+                    <button type="button" class="inline-flex items-center justify-center gap-2 w-full h-12 px-5 rounded-lg border border-brand-line bg-transparent text-brand-ink font-bold text-sm cursor-pointer transition-colors hover:bg-brand-panel" @click="addReview">
+                        <Plus class="w-4.5 h-4.5" /> Add a testimonial
+                    </button>
                 </div>
-                <p v-else class="text-sm text-brand-ink-soft italic mt-2">No reviews imported yet.</p>
+                <div class="flex justify-end pt-1">
+                    <button type="button" class="inline-flex items-center gap-2 h-11 px-7 rounded-lg bg-brand-blue text-white font-bold text-sm cursor-pointer border-none transition-opacity hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed" :disabled="saving" @click.prevent="saveReviews">
+                        <Loader2 v-show="saving" class="w-4 h-4 animate-spin" />{{ saving ? 'Saving…' : 'Save' }}
+                    </button>
+                </div>
             </div>
 
             <!-- ── 6. Contact ─────────────────────────────────────────────────── -->
@@ -932,32 +1204,24 @@ const sections: { id: SectionId; label: string; hint: string; icon: any }[] = [
                     </div>
                 </div>
 
+                <!-- Address -->
                 <div class="bg-brand-surface border border-brand-line rounded-2xl p-6">
-                    <p class="flex items-center gap-1.5 text-xs text-brand-ink-soft mb-4"><ExternalLink class="w-3.5 h-3.5 flex-shrink-0" /> Contact details are pulled from your Google Business Profile</p>
-                    <div class="grid grid-cols-[repeat(auto-fill,minmax(150px,1fr))] gap-2.5">
-                        <div class="bg-brand-panel rounded-lg px-3.5 py-3 flex flex-col gap-1">
-                            <p class="text-xs font-bold uppercase tracking-wide text-brand-ink-soft">Address</p>
-                            <p class="text-sm font-medium text-brand-ink leading-relaxed">{{ formattedAddress || 'Not available' }}</p>
-                        </div>
-                        <div class="bg-brand-panel rounded-lg px-3.5 py-3 flex flex-col gap-1">
-                            <p class="text-xs font-bold uppercase tracking-wide text-brand-ink-soft">Phone</p>
-                            <p class="text-sm font-medium text-brand-ink leading-relaxed">{{ phoneNumber || 'Not available' }}</p>
-                        </div>
-                        <div class="bg-brand-panel rounded-lg px-3.5 py-3 flex flex-col gap-1">
-                            <p class="text-xs font-bold uppercase tracking-wide text-brand-ink-soft">Opening hours</p>
-                            <p class="text-sm font-medium text-brand-ink leading-relaxed">{{ openingHoursPeriods !== null ? `${openingHoursPeriods} day${openingHoursPeriods === 1 ? '' : 's'} configured` : 'Not available' }}</p>
-                        </div>
+                    <div class="flex flex-col gap-2">
+                        <label for="formatted-address" class="text-sm font-bold text-brand-ink">Address</label>
+                        <Input
+                            id="formatted-address"
+                            v-model="form.formatted_address"
+                            placeholder="123 High Street, London, EC1A 1BB"
+                            class="w-full h-12 px-3 py-2 border border-brand-line rounded-lg text-sm text-brand-ink bg-white focus:outline-none focus:border-brand-blue"
+                        />
+                        <p v-if="form.errors.formatted_address" class="text-xs text-brand-danger font-medium">{{ form.errors.formatted_address }}</p>
                     </div>
                 </div>
 
+                <!-- Contact email -->
                 <div class="bg-brand-surface border border-brand-line rounded-2xl p-6">
                     <div class="flex flex-col gap-2">
                         <label for="contact-email" class="text-sm font-bold text-brand-ink">Contact email</label>
-                        <div class="bg-brand-panel rounded-lg px-3.5 py-3 mb-3">
-                            <p class="text-xs font-bold uppercase tracking-wide text-brand-ink-soft">Email from Google</p>
-                            <p v-if="googleEmail" class="text-sm font-medium text-brand-ink leading-relaxed mt-1">{{ googleEmail }}</p>
-                            <p v-else class="text-sm italic text-brand-ink-soft mt-1">No email found on your Google Business Profile.</p>
-                        </div>
                         <Input
                             id="contact-email"
                             v-model="form.overrides.contact_email"
@@ -965,8 +1229,31 @@ const sections: { id: SectionId; label: string; hint: string; icon: any }[] = [
                             placeholder="hello@yourbusiness.com"
                             class="w-full h-12 px-3 py-2 border border-brand-line rounded-lg text-sm text-brand-ink bg-white focus:outline-none focus:border-brand-blue"
                         />
-                        <span class="text-xs text-brand-ink-soft leading-relaxed">Used for the Message button{{ isPremium ? ' and contact form' : '' }}. Leave blank to use the email from your Google Business Profile.</span>
+                        <span class="text-xs text-brand-ink-soft leading-relaxed">Used for the Message button{{ isPremium ? ' and contact form' : '' }}.</span>
                         <p v-if="form.errors['overrides.contact_email']" class="text-xs text-brand-danger font-medium">{{ form.errors['overrides.contact_email'] }}</p>
+                    </div>
+                </div>
+
+                <!-- Opening hours -->
+                <div class="bg-brand-surface border border-brand-line rounded-2xl p-6">
+                    <div class="text-sm font-bold text-brand-ink mb-4">Opening hours</div>
+                    <div class="flex flex-col gap-2">
+                        <div
+                            v-for="(row, index) in form.opening_hours"
+                            :key="row.day"
+                            class="grid grid-cols-[7rem_auto_1fr_auto_1fr] items-center gap-3"
+                        >
+                            <span class="text-sm font-medium text-brand-ink">{{ row.day }}</span>
+                            <Switch :id="`oh-toggle-${index}`" :model-value="makeIsOpen(index).value" @update:model-value="makeIsOpen(index).value = $event" />
+                            <template v-if="!row.closed">
+                                <Input v-model="row.open" type="time" class="h-9 px-2 border border-brand-line rounded-lg text-sm text-brand-ink bg-white focus:outline-none focus:border-brand-blue" />
+                                <span class="text-xs text-brand-ink-soft text-center">to</span>
+                                <Input v-model="row.close" type="time" class="h-9 px-2 border border-brand-line rounded-lg text-sm text-brand-ink bg-white focus:outline-none focus:border-brand-blue" />
+                            </template>
+                            <template v-else>
+                                <span class="col-span-3 text-sm italic text-brand-ink-soft">Closed</span>
+                            </template>
+                        </div>
                     </div>
                 </div>
 
@@ -1018,6 +1305,11 @@ const sections: { id: SectionId; label: string; hint: string; icon: any }[] = [
                             <p v-if="form.errors['socials.linkedin']" class="text-xs text-brand-danger font-medium">{{ form.errors['socials.linkedin'] }}</p>
                         </div>
                     </div>
+                </div>
+                <div class="flex justify-end pt-1">
+                    <button type="button" class="inline-flex items-center gap-2 h-11 px-7 rounded-lg bg-brand-blue text-white font-bold text-sm cursor-pointer border-none transition-opacity hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed" :disabled="saving" @click.prevent="saveContact">
+                        <Loader2 v-show="saving" class="w-4 h-4 animate-spin" />{{ saving ? 'Saving…' : 'Save' }}
+                    </button>
                 </div>
             </div>
 
@@ -1103,14 +1395,11 @@ const sections: { id: SectionId; label: string; hint: string; icon: any }[] = [
                         </div>
                     </div>
                 </div>
-            </div>
-
-            <!-- ── Save ──────────────────────────────────────────────────────── -->
-            <div class="flex justify-end pt-2">
-                <button type="button" class="inline-flex items-center gap-2 h-13 px-8 rounded-lg bg-brand-blue text-white font-bold text-base cursor-pointer border-none transition-opacity hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed" :disabled="saving" @click.prevent="saveForm">
-                    <Loader2 v-show="saving" class="w-4.5 h-4.5 animate-spin" />
-                    {{ saving ? 'Saving…' : 'Save changes' }}
-                </button>
+                <div class="flex justify-end pt-1">
+                    <button type="button" class="inline-flex items-center gap-2 h-11 px-7 rounded-lg bg-brand-blue text-white font-bold text-sm cursor-pointer border-none transition-opacity hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed" :disabled="saving" @click.prevent="saveServices">
+                        <Loader2 v-show="saving" class="w-4 h-4 animate-spin" />{{ saving ? 'Saving…' : 'Save' }}
+                    </button>
+                </div>
             </div>
         </div>
     </div>

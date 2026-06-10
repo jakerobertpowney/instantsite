@@ -232,15 +232,64 @@ class DashboardController extends Controller
                 $email = trim($request->input('overrides.contact_email', ''));
                 $site->contact_email = $email ?: null;
             }
+        }
 
-            // Hidden reviews — stored in settings
-            if ($request->has('overrides.hidden_reviews')) {
-                $settings = $site->settings ?? [];
-                $settings['hidden_reviews'] = array_values(
-                    array_map('intval', $request->input('overrides.hidden_reviews', []))
-                );
-                $site->settings = $settings;
+        // Business identity fields
+        if ($request->filled('business_name'))     $site->business_name     = $request->input('business_name');
+        if ($request->filled('business_type'))     $site->business_type     = $request->input('business_type');
+        if ($request->has('city'))                 $site->city              = $request->input('city') ?: null;
+        if ($request->has('region'))               $site->region            = $request->input('region') ?: null;
+        if ($request->has('phone'))                $site->phone             = $request->input('phone') ?: null;
+        if ($request->has('formatted_address'))    $site->formatted_address = $request->input('formatted_address') ?: null;
+
+        // Opening hours
+        if ($request->has('opening_hours')) {
+            $rawHours = $request->input('opening_hours');
+            if (is_array($rawHours) && count($rawHours) > 0) {
+                $site->opening_hours = array_map(fn ($h) => [
+                    'day'    => $h['day']   ?? '',
+                    'open'   => $h['open']  ?? '09:00',
+                    'close'  => $h['close'] ?? '17:00',
+                    'closed' => filter_var($h['closed'] ?? false, FILTER_VALIDATE_BOOLEAN),
+                ], $rawHours);
             }
+        }
+
+        // Rating, review count, and user testimonials
+        if ($request->filled('rating'))       $site->rating       = (float) $request->input('rating');
+        if ($request->filled('review_count')) $site->review_count = (int) $request->input('review_count');
+        if ($request->has('reviews')) {
+            $site->reviews = collect($request->input('reviews', []))
+                ->filter(fn ($r) => !empty($r['author']) || !empty($r['text']))
+                ->values()
+                ->map(fn ($r) => [
+                    'id'     => $r['id']     ?? \Illuminate\Support\Str::random(8),
+                    'author' => $r['author'] ?? '',
+                    'text'   => $r['text']   ?? '',
+                    'rating' => (int) ($r['rating'] ?? 5),
+                    'date'   => $r['date']   ?? '',
+                ])
+                ->all();
+        }
+
+        // Photo uploads and removals
+        if ($request->has('remove_photos') || $request->hasFile('photos')) {
+            $removeSet  = collect($request->input('remove_photos', []))->flip();
+            $imagePaths = collect($site->images ?? [])
+                ->reject(fn ($p) => $removeSet->has($p))
+                ->values()
+                ->all();
+
+            if ($request->hasFile('photos')) {
+                $placesId = $site->places_id ?? 'site-' . $site->id;
+                $dir = 'images/' . $placesId . '/photos';
+                foreach ($request->file('photos') as $photo) {
+                    $path = $photo->store($dir, 'public');
+                    $imagePaths[] = 'storage/' . $path;
+                }
+            }
+
+            $site->images = $imagePaths;
         }
 
         // Merge social links
@@ -265,10 +314,13 @@ class DashboardController extends Controller
                 ->all();
         }
 
+        // Load settings once — all settings-related writes below share this array,
+        // then we flush it to the model at the end of this block.
+        $settings = $site->settings ?? [];
+
         // Save custom colour palette (in settings)
         if ($request->has('palette_primary')) {
             $primary  = $request->input('palette_primary', '');
-            $settings = $site->settings ?? [];
             if ($primary) {
                 $settings['palette'] = [
                     'primary'   => $primary,
@@ -277,7 +329,6 @@ class DashboardController extends Controller
             } else {
                 unset($settings['palette']);
             }
-            $site->settings = $settings;
         }
 
         // Handle logo upload
@@ -296,7 +347,6 @@ class DashboardController extends Controller
         // Handle header background (stored in settings)
         if ($request->has('header_bg_type')) {
             $bgType   = $request->input('header_bg_type', 'auto');
-            $settings = $site->settings ?? [];
 
             if ($bgType === 'auto') {
                 unset($settings['header_bg']);
@@ -329,14 +379,12 @@ class DashboardController extends Controller
                 ];
             }
 
-            $site->settings = $settings;
         }
 
         // Handle favicon (stored in settings)
         if ($request->has('favicon_type')) {
             $faviconType = $request->input('favicon_type');
             $placesId    = $site->places_id ?? 'default';
-            $settings    = $site->settings ?? [];
 
             if ($faviconType === 'clear') {
                 unset($settings['favicon_path']);
@@ -355,15 +403,16 @@ class DashboardController extends Controller
                 }
             } elseif ($faviconType === 'initials') {
                 $name    = $site->business_name ?? 'Business';
-                $primary = ($site->settings ?? [])['palette']['primary'] ?? '#1e293b';
+                $primary = $settings['palette']['primary'] ?? '#1e293b';
                 $generated = $this->generateFaviconFromInitials($name, $primary, $placesId);
                 if ($generated) {
                     $settings['favicon_path'] = Storage::disk('public')->url($generated);
                 }
             }
-
-            $site->settings = $settings;
         }
+
+        // Flush all settings changes in one write
+        $site->settings = $settings;
 
         // Save services list
         if ($request->has('services')) {

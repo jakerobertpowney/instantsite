@@ -6,10 +6,12 @@ use App\Http\Controllers\Admin\GenerateDashboardDescriptionController;
 use App\Http\Controllers\Admin\SubmissionsController;
 use App\Http\Controllers\Api\StockPhotoController;
 use App\Http\Controllers\BillingController;
+use App\Http\Controllers\ClaimController;
 use App\Http\Controllers\HelpController;
 use App\Http\Controllers\PreviewController;
 use App\Http\Controllers\SiteController;
 use App\Models\Site;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -229,6 +231,35 @@ XML;
         'Content-Type' => 'application/xml; charset=UTF-8',
     ]);
 })->name('sitemap');
+
+// ─── Claim (marketing mailer landing pages) ───────────────────────────────────
+// Proxy route: serves Google Places photos on-the-fly for the claim preview.
+// The encoded segment is a base64url-encoded Places photo resource name.
+Route::get('claim-photo/{encoded}', function (string $encoded) {
+    // Restore stripped = padding before decoding
+    $padded = str_pad($encoded, strlen($encoded) + (4 - strlen($encoded) % 4) % 4, '=');
+    $name   = base64_decode(strtr($padded, '-_', '+/'));
+
+    // Fetch from Google Places API and follow the redirect to the CDN URL
+    $response = Http::withHeaders(['X-Goog-Api-Key' => env('GOOGLE_API_KEY')])
+        ->withoutRedirecting()
+        ->get("https://places.googleapis.com/v1/{$name}/media", ['maxWidthPx' => 1200]);
+
+    $location = $response->header('Location');
+
+    if (! $location) {
+        // Fallback — redirect to a generic placeholder
+        return redirect()->away('https://placehold.co/1200x800/e2e8f0/94a3b8?text=Photo');
+    }
+
+    return redirect()->away($location);
+})->where('encoded', '[A-Za-z0-9_\-]+')->name('claim.photo');
+
+Route::get('claim/dismissed', [ClaimController::class, 'dismissed'])->name('claim.dismissed');
+Route::get('claim/{placesId}', [ClaimController::class, 'show'])->name('claim.show');
+Route::post('claim/{placesId}/claim', [ClaimController::class, 'claim'])->name('claim.start');
+Route::delete('claim/{placesId}', [ClaimController::class, 'dismiss'])->name('claim.dismiss');
+
 
 Route::get('setup/new', [PreviewController::class, 'create'])->name('preview.create');
 Route::post('setup/new', [PreviewController::class, 'storeBlank'])->name('preview.storeBlank');
