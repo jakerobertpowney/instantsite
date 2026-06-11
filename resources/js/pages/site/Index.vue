@@ -101,6 +101,12 @@ const headerBg = computed(() => props.data?.settings?.header_bg ?? null);
 const heroStyle = computed<Record<string, string>>(() => {
     const bg = headerBg.value;
 
+    if (bg?.type === 'none') {
+        return {
+            background: `linear-gradient(135deg, ${palette.value.primary} 0%, ${palette.value.secondary} 100%)`,
+        };
+    }
+
     if (bg?.type === 'color' && bg.value) {
         return { backgroundColor: bg.value };
     }
@@ -309,7 +315,6 @@ onMounted(() => {
                     :heading="servicesHeading"
                     :cta-label="servicesCtaLabel"
                     :cta-link="servicesCtaLink"
-                    :phone-number="props.data?.phone ?? ''"
                 />
 
             </div>

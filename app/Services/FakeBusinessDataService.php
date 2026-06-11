@@ -49,10 +49,6 @@ class FakeBusinessDataService
             $data['opening_hours'] = $this->fakeOpeningHours();
         }
 
-        if (empty($data['images'])) {
-            $data['images'] = $this->fakeImages($seed);
-        }
-
         if (empty($data['phone'])) {
             $data['phone'] = $this->fakeUkPhone();
         }
@@ -206,22 +202,6 @@ PROMPT;
             ['day' => 'Friday',    'open' => '09:00', 'close' => '17:00', 'closed' => false],
             ['day' => 'Saturday',  'open' => '09:00', 'close' => '13:00', 'closed' => false],
         ];
-    }
-
-    /**
-     * Return paths for the claim-photo proxy route.
-     * Format: claim-photo/{base64UrlEncodedSeed}-{index}
-     * The proxy route will use picsum.photos seeded images.
-     */
-    private function fakeImages(string $seed): array
-    {
-        $images = [];
-        for ($i = 1; $i <= 6; $i++) {
-            // Use picsum with a seeded hash so images are consistent per business
-            $hash = substr(md5($seed . $i), 0, 8);
-            $images[] = "https://picsum.photos/seed/{$hash}/1200/800";
-        }
-        return $images;
     }
 
     private function fakeUkPhone(): string

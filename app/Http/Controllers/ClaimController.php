@@ -31,6 +31,15 @@ class ClaimController extends Controller
         // Fill any missing fields with convincing fake data (AI description is cached internally)
         $data = $fakeService->fill($data, $placesId);
 
+        // Inject booking link from CSV data as a quick-link button
+        if ($marketing->booking_appointment_link) {
+            $data['quick_links'] = [
+                ['label' => 'Book Appointment', 'link' => $marketing->booking_appointment_link],
+            ];
+        }
+
+        $data['settings'] = ['header_bg' => ['type' => 'none']];
+
         $data['components'] = [
             'header'        => ['enabled' => true],
             'description'   => ['enabled' => true],
@@ -130,6 +139,7 @@ class ClaimController extends Controller
             'socials'           => [],
             'quick_links'       => [],
             'logo_path'         => null,
+            'contact_email'     => 'preview@321sites.com',
         ];
     }
 }

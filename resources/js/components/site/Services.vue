@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { computed } from 'vue';
-import { Phone } from 'lucide-vue-next';
 import { formatPrice } from '@/lib/currencies';
 
 interface Service {
@@ -18,7 +17,6 @@ const props = defineProps({
     heading:        { type: String,  default: 'Our Services' },
     ctaLabel:       { type: String,  default: '' },
     ctaLink:        { type: String,  default: '' },
-    phoneNumber:    { type: String,  default: '' },
 });
 
 const featuredServices = computed(() =>
@@ -32,7 +30,7 @@ const standardServices = computed(() =>
 const hasServices = computed(() => props.services.length > 0);
 
 const showCta = computed(() =>
-    (props.ctaLabel && props.ctaLink) || props.phoneNumber
+    props.ctaLabel && props.ctaLink
 );
 </script>
 
@@ -132,15 +130,6 @@ const showCta = computed(() =>
                 style="background-color: var(--site-primary); color: var(--site-primary-fg)"
             >
                 {{ ctaLabel }}
-            </a>
-            <a
-                v-else-if="phoneNumber"
-                :href="'tel:' + phoneNumber"
-                class="inline-flex items-center justify-center gap-2 rounded-full px-6 py-3 text-sm font-semibold shadow-sm transition-opacity hover:opacity-90"
-                style="background-color: var(--site-primary); color: var(--site-primary-fg)"
-            >
-                <Phone class="h-4 w-4" />
-                Call for a quote
             </a>
         </div>
 

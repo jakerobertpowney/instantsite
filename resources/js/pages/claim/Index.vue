@@ -1,7 +1,8 @@
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, reactive, computed } from 'vue';
 import { router } from '@inertiajs/vue3';
 import SiteIndex from '@/pages/site/Index.vue';
+import { COLOUR_THEMES } from '@/lib/palette';
 import {
     AlertDialog,
     AlertDialogAction,
@@ -20,6 +21,28 @@ const props = defineProps<{
     metaTitle: string;
     hasPreviewData: boolean;
 }>();
+
+// Local reactive copy so palette changes re-render SiteIndex without mutating props
+const localData = reactive({ ...props.data, settings: { ...(props.data.settings as Record<string, unknown> ?? {}), header_bg: { type: 'none' } } });
+
+const selectedThemeId = ref<string | null>(null);
+const paletteOpen = ref(false);
+
+const currentPrimary = computed(() => {
+    const p = (localData.settings as Record<string, unknown>)?.palette as Record<string, string> | undefined;
+    return p?.primary ?? '#1e293b';
+});
+
+function selectTheme(themeId: string) {
+    const theme = COLOUR_THEMES.find(t => t.id === themeId);
+    if (!theme) return;
+    selectedThemeId.value = themeId;
+    (localData.settings as Record<string, unknown>).palette = {
+        primary: theme.palette.primary,
+        secondary: theme.palette.secondary,
+    };
+    paletteOpen.value = false;
+}
 
 const showDismissDialog = ref(false);
 const claiming = ref(false);
@@ -53,26 +76,78 @@ function handleDismiss() {
                   d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
         </svg>
         <p class="text-xs text-amber-800">
-            <span class="font-semibold">This is a preview.</span>
-            Some content like services and reviews is example data.
-            The contact form and other advanced features are available on our
-            <span class="font-semibold">premium plan</span> — claim your site to find out more.
+            <span class="font-semibold">Your free website is ready.</span>
+            Services and reviews are examples — claim it to add your real content.
         </p>
     </div>
 
     <!-- Extra bottom padding so content isn't hidden behind the sticky footer -->
     <div class="pb-28">
         <SiteIndex
-            :data="data"
-            :is-premium="false"
+            :data="localData"
+            :is-premium="true"
             :meta-title="metaTitle"
-            :meta-description="(data.description as string) ?? ''"
+            :meta-description="(localData.description as string) ?? ''"
             :site-url="''"
             :canonical-url="''"
             :sitemap-url="null"
             :is-owner="false"
             :dashboard-url="''"
         />
+    </div>
+
+    <!-- ── Floating palette picker ────────────────────────────────────────────── -->
+    <div class="fixed right-4 z-[9990]" style="bottom: 88px">
+        <!-- Expanded swatches panel -->
+        <Transition
+            enter-active-class="transition ease-out duration-150"
+            enter-from-class="opacity-0 translate-y-2"
+            enter-to-class="opacity-100 translate-y-0"
+            leave-active-class="transition ease-in duration-100"
+            leave-from-class="opacity-100 translate-y-0"
+            leave-to-class="opacity-0 translate-y-2"
+        >
+            <div
+                v-if="paletteOpen"
+                class="absolute bottom-full right-0 mb-2 w-56 bg-white rounded-2xl shadow-xl border border-gray-100 p-3"
+            >
+                <p class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2.5 px-0.5">Choose a colour</p>
+                <div class="grid grid-cols-4 gap-2">
+                    <button
+                        v-for="theme in COLOUR_THEMES"
+                        :key="theme.id"
+                        type="button"
+                        class="flex flex-col items-center gap-1 group"
+                        :title="theme.name"
+                        @click="selectTheme(theme.id)"
+                    >
+                        <span
+                            class="w-9 h-9 rounded-full border-2 transition-transform group-hover:scale-110 flex items-center justify-center"
+                            :style="{ backgroundColor: theme.palette.primary }"
+                            :class="selectedThemeId === theme.id ? 'border-gray-900 scale-110' : 'border-transparent'"
+                        >
+                            <svg v-if="selectedThemeId === theme.id" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+                            </svg>
+                        </span>
+                        <span class="text-[10px] text-gray-500 leading-tight text-center">{{ theme.name }}</span>
+                    </button>
+                </div>
+            </div>
+        </Transition>
+
+        <!-- Pill toggle button -->
+        <button
+            type="button"
+            class="flex items-center gap-2 bg-white border border-gray-200 shadow-md rounded-full pl-1.5 pr-3.5 py-1.5 text-sm font-medium text-gray-700 hover:shadow-lg transition-shadow"
+            @click="paletteOpen = !paletteOpen"
+        >
+            <span
+                class="w-5 h-5 rounded-full border border-white/40 shadow-sm flex-shrink-0"
+                :style="{ backgroundColor: currentPrimary }"
+            />
+            Pick a style
+        </button>
     </div>
 
     <!-- ── Sticky claim footer ──────────────────────────────────────────────── -->
@@ -115,7 +190,7 @@ function handleDismiss() {
                         <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
                         <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
                     </svg>
-                    {{ claiming ? 'Starting…' : 'Claim my site' }}
+                    {{ claiming ? 'Starting…' : 'Claim and edit' }}
                 </button>
             </div>
         </div>
