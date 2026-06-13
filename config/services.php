@@ -42,6 +42,10 @@ return [
     // ── Domain provider OAuth / API ────────────────────────────────────────────
     // Register a Cloudflare OAuth app at: https://dash.cloudflare.com/profile/api-tokens
     // Set the redirect URI to: {APP_URL}/dashboard/domain/cloudflare/callback
+    'stannp' => [
+        'key' => env('STANNP_API_KEY'),
+    ],
+
     'cloudflare' => [
         'client_id'     => env('CLOUDFLARE_CLIENT_ID'),
         'client_secret' => env('CLOUDFLARE_CLIENT_SECRET'),

@@ -20,6 +20,12 @@ class MarketingSite extends Model
         'website',
         'booking_appointment_link',
         'status',
+        'stannp_id',
+        'stannp_sent_at',
+    ];
+
+    protected $casts = [
+        'stannp_sent_at' => 'datetime',
     ];
 
     public function isPending(): bool
