@@ -259,6 +259,7 @@ Route::get('claim/dismissed', [ClaimController::class, 'dismissed'])->name('clai
 Route::get('claim/{placesId}', [ClaimController::class, 'show'])->name('claim.show');
 Route::post('claim/{placesId}/claim', [ClaimController::class, 'claim'])->name('claim.start');
 Route::delete('claim/{placesId}', [ClaimController::class, 'dismiss'])->name('claim.dismiss');
+Route::get('claim/{placesId}/dismiss', [ClaimController::class, 'dismiss'])->name('claim.dismiss.get');
 
 
 Route::get('setup/new', [PreviewController::class, 'create'])->name('preview.create');
