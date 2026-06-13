@@ -20,6 +20,7 @@ const props = defineProps<{
     businessName: string;
     metaTitle: string;
     hasPreviewData: boolean;
+    captureMode?: boolean;
 }>();
 
 // Local reactive copy so palette changes re-render SiteIndex without mutating props
@@ -68,7 +69,7 @@ function handleDismiss() {
 <template>
     <!-- ── Preview data notice ────────────────────────────────────────────────── -->
     <div
-        v-if="hasPreviewData"
+        v-if="hasPreviewData && !captureMode"
         class="sticky top-0 z-[9998] bg-amber-50 border-b border-amber-200 px-4 py-2.5 flex items-center justify-center gap-2 text-center"
     >
         <svg class="w-4 h-4 text-amber-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -82,7 +83,7 @@ function handleDismiss() {
     </div>
 
     <!-- Extra bottom padding so content isn't hidden behind the sticky footer -->
-    <div class="pb-28">
+    <div :class="captureMode ? '' : 'pb-28'">
         <SiteIndex
             :data="localData"
             :is-premium="true"
@@ -97,7 +98,7 @@ function handleDismiss() {
     </div>
 
     <!-- ── Floating palette picker ────────────────────────────────────────────── -->
-    <div class="fixed right-4 z-[9990]" style="bottom: 88px">
+    <div v-if="!captureMode" class="fixed right-4 z-[9990]" style="bottom: 88px">
         <!-- Expanded swatches panel -->
         <Transition
             enter-active-class="transition ease-out duration-150"
@@ -151,7 +152,7 @@ function handleDismiss() {
     </div>
 
     <!-- ── Sticky claim footer ──────────────────────────────────────────────── -->
-    <div class="fixed bottom-0 left-0 right-0 z-[9999] bg-white border-t border-gray-200 shadow-[0_-4px_24px_rgba(0,0,0,0.08)]">
+    <div v-if="!captureMode" class="fixed bottom-0 left-0 right-0 z-[9999] bg-white border-t border-gray-200 shadow-[0_-4px_24px_rgba(0,0,0,0.08)]">
         <div class="max-w-5xl mx-auto px-4 py-4 flex flex-col sm:flex-row items-center justify-between gap-3">
             <!-- Left: message -->
             <div class="flex items-center gap-3 text-center sm:text-left">

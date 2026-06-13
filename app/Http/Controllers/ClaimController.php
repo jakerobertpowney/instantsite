@@ -6,6 +6,7 @@ use App\Models\MarketingSite;
 use App\Services\FakeBusinessDataService;
 use App\Traits\ParsesPlacesData;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -14,8 +15,10 @@ class ClaimController extends Controller
 {
     use ParsesPlacesData;
 
-    public function show(string $placesId, FakeBusinessDataService $fakeService): Response|RedirectResponse
+    public function show(string $placesId, FakeBusinessDataService $fakeService, Request $request): Response|RedirectResponse
     {
+        $captureMode = $request->boolean('capture');
+
         $marketing = MarketingSite::where('places_id', $placesId)->first();
 
         if (! $marketing || $marketing->status === 'dismissed') {
@@ -59,6 +62,7 @@ class ClaimController extends Controller
             'businessName'    => $businessName,
             'metaTitle'       => $businessName . ' — Claim Your Free Website',
             'hasPreviewData'  => true,
+            'captureMode'     => $captureMode,
         ]);
     }
 
