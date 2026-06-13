@@ -4,6 +4,7 @@ namespace App\Console\Commands;
 
 use App\Models\MarketingSite;
 use Illuminate\Console\Command;
+use Illuminate\Support\Str;
 
 class ExportStannpCsv extends Command
 {
@@ -54,6 +55,9 @@ class ExportStannpCsv extends Command
             'qr_url',           // QR code image — links to preview_url
             'short_url',        // "or type:" text on the back
             'preview_url',      // full claim URL (also QR destination)
+            'business_name',    // e.g. "Hair Candy"
+            'city',             // e.g. "Stockport"
+            'subdomain',        // e.g. "hair-candy.321sites.com"
         ]);
 
         foreach ($sites as $site) {
@@ -65,17 +69,22 @@ class ExportStannpCsv extends Command
             $qrUrl = 'https://api.qrserver.com/v1/create-qr-code/?size=300x300&margin=10&data='
                 . urlencode($previewUrl);
 
+            // Text template variables used in the Stannp variable-data template
+            $businessName = $site->business_name ?? '';
+            $city         = $site->city ?? '';
+            $subdomain    = Str::slug($businessName) . '.' . config('app.domain', '321sites.com');
+
             // Split business name into firstname/lastname for Stannp's address block.
             // Stannp doesn't have a dedicated "company" field on postcards — first+last
             // prints as a single line so we put the full name in firstname and leave
             // lastname blank.
-            $firstname = $site->business_name ?? '';
+            $firstname = $businessName;
             $lastname  = '';
 
             // Address lines
             $address1 = $site->street ?? '';
             $address2 = $site->county ?? '';
-            $town     = $site->city   ?? '';
+            $town     = $city;
             $postcode = $site->postal_code ?? '';
             $country  = strtoupper($site->country ?? 'GB');
 
@@ -96,6 +105,9 @@ class ExportStannpCsv extends Command
                 $qrUrl,
                 $shortUrl,
                 $previewUrl,
+                $businessName,
+                $city,
+                $subdomain,
             ]);
         }
 

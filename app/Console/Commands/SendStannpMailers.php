@@ -6,6 +6,7 @@ use App\Models\MarketingSite;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 
 class SendStannpMailers extends Command
 {
@@ -93,6 +94,10 @@ class SendStannpMailers extends Command
             $qrUrl         = 'https://api.qrserver.com/v1/create-qr-code/'
                 . '?size=300x300&margin=10&data=' . urlencode($previewUrl);
 
+            $businessName = $site->business_name ?? '';
+            $city         = $site->city ?? '';
+            $subdomain    = Str::slug($businessName) . '.' . config('app.domain', '321sites.com');
+
             // ── DRY RUN: just list records ────────────────────────────────
             if ($dryRun) {
                 $this->newLine();
@@ -103,8 +108,8 @@ class SendStannpMailers extends Command
 
             // ── Generate PDFs (shared by --preview and send modes) ────────
             try {
-                $frontPdf = $this->generatePage($script, 'front', $screenshotUrl, $qrUrl, $shortUrl);
-                $backPdf  = $this->generatePage($script, 'back',  $screenshotUrl, $qrUrl, $shortUrl);
+                $frontPdf = $this->generatePage($script, 'front', $businessName, $city, $subdomain, $screenshotUrl, $qrUrl, $shortUrl);
+                $backPdf  = $this->generatePage($script, 'back',  $businessName, $city, $subdomain, $screenshotUrl, $qrUrl, $shortUrl);
             } catch (\RuntimeException $e) {
                 $this->newLine();
                 $this->warn("  PDF generation failed for {$site->places_id}: {$e->getMessage()}");
@@ -214,6 +219,9 @@ class SendStannpMailers extends Command
     private function generatePage(
         string $script,
         string $side,
+        string $businessName,
+        string $city,
+        string $subdomain,
         string $screenshotUrl,
         string $qrUrl,
         string $shortUrl
@@ -222,6 +230,9 @@ class SendStannpMailers extends Command
             'python3',
             escapeshellarg($script),
             '--side=' . escapeshellarg($side),
+            '--business-name=' . escapeshellarg($businessName),
+            '--city=' . escapeshellarg($city),
+            '--subdomain=' . escapeshellarg($subdomain),
             '--screenshot-url=' . escapeshellarg($screenshotUrl),
             '--qr-url=' . escapeshellarg($qrUrl),
             '--short-url=' . escapeshellarg($shortUrl),
