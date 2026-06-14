@@ -108,6 +108,14 @@ def yt(top_mm):
     return PAGE_H - top_mm * mm
 
 
+def set_char_space(c, value):
+    """setCharSpace is public in newer ReportLab; fall back to the internal attr."""
+    try:
+        c.setCharSpace(value)
+    except AttributeError:
+        c._charSpace = value
+
+
 def slugify(name):
     s = name.lower().replace("&", "and")
     s = re.sub(r"[^a-z0-9]+", "-", s)
@@ -140,7 +148,7 @@ def draw_paragraph(c, text, x_mm, top_mm, max_w_mm, font, size_pt,
         text = text.upper()
     c.setFillColorRGB(*color)
     if letter_spacing_mm:
-        c.setCharSpace(letter_spacing_mm * mm)
+        set_char_space(c, letter_spacing_mm * mm)
     lines = wrap_text(text, font, size_pt, max_w_mm * mm)
     line_h_mm = (size_pt / mm) * line_mult
     ascent_mm = (size_pt / mm) * 0.80  # cap top -> baseline offset (approx)
@@ -149,7 +157,7 @@ def draw_paragraph(c, text, x_mm, top_mm, max_w_mm, font, size_pt,
         baseline_top = top_mm + ascent_mm + i * line_h_mm
         c.drawString(x_mm * mm, yt(baseline_top), line)
     if letter_spacing_mm:
-        c.setCharSpace(0)
+        set_char_space(c, 0)
     return top_mm + len(lines) * line_h_mm
 
 
@@ -254,13 +262,13 @@ def draw_front(c, business_name, site_domain, screenshot_path, qr_path,
     headline = u"We built %s a website." % business_name
     size_pt, lines = fit_headline(headline, INNER_W / mm)
     c.setFillColorRGB(*INK)
-    c.setCharSpace(-0.02 * (size_pt / mm) * mm)  # ~ -0.02em tracking
+    set_char_space(c, -0.02 * (size_pt / mm) * mm)  # ~ -0.02em tracking
     c.setFont(FONT_BOLD, size_pt)
     line_h_mm = (size_pt / mm) * 1.07
     ascent_mm = (size_pt / mm) * 0.80
     for i, line in enumerate(lines):
         c.drawString(PAD, yt(13 + ascent_mm + i * line_h_mm), line)
-    c.setCharSpace(0)
+    set_char_space(c, 0)
     head_bottom = 13 + len(lines) * line_h_mm
 
     # Subhead
@@ -404,17 +412,17 @@ def draw_back(c, business_name, city, short_url, qr_path, guides=False):
     top = 58
     c.setFont(FONT_BOLD, 3.6 * mm)
     c.setFillColorRGB(*BLUE)
-    c.setCharSpace(0.14 * 3.6 * mm)
+    set_char_space(c, 0.14 * 3.6 * mm)
     c.drawString(PAD, yt(top + 3.6 * 0.80), eyebrow.upper())
-    c.setCharSpace(0)
+    set_char_space(c, 0)
 
     # Title
     title_top = top + 3.6 + 2.6
     c.setFont(FONT_BOLD, 11.3 * mm)
     c.setFillColorRGB(*INK)
-    c.setCharSpace(-0.015 * 11.3 * mm)
+    set_char_space(c, -0.015 * 11.3 * mm)
     c.drawString(PAD, yt(title_top + 11.3 * 0.80), u"It\u2019s free to claim")
-    c.setCharSpace(0)
+    set_char_space(c, 0)
     title_bottom = title_top + 11.3 * 1.0
 
     # Body
