@@ -12,7 +12,7 @@ Merge fields (per recipient) map 1:1 to your existing CLI args:
     --business-name   "Hair Candy"                       (front headline + back body)
     --city            "Stockport"                        (back eyebrow)
     --subdomain       "hair-candy"                        (front browser URL -> {sub}.321sites.com)
-    --short-url       "321sites.com/p/ab3xk"             (back "or type:" line)
+    --short-url       "hair-candy.321sites.com"           (back "or type:" line)
     --screenshot-url  https://321sites.com/screenshots/{places_id}.png
     --qr-url          https://api.qrserver.com/v1/create-qr-code/?...&data=...
 
@@ -53,6 +53,12 @@ SAFE   = 8 * mm            # 5 mm safe zone -> 3 mm bleed + 5 mm = 8 mm inset
 PAD    = 13 * mm           # content padding from the physical (bleed) edge
 PAD_BOTTOM = 11 * mm
 INNER_W = PAGE_W - 2 * PAD  # 128 mm usable column width
+
+# Front browser + QR footer dimensions (shared so layout math stays in sync)
+BROWSER_BAR_H = 11.3 * mm    # chrome bar height
+BROWSER_SHOT_H = 92 * mm     # screenshot window height
+FRONT_QR_MM = 16             # QR image size in the front footer
+FRONT_QR_PAD_MM = 2.3        # padding inside the front QR card
 
 # ----------------------------------------------------------------------------
 # Palette (matches the HTML proof exactly)
@@ -108,14 +114,6 @@ def yt(top_mm):
     return PAGE_H - top_mm * mm
 
 
-def set_char_space(c, value):
-    """setCharSpace is public in newer ReportLab; fall back to the internal attr."""
-    try:
-        c.setCharSpace(value)
-    except AttributeError:
-        c._charSpace = value
-
-
 def slugify(name):
     s = name.lower().replace("&", "and")
     s = re.sub(r"[^a-z0-9]+", "-", s)
@@ -138,6 +136,18 @@ def wrap_text(text, font, size_pt, max_w_pt):
     return lines
 
 
+def draw_tracked(c, x, y, text, font, size_pt, tracking_pt=0.0, color=None):
+    """Draw a single left-aligned line with letter-spacing."""
+    if color is not None:
+        c.setFillColorRGB(*color)
+    to = c.beginText(x, y)
+    to.setFont(font, size_pt)
+    if tracking_pt:
+        to.setCharSpace(tracking_pt)
+    to.textLine(text)
+    c.drawText(to)
+
+
 def draw_paragraph(c, text, x_mm, top_mm, max_w_mm, font, size_pt,
                    color, line_mult=1.2, letter_spacing_mm=0.0, upper=False):
     """
@@ -147,17 +157,14 @@ def draw_paragraph(c, text, x_mm, top_mm, max_w_mm, font, size_pt,
     if upper:
         text = text.upper()
     c.setFillColorRGB(*color)
-    if letter_spacing_mm:
-        set_char_space(c, letter_spacing_mm * mm)
+    tracking_pt = letter_spacing_mm * mm
     lines = wrap_text(text, font, size_pt, max_w_mm * mm)
     line_h_mm = (size_pt / mm) * line_mult
     ascent_mm = (size_pt / mm) * 0.80  # cap top -> baseline offset (approx)
-    c.setFont(font, size_pt)
     for i, line in enumerate(lines):
         baseline_top = top_mm + ascent_mm + i * line_h_mm
-        c.drawString(x_mm * mm, yt(baseline_top), line)
-    if letter_spacing_mm:
-        set_char_space(c, 0)
+        draw_tracked(c, x_mm * mm, yt(baseline_top), line, font, size_pt,
+                     tracking_pt)
     return top_mm + len(lines) * line_h_mm
 
 
@@ -179,25 +186,30 @@ def fit_headline(text, max_w_mm):
     return 6.6 * mm, wrap_text(text, FONT_BOLD, 6.6 * mm, max_w_mm * mm)
 
 
+def fit_text_size(text, font, preferred_pt, max_w_pt, min_pt):
+    """Shrink font size until text fits max_w_pt. Returns the chosen size in pt."""
+    size = preferred_pt
+    while pdfmetrics.stringWidth(text, font, size) > max_w_pt and size > min_pt:
+        size -= 0.25 * mm
+    return max(size, min_pt)
+
+
 def draw_logo(c, right_x_mm, center_top_mm, digit_mm):
     """
-    Right-aligned '3 • 2 • 1 sites' lockup. right_x_mm is the right edge,
+    Right-aligned '3 * 2 * 1' lockup. right_x_mm is the right edge,
     center_top_mm is the vertical centre (top-down mm).
     """
     size = digit_mm * mm
     dot_d = digit_mm * 0.28 * mm
     sp = digit_mm * 0.30 * mm           # spacing around each dot
-    sites_gap = digit_mm * 0.30 * mm
-    w_digit = pdfmetrics.stringWidth("3", FONT_BOLD, size)  # all digits equal-ish
+    w_digit = pdfmetrics.stringWidth("3", FONT_BOLD, size)
     w2 = pdfmetrics.stringWidth("2", FONT_BOLD, size)
     w1 = pdfmetrics.stringWidth("1", FONT_BOLD, size)
-    w_sites = pdfmetrics.stringWidth("sites", FONT_SEMI, size)
-    total = (w_digit + sp + dot_d + sp + w2 + sp + dot_d + sp + w1
-             + sites_gap + w_sites)
+    total = (w_digit + sp + dot_d + sp + w2 + sp + dot_d + sp + w1)
     x = right_x_mm * mm - total
-    baseline = center_top_mm + digit_mm * 0.33   # centre caps on center_top_mm
+    baseline = center_top_mm + digit_mm * 0.33
     by = yt(baseline)
-    dot_cy = yt(center_top_mm - digit_mm * 0.05)  # dots sit ~middle, slight drop
+    dot_cy = yt(center_top_mm - digit_mm * 0.05)
 
     def digit(ch, w):
         nonlocal x
@@ -214,17 +226,11 @@ def draw_logo(c, right_x_mm, center_top_mm, digit_mm):
         x += dot_d + sp
 
     digit("3", w_digit); dot(); digit("2", w2); dot(); digit("1", w1)
-    x += sites_gap
-    c.setFont(FONT_SEMI, size)
-    c.setFillColorRGB(*INK)
-    c.drawString(x, by, "sites")
 
 
 def draw_qr_box(c, left_mm, bottom_mm, qr_mm, pad_mm, qr_path):
     """White bordered card with the QR centred inside. bottom_mm is top-down."""
     box = qr_mm + 2 * pad_mm
-    # roundRect wants (x, y_bottom, w, h) in canvas coords; bottom_mm is the
-    # lower edge of the card in top-down mm.
     x = left_mm * mm
     y = yt(bottom_mm)
     c.setFillColorRGB(*WHITE)
@@ -258,28 +264,31 @@ def draw_front(c, business_name, site_domain, screenshot_path, qr_path,
     c.setFillColorRGB(*BG_FRONT)
     c.rect(0, 0, PAGE_W, PAGE_H, stroke=0, fill=1)
 
-    # Headline: "We built {name} a website."
-    headline = u"We built %s a website." % business_name
+    # Headline
+    headline = u"We built %s a free website." % business_name
     size_pt, lines = fit_headline(headline, INNER_W / mm)
-    c.setFillColorRGB(*INK)
-    set_char_space(c, -0.02 * (size_pt / mm) * mm)  # ~ -0.02em tracking
-    c.setFont(FONT_BOLD, size_pt)
+    tracking = -0.02 * size_pt
     line_h_mm = (size_pt / mm) * 1.07
     ascent_mm = (size_pt / mm) * 0.80
     for i, line in enumerate(lines):
-        c.drawString(PAD, yt(13 + ascent_mm + i * line_h_mm), line)
-    set_char_space(c, 0)
+        draw_tracked(c, PAD, yt(13 + ascent_mm + i * line_h_mm), line,
+                     FONT_BOLD, size_pt, tracking, INK)
     head_bottom = 13 + len(lines) * line_h_mm
 
-    # Subhead
+    # Subhead — wrapped to two lines across the full column width
     sub_top = head_bottom + 3.5
-    c.setFont(FONT_REG, 5 * mm)
-    c.setFillColorRGB(*SLATE)
-    c.drawString(PAD, yt(sub_top + (5 * 0.80)), u"It\u2019s free to claim.")
-    sub_bottom = sub_top + 5 * 1.0
+    sub_size = 5 * mm
+    sub_text = u"Everything a small business site needs. Nothing it doesn't. Free to claim."
+    sub_bottom = draw_paragraph(c, sub_text, PAD / mm, sub_top,
+                                INNER_W / mm, FONT_REG, sub_size, SLATE,
+                                line_mult=1.35)
 
-    # Browser mockup (rotated -2deg), top-down anchor
-    browser_top = sub_bottom + 7
+    # Browser mockup — vertically centred between the subhead and the QR footer
+    browser_h_mm = (BROWSER_BAR_H + BROWSER_SHOT_H) / mm
+    footer_box_mm = FRONT_QR_MM + 2 * FRONT_QR_PAD_MM
+    footer_top_td = (PAGE_H - PAD_BOTTOM) / mm - footer_box_mm
+    gap = (footer_top_td - sub_bottom - browser_h_mm) / 2
+    browser_top = sub_bottom + max(gap, 4)  # at least 4 mm gap
     draw_browser(c, browser_top, site_domain, screenshot_path)
 
     # Footer pinned to the bottom
@@ -292,20 +301,20 @@ def draw_front(c, business_name, site_domain, screenshot_path, qr_path,
 def draw_browser(c, top_mm, site_domain, screenshot_path):
     """Rotated browser card: chrome bar + URL pill + clipped screenshot."""
     bw = INNER_W                      # browser width (pt)
-    bar_h = 11.3 * mm
-    shot_h = 92 * mm
+    bar_h = BROWSER_BAR_H
+    shot_h = BROWSER_SHOT_H
     bh = bar_h + shot_h               # browser height (pt)
     radius = 3.3 * mm
 
-    cx = PAGE_W / 2                    # rotate about the column centre
+    cx = PAGE_W / 2
     cy = yt(top_mm) - bh / 2
 
     c.saveState()
     c.translate(cx, cy)
     c.rotate(-2)
-    c.translate(-bw / 2, -bh / 2)     # local origin at browser bottom-left
+    c.translate(-bw / 2, -bh / 2)
 
-    # Soft drop shadow (stacked translucent rounded rects)
+    # Soft drop shadow
     for i, (off, a) in enumerate([(2.4, 0.05), (1.4, 0.07), (0.6, 0.08)]):
         c.saveState()
         c.setFillColorRGB(0.07, 0.10, 0.16)
@@ -317,7 +326,7 @@ def draw_browser(c, top_mm, site_domain, screenshot_path):
                     stroke=0, fill=1)
         c.restoreState()
 
-    # Clip everything to the rounded outer shape
+    # Clip to rounded outer shape
     c.saveState()
     p = c.beginPath()
     p.roundRect(0, 0, bw, bh, radius)
@@ -327,19 +336,18 @@ def draw_browser(c, top_mm, site_domain, screenshot_path):
     c.setFillColorRGB(*WHITE)
     c.rect(0, 0, bw, bh, stroke=0, fill=1)
 
-    # Screenshot window (below the chrome bar) — crop the top ~2.14%
+    # Screenshot window
     if screenshot_path and os.path.isfile(screenshot_path):
         img = ImageReader(screenshot_path)
         iw, ih = img.getSize()
-        disp_h = bw * (ih / float(iw))         # height if drawn at full width
-        shift = disp_h * 0.0214                # CSS margin-top: -2.14%
-        win_top = bh - bar_h                   # top of the 92mm window (local y)
-        # Place image so its top sits 'shift' above the window top, then clip.
+        disp_h = bw * (ih / float(iw))
+        shift = disp_h * 0.0214
+        win_top = bh - bar_h
         c.saveState()
         wp = c.beginPath()
         wp.rect(0, win_top - shot_h, bw, shot_h)
         c.clipPath(wp, stroke=0, fill=0)
-        img_y = win_top + shift - disp_h       # bottom of the image
+        img_y = win_top + shift - disp_h
         c.drawImage(img, 0, img_y, bw, disp_h, mask="auto")
         c.restoreState()
     else:
@@ -356,6 +364,7 @@ def draw_browser(c, top_mm, site_domain, screenshot_path):
     for _ in range(3):
         c.circle(dx + dot_d / 2, bar_cy, dot_d / 2, stroke=0, fill=1)
         dx += dot_d + 2 * mm
+
     # URL pill
     pill_x = dx + 1.3 * mm
     pill_r_edge = bw - 4 * mm
@@ -364,12 +373,18 @@ def draw_browser(c, top_mm, site_domain, screenshot_path):
     c.setFillColorRGB(*WHITE)
     c.roundRect(pill_x, bar_cy - pill_h / 2, pill_w, pill_h, pill_h / 2,
                 stroke=0, fill=1)
-    c.setFont(FONT_MED, 3.5 * mm)
+
+    # Auto-size URL text to always fit inside the pill
+    url_size = fit_text_size(site_domain, FONT_MED,
+                             preferred_pt=3.5 * mm,
+                             max_w_pt=pill_w - 4 * mm,
+                             min_pt=1.8 * mm)
+    c.setFont(FONT_MED, url_size)
     c.setFillColorRGB(*GREY_374)
-    c.drawCentredString(pill_x + pill_w / 2, bar_cy - 3.5 * mm * 0.36, site_domain)
+    c.drawCentredString(pill_x + pill_w / 2, bar_cy - url_size * 0.36, site_domain)
     c.restoreState()  # end clip
 
-    # Hairline border on top
+    # Hairline border
     c.setStrokeColorRGB(0.89, 0.90, 0.92)
     c.setLineWidth(0.35 * mm)
     c.roundRect(0, 0, bw, bh, radius, stroke=1, fill=0)
@@ -377,99 +392,102 @@ def draw_browser(c, top_mm, site_domain, screenshot_path):
 
 
 def draw_front_footer(c, qr_path):
-    qr_mm, pad_mm = 16, 2.3
+    qr_mm, pad_mm = FRONT_QR_MM, FRONT_QR_PAD_MM
     box = qr_mm + 2 * pad_mm                 # 20.6 mm
-    # footer bottom edge sits PAD_BOTTOM from the page bottom -> top-down mm:
     box_bottom_td = (PAGE_H - PAD_BOTTOM) / mm
     draw_qr_box(c, PAD / mm, box_bottom_td, qr_mm, pad_mm, qr_path)
 
-    # Text column
     tx = (PAD + box * mm) / mm + 4.6
     center_td = box_bottom_td - box / 2
     c.setFont(FONT_SEMI, 4.3 * mm)
     c.setFillColorRGB(*INK)
-    c.drawString(tx * mm, yt(center_td - 0.6), "See your site live")
+    c.drawString(tx * mm, yt(center_td - 0.6), "Preview your website")
     c.setFont(FONT_REG, 3.7 * mm)
     c.setFillColorRGB(*GREY_6B)
     c.drawString(tx * mm, yt(center_td + 4.0), "Scan, or turn over for details")
 
-    # Logo, right-aligned
-    draw_logo(c, (PAGE_W - PAD) / mm, center_td, 5.0)
+    draw_logo(c, (PAGE_W - PAD) / mm, box_bottom_td - 5.0 * 0.33, 5.0)
 
 
 # ----------------------------------------------------------------------------
 # BACK
 # ----------------------------------------------------------------------------
 def draw_back(c, business_name, city, short_url, qr_path, guides=False):
-    # White background
     c.setFillColorRGB(*WHITE)
     c.rect(0, 0, PAGE_W, PAGE_H, stroke=0, fill=1)
 
-    # NB: top 56 mm is the Stannp address box + indicia — intentionally BLANK.
+    # Top ~56 mm intentionally blank for Stannp address block / indicia strip.
 
-    # Eyebrow "BUSINESS · CITY"
-    eyebrow = u"%s \u00b7 %s" % (business_name, city)
+    # Eyebrow
+    eyebrow = u"%s · %s" % (business_name, city)
     top = 58
-    c.setFont(FONT_BOLD, 3.6 * mm)
-    c.setFillColorRGB(*BLUE)
-    set_char_space(c, 0.14 * 3.6 * mm)
-    c.drawString(PAD, yt(top + 3.6 * 0.80), eyebrow.upper())
-    set_char_space(c, 0)
+    draw_tracked(c, PAD, yt(top + 3.6 * 0.80), eyebrow.upper(),
+                 FONT_BOLD, 3.6 * mm, 0.14 * 3.6 * mm, BLUE)
 
     # Title
     title_top = top + 3.6 + 2.6
-    c.setFont(FONT_BOLD, 11.3 * mm)
-    c.setFillColorRGB(*INK)
-    set_char_space(c, -0.015 * 11.3 * mm)
-    c.drawString(PAD, yt(title_top + 11.3 * 0.80), u"It\u2019s free to claim")
-    set_char_space(c, 0)
+    draw_tracked(c, PAD, yt(title_top + 11.3 * 0.80), u"It’s free to claim",
+                 FONT_BOLD, 11.3 * mm, -0.015 * 11.3 * mm, INK)
     title_bottom = title_top + 11.3 * 1.0
 
-    # Body
-    body = (u"We\u2019ve built a free one-page website for %s \u2014 your photos, "
-            u"services, opening hours and reviews, all in one link your customers "
-            u"can find. Scan the code to see it. If you like it, claiming it takes "
-            u"two minutes. If not, bin this card \u2014 no hard feelings." % business_name)
-    body_bottom = draw_paragraph(c, body, PAD / mm, title_bottom + 4, 128,
+    # Pre-calculate footer position so we can centre the QR row in the remaining space
+    foot_bottom_td = (PAGE_H - PAD_BOTTOM) / mm
+    disclaimer = (u"This preview was built from publicly available business "
+                  u"information. Not interested? Scan and tap ‘Not interested’ "
+                  u"to remove it. 321 Sites Ltd · hello@321sites.com")
+    disc_lines = wrap_text(disclaimer, FONT_REG, 2.9 * mm, INNER_W * 0.85)
+    disc_line_h = 2.9 * 1.5
+    disc_top_td = foot_bottom_td - (len(disc_lines) - 1) * disc_line_h
+
+    # Body — full column width
+    body = (u"We’ve built a free one-page website for %s — your photos, "
+            u"services, opening hours, reviews and contact information, all pulled "
+            u"together and ready for you. Scan to preview it. If you want it, claiming takes "
+            u"five minutes. If not, bin this card — no hard feelings." % business_name)
+    body_bottom = draw_paragraph(c, body, PAD / mm, title_bottom + 4, INNER_W / mm,
                                  FONT_REG, 4.5 * mm, GREY_374, line_mult=1.6)
 
-    # QR row
+    # QR row — centred in the space between body text and disclaimer
     qr_mm, pad_mm = 32, 4
-    box = qr_mm + 2 * pad_mm                 # 40 mm
-    row_top = body_bottom + 6
-    box_bottom_td = row_top + box
+    box = qr_mm + 2 * pad_mm          # 40 mm
+    gap_center = body_bottom + (disc_top_td - body_bottom) / 2
+    row_top = gap_center - box / 2
+    box_bottom_td = gap_center + box / 2
     draw_qr_box(c, PAD / mm, box_bottom_td, qr_mm, pad_mm, qr_path)
 
-    # Text column beside QR (vertically centred on the box)
+    # "or type:" column — right of QR box
     tx = (PAD + box * mm) / mm + 5.3
-    center_td = row_top + box / 2
+    center_td = gap_center
+
+    # Available width for the URL text (tx to right content edge)
+    url_max_w_pt = (PAGE_W / mm - PAD / mm - tx) * mm
+
     c.setFont(FONT_REG, 3.6 * mm)
     c.setFillColorRGB(*GREY_6B)
     c.drawString(tx * mm, yt(center_td - 7.0), "or type:")
-    c.setFont(FONT_BOLD, 5.6 * mm)
+
+    # Auto-size short_url to always fit inside the available column width
+    url_size = fit_text_size(short_url, FONT_BOLD,
+                             preferred_pt=5.6 * mm,
+                             max_w_pt=url_max_w_pt,
+                             min_pt=3.0 * mm)
+    c.setFont(FONT_BOLD, url_size)
     c.setFillColorRGB(*INK)
     c.drawString(tx * mm, yt(center_td - 1.2), short_url)
+
     c.setFont(FONT_REG, 3.6 * mm)
     c.setFillColorRGB(*GREY_6B)
-    c.drawString(tx * mm, yt(center_td + 5.0), u"Free to claim \u00b7 No card needed")
+    c.drawString(tx * mm, yt(center_td + 5.0), u"Free to claim · No card needed")
     c.drawString(tx * mm, yt(center_td + 9.4),
-                 u"Premium features from \u00a39.99/mo")
+                 u"Upgrade anytime from £9.99/mo")
 
-    # Footer (disclaimer + logo) anchored to the bottom
-    foot_bottom_td = (PAGE_H - PAD_BOTTOM) / mm
-    disclaimer = (u"This preview was built from publicly available business "
-                  u"information. Not interested? Scan and tap \u2018Not interested\u2019 "
-                  u"to remove it. 321 Sites Ltd \u00b7 hello@321sites.com")
-    # Draw disclaimer growing upward from the bottom: wrap first, then place.
-    lines = wrap_text(disclaimer, FONT_REG, 2.9 * mm, 108 * mm)
-    line_h = 2.9 * 1.5
+    # Footer — disclaimer + logo, anchored to bottom
     c.setFont(FONT_REG, 2.9 * mm)
     c.setFillColorRGB(*GREY_9C)
-    start_top = foot_bottom_td - len(lines) * line_h + 2.9 * 0.80
-    for i, line in enumerate(lines):
-        c.drawString(PAD, yt(start_top + i * line_h), line)
+    for i, line in enumerate(disc_lines):
+        c.drawString(PAD, yt(disc_top_td + i * disc_line_h), line)
 
-    draw_logo(c, (PAGE_W - PAD) / mm, foot_bottom_td - 2.2, 4.3)
+    draw_logo(c, (PAGE_W - PAD) / mm, foot_bottom_td - 5.0 * 0.33, 5.0)
 
     if guides:
         draw_guides(c)
@@ -494,7 +512,7 @@ def render_back(path, business_name, city, short_url, qr_path, guides=False):
 
 
 def fetch_image(url, suffix=".png"):
-    """Download a URL to a temp file and return its path (mirrors your helper)."""
+    """Download a URL to a temp file and return its path."""
     fd, path = tempfile.mkstemp(suffix=suffix)
     os.close(fd)
     req = urllib.request.Request(url, headers={"User-Agent": "321sites-postcard/1.0"})
@@ -511,14 +529,12 @@ def main():
     ap.add_argument("--business-name", required=True)
     ap.add_argument("--city", required=True)
     ap.add_argument("--subdomain", default=None,
-                    help="Site subdomain; defaults to a slug of the business name.")
+                    help="Site subdomain slug; script appends .321sites.com for the browser URL.")
     ap.add_argument("--short-url", required=True)
-    # image sources — either a URL (fetched) or a local path
     ap.add_argument("--screenshot-url", default=None)
     ap.add_argument("--screenshot-path", default=None)
     ap.add_argument("--qr-url", default=None)
     ap.add_argument("--qr-path", default=None)
-    # output
     ap.add_argument("--front-out", default="postcard-front.pdf")
     ap.add_argument("--back-out", default="postcard-back.pdf")
     ap.add_argument("--font-dir", default=os.environ.get("INTER_FONT_DIR", "fonts"))

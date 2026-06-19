@@ -3,11 +3,13 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Str;
 
 class MarketingSite extends Model
 {
     protected $fillable = [
         'places_id',
+        'unique_code',
         'business_name',
         'formatted_address',
         'street',
@@ -27,6 +29,19 @@ class MarketingSite extends Model
     protected $casts = [
         'stannp_sent_at' => 'datetime',
     ];
+
+    protected static function booted(): void
+    {
+        static::creating(function (MarketingSite $site) {
+            if (empty($site->unique_code)) {
+                do {
+                    $code = strtolower(Str::random(6));
+                } while (static::where('unique_code', $code)->exists());
+
+                $site->unique_code = $code;
+            }
+        });
+    }
 
     public function isPending(): bool
     {

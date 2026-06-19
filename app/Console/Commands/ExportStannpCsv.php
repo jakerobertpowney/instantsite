@@ -63,7 +63,9 @@ class ExportStannpCsv extends Command
         foreach ($sites as $site) {
             $previewUrl    = "{$appUrl}/claim/{$site->places_id}";
             $screenshotUrl = "https://321sites.com/screenshots/{$site->places_id}.png";
-            $shortUrl      = "321sites.com/claim/{$site->places_id}";
+            $shortUrl      = $site->unique_code
+                ? '321sites.com/go/' . $site->unique_code
+                : '321sites.com/claim/' . $site->places_id;
 
             // QR code via qrserver.com — Stannp fetches this as an image at print time
             $qrUrl = 'https://api.qrserver.com/v1/create-qr-code/?size=300x300&margin=10&data='

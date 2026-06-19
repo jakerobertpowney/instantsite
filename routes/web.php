@@ -255,6 +255,13 @@ Route::get('claim-photo/{encoded}', function (string $encoded) {
     return redirect()->away($location);
 })->where('encoded', '[A-Za-z0-9_\-]+')->name('claim.photo');
 
+// ─── Short-code redirect (postcard QR / "or type:" URLs) ─────────────────────
+// e.g. 321sites.com/go/ab3xk7 → /claim/{places_id}
+Route::get('go/{code}', function (string $code) {
+    $site = \App\Models\MarketingSite::where('unique_code', $code)->firstOrFail();
+    return redirect()->route('claim.show', $site->places_id);
+})->where('code', '[a-zA-Z0-9]+')->name('marketing.go');
+
 Route::get('claim/dismissed', [ClaimController::class, 'dismissed'])->name('claim.dismissed');
 Route::get('claim/{placesId}', [ClaimController::class, 'show'])->name('claim.show');
 Route::post('claim/{placesId}/claim', [ClaimController::class, 'claim'])->name('claim.start');

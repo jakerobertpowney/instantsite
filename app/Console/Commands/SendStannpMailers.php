@@ -6,48 +6,39 @@ use App\Models\MarketingSite;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Str;
 
 class SendStannpMailers extends Command
 {
     protected $signature = 'marketing:send-stannp
                             {--status=pending   : Filter by status (pending, or any other value)}
                             {--limit=           : Max number of records to send in this run}
-                            {--test             : Stannp test mode — generates a proof PDF but never dispatches and never charges; outputs the Stannp proof URL}
-                            {--preview          : Generate PDFs locally and save to storage/app/mailer-previews/ — no API calls}
-                            {--dry-run          : List which records would be sent, without generating PDFs or calling Stannp}';
+                            {--batch-dir=       : Directory containing pre-generated PDFs (default: storage/app/postcard-batches)}
+                            {--test             : Stannp test mode — proof PDF only, never charges}
+                            {--dry-run          : List which records would be sent without calling Stannp}';
 
-    protected $description = 'Generate personalised postcard PDFs and dispatch them via the Stannp API';
+    protected $description = 'Dispatch pre-generated postcard PDFs via the Stannp API';
 
     /** Stannp EU endpoint (used for UK mailings) */
     private const STANNP_API = 'https://api-eu1.stannp.com/v1/postcards/create';
-
-    /** Path to the Python postcard generator, relative to base_path() */
-    private const SCRIPT_PATH = 'scripts/postcard_template.py';
 
     public function handle(): int
     {
         $status  = $this->option('status');
         $limit   = $this->option('limit');
         $test    = (bool) $this->option('test');
-        $preview = (bool) $this->option('preview');
         $dryRun  = (bool) $this->option('dry-run');
+        $batchDir = rtrim($this->option('batch-dir') ?: storage_path('app/postcard-batches'), '/');
 
         $apiKey = config('services.stannp.key');
 
-        if (! $apiKey && ! $dryRun && ! $preview) {
+        if (! $apiKey && ! $dryRun) {
             $this->error('STANNP_API_KEY is not set in your environment.');
-            return self::FAILURE;
-        }
-
-        $script = base_path(self::SCRIPT_PATH);
-        if (! file_exists($script)) {
-            $this->error("Postcard generator not found at: {$script}");
             return self::FAILURE;
         }
 
         $query = MarketingSite::query()
             ->where('status', $status)
+            ->whereNull('website')
             ->whereNotNull('street')
             ->whereNotNull('postal_code')
             ->whereNull('stannp_id'); // skip already-dispatched records
@@ -64,21 +55,14 @@ class SendStannpMailers extends Command
         }
 
         $mode = match (true) {
-            $dryRun  => 'DRY RUN',
-            $preview => 'LOCAL PREVIEW',
-            $test    => 'TEST MODE',
-            default  => 'LIVE',
+            $dryRun => 'DRY RUN',
+            $test   => 'TEST MODE',
+            default => 'LIVE',
         };
 
         $this->info("Processing {$sites->count()} postcard(s) [{$mode}]…");
-
-        if ($preview) {
-            $previewDir = storage_path('app/mailer-previews');
-            if (! is_dir($previewDir)) {
-                mkdir($previewDir, 0755, true);
-            }
-            $this->line("Saving PDFs to: {$previewDir}");
-        }
+        $this->line("Reading PDFs from: {$batchDir}");
+        $this->newLine();
 
         $bar     = $this->output->createProgressBar($sites->count());
         $sent    = 0;
@@ -87,57 +71,32 @@ class SendStannpMailers extends Command
         foreach ($sites as $site) {
             $bar->advance();
 
-            $appUrl        = rtrim(config('app.url'), '/');
-            $previewUrl    = "{$appUrl}/claim/{$site->places_id}";
-            $screenshotUrl = "https://321sites.com/screenshots/{$site->places_id}.png";
-            $shortUrl      = "321sites.com/claim/{$site->places_id}";
-            $qrUrl         = 'https://api.qrserver.com/v1/create-qr-code/'
-                . '?size=400x400&margin=10&data=' . urlencode($previewUrl);
-
             $businessName = $site->business_name ?? '';
             $city         = $site->city ?? '';
-            // Script takes the slug only; it appends .321sites.com internally
-            $subdomain    = Str::slug($businessName);
+            $folder       = $batchDir . '/' . $this->batchFolderName($site->id, $businessName);
+            $frontPath    = $folder . '/front.pdf';
+            $backPath     = $folder . '/back.pdf';
 
             // ── DRY RUN: just list records ────────────────────────────────
             if ($dryRun) {
+                $exists = file_exists($frontPath) && file_exists($backPath) ? '✓' : '✗ missing PDFs';
                 $this->newLine();
-                $this->line("  → {$site->business_name} | {$site->street}, {$site->postal_code}");
+                $this->line("  [{$exists}] {$businessName} | {$site->street}, {$site->postal_code}");
+                $this->line("      {$folder}");
                 $sent++;
                 continue;
             }
 
-            // ── Generate both PDFs in one Python invocation ───────────────
-            $frontPath = sys_get_temp_dir() . '/stannp-front-' . uniqid() . '.pdf';
-            $backPath  = sys_get_temp_dir() . '/stannp-back-'  . uniqid() . '.pdf';
-
-            try {
-                $this->runGenerator(
-                    $script, $businessName, $city, $subdomain,
-                    $screenshotUrl, $qrUrl, $shortUrl,
-                    $frontPath, $backPath
-                );
-            } catch (\RuntimeException $e) {
+            // ── Check pre-generated PDFs exist ────────────────────────────
+            if (! file_exists($frontPath) || ! file_exists($backPath)) {
                 $this->newLine();
-                $this->warn("  PDF generation failed for {$site->places_id}: {$e->getMessage()}");
-                Log::error('SendStannpMailers: PDF generation failed', [
+                $this->warn("  Skipping {$businessName} — PDFs not found at {$folder}");
+                $this->warn("  Run: php artisan marketing:generate-postcards first.");
+                Log::warning('SendStannpMailers: pre-generated PDFs missing', [
                     'places_id' => $site->places_id,
-                    'error'     => $e->getMessage(),
+                    'folder'    => $folder,
                 ]);
                 $skipped++;
-                continue;
-            }
-
-            // ── LOCAL PREVIEW: copy to storage and stop ───────────────────
-            if ($preview) {
-                $slug = preg_replace('/[^a-z0-9_-]/i', '_', $site->places_id);
-                rename($frontPath, "{$previewDir}/{$slug}-front.pdf");
-                rename($backPath,  "{$previewDir}/{$slug}-back.pdf");
-                $this->newLine();
-                $this->line("  ✓ {$site->business_name}");
-                $this->line("      front → {$previewDir}/{$slug}-front.pdf");
-                $this->line("      back  → {$previewDir}/{$slug}-back.pdf");
-                $sent++;
                 continue;
             }
 
@@ -150,7 +109,8 @@ class SendStannpMailers extends Command
                     ->attach('back',  file_get_contents($backPath),  'back.pdf')
                     ->post(self::STANNP_API, [
                         'test'                => $test ? 'true' : 'false',
-                        'size'                => 'A5',
+                        'size'                => 'A5-PORT',
+                        'padding'             => 0,
                         'recipient[company]'  => $businessName,
                         'recipient[address1]' => $site->street ?? '',
                         'recipient[address2]' => $site->county ?? '',
@@ -176,7 +136,7 @@ class SendStannpMailers extends Command
 
                     if ($test && $proofUrl) {
                         $this->newLine();
-                        $this->line("  ✓ {$site->business_name} — proof: {$proofUrl}");
+                        $this->line("  ✓ {$businessName} — proof: {$proofUrl}");
                     }
                 } else {
                     $error = $body['error'] ?? $response->body();
@@ -196,19 +156,14 @@ class SendStannpMailers extends Command
                     'error'     => $e->getMessage(),
                 ]);
                 $skipped++;
-            } finally {
-                @unlink($frontPath);
-                @unlink($backPath);
             }
         }
 
         $bar->finish();
         $this->newLine();
 
-        if ($preview) {
-            $this->info("Saved {$sent} preview PDF pair(s) to storage/app/mailer-previews/");
-        } elseif ($dryRun) {
-            $this->info("Dry run complete — {$sent} record(s) would be sent.");
+        if ($dryRun) {
+            $this->info("Dry run complete — {$sent} record(s) listed.");
         } else {
             $this->info("Done. Sent: {$sent} | Skipped/failed: {$skipped}.");
             if (! $test && $sent > 0) {
@@ -220,75 +175,18 @@ class SendStannpMailers extends Command
     }
 
     /**
-     * Invoke postcard_template.py to generate both PDF pages in one call.
-     * The script writes to --front-out and --back-out file paths.
-     *
-     * @throws \RuntimeException
+     * Reproduce the folder name that generate_batch.py uses:
+     *   {id:04d}_{slugify(business_name)}
+     * where slugify() lowercases, replaces & with "and", then collapses
+     * non-alphanumeric runs to hyphens.
      */
-    private function runGenerator(
-        string $script,
-        string $businessName,
-        string $city,
-        string $subdomain,
-        string $screenshotUrl,
-        string $qrUrl,
-        string $shortUrl,
-        string $frontOut,
-        string $backOut
-    ): void {
-        $fontDir = base_path('fonts');
+    private function batchFolderName(int $id, string $businessName): string
+    {
+        $slug = strtolower(str_replace('&', 'and', $businessName));
+        $slug = preg_replace('/[^a-z0-9]+/', '-', $slug);
+        $slug = trim($slug, '-');
 
-        $args = [
-            'python3',
-            escapeshellarg($script),
-            '--business-name=' . escapeshellarg($businessName),
-            '--city=' . escapeshellarg($city),
-            '--subdomain=' . escapeshellarg($subdomain),
-            '--screenshot-url=' . escapeshellarg($screenshotUrl),
-            '--qr-url=' . escapeshellarg($qrUrl),
-            '--short-url=' . escapeshellarg($shortUrl),
-            '--front-out=' . escapeshellarg($frontOut),
-            '--back-out=' . escapeshellarg($backOut),
-        ];
-
-        if (is_dir($fontDir)) {
-            $args[] = '--font-dir=' . escapeshellarg($fontDir);
-        }
-
-        $cmd = implode(' ', $args);
-
-        $descriptors = [
-            0 => ['pipe', 'r'],
-            1 => ['pipe', 'w'],
-            2 => ['pipe', 'w'],
-        ];
-
-        $proc = proc_open($cmd, $descriptors, $pipes);
-
-        if (! is_resource($proc)) {
-            throw new \RuntimeException('Failed to spawn Python process');
-        }
-
-        fclose($pipes[0]);
-        $stdout   = stream_get_contents($pipes[1]);
-        $stderr   = stream_get_contents($pipes[2]);
-        fclose($pipes[1]);
-        fclose($pipes[2]);
-        $exitCode = proc_close($proc);
-
-        if ($exitCode !== 0) {
-            throw new \RuntimeException(
-                "postcard_template.py exited {$exitCode}" .
-                ($stderr ? ": {$stderr}" : '') .
-                ($stdout ? " [stdout: {$stdout}]" : '')
-            );
-        }
-
-        if (! file_exists($frontOut) || ! file_exists($backOut)) {
-            throw new \RuntimeException(
-                'postcard_template.py exited 0 but output PDFs are missing'
-            );
-        }
+        return sprintf('%04d_%s', $id, $slug);
     }
 
     private function normaliseCountry(string $country): string
