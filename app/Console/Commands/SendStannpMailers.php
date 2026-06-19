@@ -129,7 +129,7 @@ class SendStannpMailers extends Command
                     $site->update([
                         'stannp_id'      => (string) $stannpId,
                         'stannp_sent_at' => now(),
-                        'status'         => $test ? $site->status : 'sent',
+                        'status'         => $test ? $site->status : 'mailed',
                     ]);
 
                     $sent++;
