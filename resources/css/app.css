@@ -118,6 +118,27 @@
     }
 }
 
+/*
+  Force the light colour scheme by default so browsers (notably Safari) render
+  form controls with dark text on a light field. Without this, an OS-level dark
+  preference makes Safari paint <input>/<textarea> text white — invisible on the
+  app's light backgrounds. The `.dark` class opts specific pages back into dark.
+*/
+html {
+    color-scheme: light;
+}
+html.dark {
+    color-scheme: dark;
+}
+
+/* Belt-and-braces: ensure form controls always have an explicit, visible text
+   colour rather than relying on inheritance, which Safari handles inconsistently. */
+input,
+textarea,
+select {
+    color: inherit;
+}
+
 /* Prevent horizontal overflow / scroll on all pages */
 html {
     overflow-x: hidden;

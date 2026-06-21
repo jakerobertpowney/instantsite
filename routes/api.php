@@ -12,6 +12,10 @@ Route::post('search/discover', [SearchController::class, 'discover'])->name('sea
 
 Route::get('search/discover/{batchId}/poll', [SearchController::class, 'poll'])->name('search.discover.poll');
 
+// Blank ("start from scratch") flow — no saved temp site yet, so generation
+// reads the business details from the request body. Registered before the
+// {id} variant so the bare path matches first.
+Route::post('setup/generate-description', GenerateDescriptionController::class)->name('setup.generate-description.blank');
 Route::post('setup/{id}/generate-description', GenerateDescriptionController::class)->name('setup.generate-description');
 
 // Google photo inspiration — fetched live, never stored

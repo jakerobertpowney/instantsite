@@ -649,8 +649,8 @@ const sections: { id: SectionId; label: string; hint: string; icon: any }[] = [
                 v-for="sec in sections"
                 :key="sec.id"
                 type="button"
-                class="flex items-center gap-3.5 px-4 py-3.5 rounded-lg border-none border-l-3 border-l-transparent bg-transparent cursor-pointer text-left w-full transition-colors hover:bg-brand-panel"
-                :class="{ 'bg-brand-blue-soft border-l-brand-blue': activeSec === sec.id }"
+                class="flex items-center gap-3.5 px-4 py-3.5 rounded-lg border-l-4 cursor-pointer text-left w-full transition-colors"
+                :class="activeSec === sec.id ? 'bg-brand-blue-soft border-brand-blue' : 'border-transparent bg-transparent hover:bg-brand-panel'"
                 @click="activeSec = sec.id"
             >
                 <component :is="sec.icon" class="w-5.5 h-5.5 text-brand-ink-soft flex-shrink-0" :class="{ 'text-brand-blue': activeSec === sec.id }" />

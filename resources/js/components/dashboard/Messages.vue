@@ -116,8 +116,8 @@ const unreadCount = computed(() => list.value.filter((s) => !s.read_at).length);
 
                 <!-- Detail panel -->
                 <div
-                    class="bg-white dark:bg-slate-900 border-[1.5px] border-[#dde1e8] dark:border-slate-700 rounded-lg min-h-96 hidden sm:block"
-                    :class="{ 'block sm:hidden': selectedId !== null }"
+                    class="bg-white dark:bg-slate-900 border-[1.5px] border-[#dde1e8] dark:border-slate-700 rounded-lg min-h-96"
+                    :class="selectedId !== null ? 'block' : 'hidden sm:block'"
                 >
                     <!-- No message selected -->
                     <div v-if="!selected" class="flex flex-col items-center justify-center gap-3 h-96 text-slate-500 dark:text-slate-400 text-sm">

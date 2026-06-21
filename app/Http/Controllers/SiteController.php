@@ -131,7 +131,11 @@ XML;
             'preferred_contact_time' => $preferredContactTime ?: null,
         ]);
 
-        Mail::to($contactEmail)->send(new ContactFormMail(
+        // Notify the site owner at their account email address (where they log in),
+        // falling back to the site's public contact email if the owner is missing.
+        $notifyEmail = $site->user?->email ?? $contactEmail;
+
+        Mail::to($notifyEmail)->send(new ContactFormMail(
             senderEmail: $request->input('email'),
             mailSubject: $request->input('subject'),
             messageBody: $request->input('message'),

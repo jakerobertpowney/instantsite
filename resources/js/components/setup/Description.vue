@@ -17,12 +17,25 @@ const googleDescription = computed<string | null>(() =>
 const isGenerating = ref(false);
 const generateError = ref<string | null>(null);
 
+// The AI generator works in both flows: with a saved temporary site (standard
+// Google flow) it reads from that record; in the blank flow it generates from
+// the business details the user has typed into the wizard.
+const canGenerate = computed<boolean>(() => !!siteId || !!form.business_name);
+
 const generate = async () => {
-    if (!siteId) return;
+    if (!canGenerate.value) return;
     isGenerating.value = true;
     generateError.value = null;
     try {
-        const response = await axios.post(generateDescriptionRoute.url(siteId));
+        const response = siteId
+            ? await axios.post(generateDescriptionRoute.url(siteId))
+            : await axios.post('/api/setup/generate-description', {
+                  business_name:     form.business_name,
+                  business_type:     form.business_type,
+                  formatted_address: form.formatted_address,
+                  phone:             form.phone,
+                  description:       form.description,
+              });
         form.description = response.data.description ?? '';
     } catch (err: any) {
         generateError.value =
@@ -84,7 +97,7 @@ const showGooglePrefill = computed(() =>
 
         <!-- Write for me button -->
         <Button
-            v-if="siteId"
+            v-if="canGenerate"
             type="button"
             variant="outline"
             class="w-full gap-2 h-11"

@@ -16,7 +16,12 @@ return [
     */
 
     'ssr' => [
-        'enabled' => true,
+        // SSR requires the separate Inertia SSR server to be running
+        // (`php artisan inertia:start-ssr`, i.e. `composer dev:ssr`). The plain
+        // `composer dev` workflow does NOT start it, so leaving SSR on there
+        // makes full page loads (e.g. refreshing /dashboard) fail while
+        // client-side navigation still works. Gate it behind an env flag.
+        'enabled' => env('INERTIA_SSR_ENABLED', false),
         'url' => 'http://127.0.0.1:13714',
         // 'bundle' => base_path('bootstrap/ssr/ssr.mjs'),
     ],

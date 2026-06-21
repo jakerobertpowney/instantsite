@@ -11,20 +11,24 @@ use Illuminate\Support\Facades\Log;
 
 class GenerateDescriptionController extends Controller
 {
-    public function __invoke(Request $request, string $id): JsonResponse
+    public function __invoke(Request $request, ?string $id = null): JsonResponse
     {
-        $site = TemporarySite::where('places_id', $id)->latest()->first();
+        // Standard flow: pull context from the saved temporary site.
+        // Blank ("start from scratch") flow: there is no saved record yet, so
+        // fall back to the business details the user has typed into the wizard.
+        $site = $id ? TemporarySite::where('places_id', $id)->latest()->first() : null;
 
-        if (!$site) {
-            return response()->json(['error' => 'Site not found'], 404);
+        // Build a context string from the temp site columns, falling back to the
+        // request body so generation also works before any record exists.
+        $name        = $site->business_name     ?? $request->input('business_name');
+        $type        = $site->business_type     ?? $request->input('business_type');
+        $address     = $site->formatted_address ?? $request->input('formatted_address');
+        $googleDesc  = $site->description        ?? $request->input('description');
+        $phone       = $site->phone             ?? $request->input('phone');
+
+        if (!$name && !$type) {
+            return response()->json(['error' => 'Add your business name first, then try again.'], 422);
         }
-
-        // Build a context string from individual columns
-        $name        = $site->business_name;
-        $type        = $site->business_type;
-        $address     = $site->formatted_address;
-        $googleDesc  = $site->description;
-        $phone       = $site->phone;
 
         $contextParts = array_filter([
             $name    ? "Business name: {$name}"    : null,

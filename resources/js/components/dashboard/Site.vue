@@ -5,7 +5,7 @@ import { inject, ref, computed, watch } from 'vue';
 import {
     Loader2, CheckCircle2, XCircle, RefreshCw,
     Sparkles, Link2, Unlink, Lock, Unlock,
-    Image, Upload, X,
+    Image, Upload, X, ExternalLink,
 } from 'lucide-vue-next';
 import { toast } from 'vue-sonner';
 import { Input } from '@/components/ui/input';
@@ -301,12 +301,12 @@ const providerLabel = computed(() => {
 
                     <!-- ── Free subdomain ─────────────────────────────────── -->
                     <label
-                        class="flex flex-col gap-0 p-5 border-2 border-brand-line rounded-[12px] cursor-pointer bg-brand-surface transition-all duration-100"
-                        :class="{ 'border-brand-blue bg-brand-blue-soft': form.domain_type === 'subdomain' }"
+                        class="flex flex-col gap-0 p-5 border-2 rounded-[12px] cursor-pointer transition-all duration-100"
+                        :class="form.domain_type === 'subdomain' ? 'border-brand-blue bg-brand-blue-soft' : 'border-brand-line bg-brand-surface'"
                         @click="form.domain_type = 'subdomain'"
                     >
                         <div class="flex items-start gap-3.5">
-                            <span class="w-[22px] h-[22px] rounded-full border-2 border-brand-line bg-brand-surface flex items-center justify-center flex-shrink-0 mt-0.5 transition-all duration-100" :class="{ 'border-brand-blue bg-brand-blue': form.domain_type === 'subdomain' }">
+                            <span class="w-[22px] h-[22px] rounded-full border-2 flex items-center justify-center flex-shrink-0 mt-0.5 transition-all duration-100" :class="form.domain_type === 'subdomain' ? 'border-brand-blue bg-brand-blue' : 'border-brand-line bg-brand-surface'">
                                 <span v-if="form.domain_type === 'subdomain'" class="w-2 h-2 rounded-full bg-white" />
                             </span>
                             <div>
@@ -332,15 +332,15 @@ const providerLabel = computed(() => {
 
                     <!-- ── Custom domain ──────────────────────────────────── -->
                     <label
-                        class="flex flex-col gap-0 p-5 border-2 border-brand-line rounded-[12px] cursor-pointer bg-brand-surface transition-all duration-100"
+                        class="flex flex-col gap-0 p-5 border-2 rounded-[12px] cursor-pointer transition-all duration-100"
                         :class="[
-                            { 'border-brand-blue bg-brand-blue-soft': form.domain_type === 'custom' },
+                            form.domain_type === 'custom' ? 'border-brand-blue bg-brand-blue-soft' : 'border-brand-line bg-brand-surface',
                             { 'opacity-55 cursor-not-allowed': !isPremium },
                         ]"
                         @click="isPremium && (form.domain_type = 'custom')"
                     >
                         <div class="flex items-start gap-3.5">
-                            <span class="w-[22px] h-[22px] rounded-full border-2 border-brand-line bg-brand-surface flex items-center justify-center flex-shrink-0 mt-0.5 transition-all duration-100" :class="{ 'border-brand-blue bg-brand-blue': form.domain_type === 'custom' }">
+                            <span class="w-[22px] h-[22px] rounded-full border-2 flex items-center justify-center flex-shrink-0 mt-0.5 transition-all duration-100" :class="form.domain_type === 'custom' ? 'border-brand-blue bg-brand-blue' : 'border-brand-line bg-brand-surface'">
                                 <span v-if="form.domain_type === 'custom'" class="w-2 h-2 rounded-full bg-white" />
                             </span>
                             <div>
@@ -368,6 +368,27 @@ const providerLabel = computed(() => {
                                 required
                             />
                             <p v-if="form.errors.custom_domain" class="text-sm text-brand-danger font-medium">{{ form.errors.custom_domain }}</p>
+
+                            <!-- Haven't got a domain yet? — buy one via GoDaddy -->
+                            <div class="flex flex-col gap-2.5 p-4 rounded-[12px] border-[1.5px] border-brand-line bg-brand-panel sm:flex-row sm:items-center sm:justify-between">
+                                <div class="flex items-start gap-3">
+                                    <span class="text-xl flex-shrink-0 leading-none">🌐</span>
+                                    <div>
+                                        <p class="text-[15px] font-bold text-brand-ink m-0">Haven't got one yet?</p>
+                                        <p class="text-sm text-brand-ink-soft m-0 leading-[1.5]">Buy your own web address from GoDaddy — most cost just a few pounds a year.</p>
+                                    </div>
+                                </div>
+                                <a
+                                    href="https://www.godaddy.com/en-uk/domains/domain-name-search"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    class="inline-flex items-center justify-center gap-2 h-11 px-4 flex-shrink-0 border-[1.5px] border-brand-blue rounded-[10px] bg-brand-blue text-white font-family-inherit text-[15px] font-semibold no-underline cursor-pointer transition-opacity duration-100 hover:opacity-90"
+                                    @click.stop
+                                >
+                                    Find a domain
+                                    <ExternalLink :size="16" />
+                                </a>
+                            </div>
 
                             <!-- Connected state -->
                             <template v-if="connectedProvider && dnsAutoConfigured">
@@ -524,31 +545,47 @@ const providerLabel = computed(() => {
                 <div class="text-[14px] text-brand-ink-soft mt-1 leading-[1.5]">Control who can see your site.</div>
             </div>
             <div class="p-7">
-                <button
-                    type="button"
-                    class="flex items-center gap-4 w-full p-5 border-2 border-brand-line rounded-[12px] bg-brand-surface cursor-pointer text-left transition-all duration-150 hover:border-brand-blue"
-                    :class="{ 'border-amber-400 bg-amber-50': form.is_private }"
-                    @click="form.is_private = !form.is_private"
-                    :aria-pressed="form.is_private"
-                >
-                    <span class="flex-shrink-0 text-brand-ink-soft" :class="{ 'text-amber-700': form.is_private }">
-                        <Lock v-if="form.is_private" :size="20" />
-                        <Unlock v-else :size="20" />
-                    </span>
-                    <span class="flex-1 flex flex-col gap-0.5">
-                        <span class="text-[15px] font-semibold text-brand-ink leading-[1.3]" :class="{ 'text-amber-800': form.is_private }">
-                            {{ form.is_private ? 'Private — only visible to you when logged in' : 'Public — anyone with the link can visit' }}
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3" role="radiogroup" aria-label="Site visibility">
+                    <!-- Public -->
+                    <button
+                        type="button"
+                        role="radio"
+                        :aria-checked="!form.is_private"
+                        class="flex items-start gap-3.5 p-5 border-2 rounded-[12px] cursor-pointer text-left transition-all duration-150"
+                        :class="!form.is_private ? 'border-brand-blue bg-brand-blue-soft' : 'border-brand-line bg-brand-surface hover:border-brand-blue'"
+                        @click="form.is_private = false"
+                    >
+                        <span class="w-[22px] h-[22px] rounded-full border-2 flex items-center justify-center flex-shrink-0 mt-0.5 transition-all duration-100" :class="!form.is_private ? 'border-brand-blue bg-brand-blue' : 'border-brand-line bg-brand-surface'">
+                            <span v-if="!form.is_private" class="w-2 h-2 rounded-full bg-white" />
                         </span>
-                        <span class="text-xs text-brand-ink-soft leading-[1.4]" :class="{ 'text-amber-700 opacity-80': form.is_private }">
-                            {{ form.is_private
-                                ? 'Visitors will be redirected to the login page. You can still view your site by logging in.'
-                                : 'Your site is accessible to everyone at its web address.' }}
+                        <span class="flex flex-col gap-0.5">
+                            <span class="flex items-center gap-1.5 text-[15px] font-semibold leading-[1.3]" :class="!form.is_private ? 'text-brand-blue' : 'text-brand-ink'">
+                                <Unlock :size="16" /> Public
+                            </span>
+                            <span class="text-xs text-brand-ink-soft leading-[1.4]">Anyone with the link can visit your site.</span>
                         </span>
-                    </span>
-                    <span class="flex-shrink-0 px-2.5 py-0.5 rounded-full text-xs font-bold bg-brand-panel text-brand-ink-soft border border-brand-line" :class="{ 'bg-amber-100 text-amber-800 border-amber-300': form.is_private }">
-                        {{ form.is_private ? 'Private' : 'Public' }}
-                    </span>
-                </button>
+                    </button>
+
+                    <!-- Private -->
+                    <button
+                        type="button"
+                        role="radio"
+                        :aria-checked="form.is_private"
+                        class="flex items-start gap-3.5 p-5 border-2 rounded-[12px] cursor-pointer text-left transition-all duration-150"
+                        :class="form.is_private ? 'border-amber-400 bg-amber-50' : 'border-brand-line bg-brand-surface hover:border-brand-blue'"
+                        @click="form.is_private = true"
+                    >
+                        <span class="w-[22px] h-[22px] rounded-full border-2 flex items-center justify-center flex-shrink-0 mt-0.5 transition-all duration-100" :class="form.is_private ? 'border-amber-500 bg-amber-500' : 'border-brand-line bg-brand-surface'">
+                            <span v-if="form.is_private" class="w-2 h-2 rounded-full bg-white" />
+                        </span>
+                        <span class="flex flex-col gap-0.5">
+                            <span class="flex items-center gap-1.5 text-[15px] font-semibold leading-[1.3]" :class="form.is_private ? 'text-amber-800' : 'text-brand-ink'">
+                                <Lock :size="16" /> Private
+                            </span>
+                            <span class="text-xs text-brand-ink-soft leading-[1.4]">Only visible to you when logged in. Visitors are sent to the login page.</span>
+                        </span>
+                    </button>
+                </div>
             </div>
         </div>
 
