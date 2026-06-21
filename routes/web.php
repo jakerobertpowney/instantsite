@@ -19,7 +19,7 @@ Route::domain('{domain}.' . env('APP_DOMAIN'))->group(function () {
    Route::get('/', [SiteController::class, 'index'])->name('site.index');
    Route::get('/sitemap.xml', [SiteController::class, 'sitemap'])->name('site.sitemap');
    Route::post('/contact', [SiteController::class, 'contact'])->name('site.contact');
-});
+})->where('domain', '[A-Za-z0-9]([A-Za-z0-9-]*[A-Za-z0-9])?');
 
 Route::get('/', function () {
     return Inertia::render('Welcome');
