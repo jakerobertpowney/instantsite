@@ -52,4 +52,14 @@ return [
         'redirect'      => env('CLOUDFLARE_REDIRECT_URI'),
     ],
 
+    // ── Ploi — automatic Let's Encrypt SSL for custom domains ───────────────────
+    // Generate an API token at: https://ploi.io/profile/api-keys
+    // server_id / site_id are the IDs of the server + site hosting this app in Ploi.
+    // When these are unset, SSL provisioning is skipped (e.g. local dev).
+    'ploi' => [
+        'token'     => env('PLOI_API_TOKEN'),
+        'server_id' => env('PLOI_SERVER_ID'),
+        'site_id'   => env('PLOI_SITE_ID'),
+    ],
+
 ];

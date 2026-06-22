@@ -2,10 +2,30 @@
 
 namespace App\Models;
 
+use App\Jobs\ProvisionCustomDomainSsl;
 use Illuminate\Database\Eloquent\Model;
 
 class Site extends Model
 {
+    /**
+     * Model event hooks.
+     */
+    protected static function booted(): void
+    {
+        // When a custom domain becomes verified, kick off SSL provisioning via
+        // Ploi. Fires for any code path that flips the flag through Eloquent.
+        static::updated(function (Site $site): void {
+            if (
+                $site->wasChanged('domain_verified')
+                && $site->domain_verified
+                && $site->domain_type === 'custom'
+                && filled($site->custom_domain)
+            ) {
+                ProvisionCustomDomainSsl::dispatch($site->id);
+            }
+        });
+    }
+
     /**
      * The attributes that are mass assignable.
      *
