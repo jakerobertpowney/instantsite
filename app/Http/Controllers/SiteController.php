@@ -196,9 +196,20 @@ XML;
 
     private function findSiteForDomain(string $domain): ?Site
     {
-        $bare = preg_replace('/^www\./i', '', $domain);
+        $domain = strtolower($domain);
+        $bare   = preg_replace('/^www\./i', '', $domain);
 
-        return Site::where('subdomain', $domain)->latest()->first()
+        // If we were handed a full subdomain host (e.g. "acme.321sites.com")
+        // rather than just the slug, peel off the app domain to get the slug.
+        // This keeps subdomains resolving even if the Route::domain group didn't
+        // match and the request fell through to the catch-all host handler.
+        $appDomain = config('app.domain') ?: parse_url(config('app.url'), PHP_URL_HOST);
+        $slug = ($appDomain && str_ends_with($domain, '.' . strtolower($appDomain)))
+            ? substr($domain, 0, -strlen('.' . $appDomain))
+            : null;
+
+        return ($slug ? Site::where('subdomain', $slug)->latest()->first() : null)
+            ?? Site::where('subdomain', $domain)->latest()->first()
             ?? Site::where('custom_domain', $domain)->where('domain_verified', true)->latest()->first()
             ?? Site::where('custom_domain', $bare)->where('domain_verified', true)->latest()->first();
     }
