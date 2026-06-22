@@ -16,20 +16,24 @@ use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
+// The app's root domain. Fall back to the APP_URL host so subdomain routing
+// keeps working even if config('app.domain') is empty (e.g. a stale config
+// cache that predates the app.domain key).
+$appDomain = config('app.domain') ?: parse_url(config('app.url'), PHP_URL_HOST);
+
 /**
  * Whether the given request host is the app's own domain (apex or www) rather
  * than a customer custom domain. Subdomains of the app domain are matched by
  * the Route::domain group below (registered first), so they never reach the
  * host-aware routes.
  */
-$isAppHost = static function (Request $request): bool {
-    $host      = $request->getHost();
-    $appDomain = config('app.domain');
+$isAppHost = static function (Request $request) use ($appDomain): bool {
+    $host = $request->getHost();
 
     return $host === $appDomain || $host === 'www.' . $appDomain;
 };
 
-Route::domain('{domain}.' . config('app.domain'))->group(function () {
+Route::domain('{domain}.' . $appDomain)->group(function () {
    Route::get('/', [SiteController::class, 'index'])->name('site.index');
    Route::get('/sitemap.xml', [SiteController::class, 'sitemap'])->name('site.sitemap');
    Route::post('/contact', [SiteController::class, 'contact'])->name('site.contact');
