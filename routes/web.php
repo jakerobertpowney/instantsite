@@ -10,6 +10,7 @@ use App\Http\Controllers\ClaimController;
 use App\Http\Controllers\HelpController;
 use App\Http\Controllers\PreviewController;
 use App\Http\Controllers\SiteController;
+use App\Http\Controllers\TlsCheckController;
 use App\Models\Site;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Route;
@@ -24,6 +25,12 @@ Route::domain('{domain}.' . config('app.domain'))->group(function () {
 Route::get('/', function () {
     return Inertia::render('Welcome');
 })->name('home');
+
+// ─── On-demand TLS authorization for Caddy ───────────────────────────────────
+// Caddy hits this before issuing a Let's Encrypt cert for a hostname. Returns
+// 200 only for hosts we actually serve (app domain, real subdomains, verified
+// custom domains), so unknown domains can't trigger certificate issuance.
+Route::get('internal/tls-check', TlsCheckController::class)->name('internal.tls-check');
 
 // ─── Demo contact form sink — returns success so the demo form shows "sent" ───
 // The demo route renders site/Index with :preview="false" on the bottom Contact

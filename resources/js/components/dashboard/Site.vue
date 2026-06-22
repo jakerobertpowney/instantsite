@@ -471,7 +471,7 @@ const providerLabel = computed(() => {
                                                     <CheckCircle2 v-if="check.ok" :size="16" class="text-brand-success flex-shrink-0" />
                                                     <XCircle      v-else          :size="16" class="text-brand-danger flex-shrink-0" />
                                                     <span class="font-mono text-xs">{{ check.record }}</span>
-                                                    <span class="text-brand-ink-soft">{{ check.ok ? 'pointing correctly' : `not yet pointing to ${check.expected}` }}</span>
+                                                    <span class="text-brand-ink-soft">{{ check.ok ? 'pointing correctly' : (check.found && check.found.length ? `found ${check.found.join(', ')} — expected ${check.expected}` : `no record found — expected ${check.expected}`) }}</span>
                                                 </div>
                                             </div>
                                         </template>

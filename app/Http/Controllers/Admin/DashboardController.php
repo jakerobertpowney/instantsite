@@ -141,10 +141,14 @@ class DashboardController extends Controller
         $serverIp = config('app.server_ip') ?: gethostbyname(parse_url(config('app.url'), PHP_URL_HOST));
 
         $aRecords = dns_get_record($domain, DNS_A);
-        $apexOk   = collect($aRecords)->contains(fn($r) => ($r['ip'] ?? '') === $serverIp);
+        $apexFound = collect($aRecords)->pluck('ip')->filter()->values()->all();
+        $apexOk   = in_array($serverIp, $apexFound, true);
 
         $wwwARecords    = dns_get_record('www.' . $domain, DNS_A);
         $wwwCnameRecords = dns_get_record('www.' . $domain, DNS_CNAME);
+        $wwwFound = collect($wwwARecords)->pluck('ip')->filter()
+            ->merge(collect($wwwCnameRecords)->pluck('target')->filter()->map(fn ($t) => rtrim($t, '.')))
+            ->values()->all();
         $wwwOk = collect($wwwARecords)->contains(fn($r) => ($r['ip'] ?? '') === $serverIp)
             || collect($wwwCnameRecords)->contains(fn($r) => rtrim($r['target'] ?? '', '.') === $domain);
 
@@ -157,8 +161,8 @@ class DashboardController extends Controller
         return response()->json([
             'verified' => $verified,
             'checks'   => [
-                'apex' => ['ok' => $apexOk, 'record' => $domain,        'expected' => $serverIp],
-                'www'  => ['ok' => $wwwOk,  'record' => 'www.' . $domain, 'expected' => $serverIp],
+                'apex' => ['ok' => $apexOk, 'record' => $domain,        'expected' => $serverIp, 'found' => $apexFound],
+                'www'  => ['ok' => $wwwOk,  'record' => 'www.' . $domain, 'expected' => $serverIp, 'found' => $wwwFound],
             ],
         ]);
     }
