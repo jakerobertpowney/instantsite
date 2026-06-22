@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import AppLogo from '@/components/AppLogo.vue';
 import { Head } from '@inertiajs/vue3';
-import { ref, provide, computed } from 'vue';
+import { ref, provide, computed, reactive, watch } from 'vue';
 import { usePage } from '@inertiajs/vue3';
 import { Toaster } from '@/components/ui/sonner';
 import 'vue-sonner/style.css';
@@ -26,7 +26,22 @@ const props = defineProps({
     unreadCount: Number,
 });
 
-provide('site', props.site);
+// Provide a reactive `site` that stays in sync with the Inertia prop.
+// `provide` captures a value once, so handing it `props.site` directly would
+// give children a stale snapshot — after saving domain/settings the props
+// update but injected consumers wouldn't, forcing a manual page refresh.
+// Mirroring the latest prop into a reactive object keeps every child live.
+const site = reactive<Record<string, any>>({ ...(props.site ?? {}) });
+watch(
+    () => props.site,
+    (val) => {
+        Object.keys(site).forEach((key) => delete site[key]);
+        if (val) Object.assign(site, val);
+    },
+    { deep: true },
+);
+
+provide('site', site);
 provide('appDomain', props.appDomain);
 provide('isPremium', props.isPremium);
 provide('serverIp', props.serverIp);
@@ -45,14 +60,12 @@ const userEmail = computed(() => (page.props.auth?.user as any)?.email ?? '');
 const userName = computed(() => (page.props.auth?.user as any)?.name ?? '');
 
 const siteUrl = computed(() => {
-    const site = props.site as any;
-    if (!site) return null;
     if (site.domain_type === 'custom' && site.custom_domain) return `https://${site.custom_domain}`;
     if (site.domain_type === 'subdomain' && site.subdomain) return `https://${site.subdomain}.${props.appDomain}`;
     return null;
 });
 
-const isLive = computed(() => !!siteUrl.value && (props.site as any)?.domain_type !== 'draft');
+const isLive = computed(() => !!siteUrl.value && site.domain_type !== 'draft');
 
 const navItems = [
     { id: 'home',     label: 'Home',             hint: 'Your site at a glance',              icon: Home,       badge: null },

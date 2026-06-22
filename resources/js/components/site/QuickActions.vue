@@ -53,14 +53,14 @@ const mailtoUrl = computed(() =>
             Call us
         </a>
 
-        <!-- Secondary actions row on mobile -->
-        <div class="flex gap-2 sm:contents">
+        <!-- Secondary actions — each on its own line on mobile -->
+        <div class="flex flex-col gap-2 sm:contents">
 
             <!-- Message — scrolls to contact form (premium) or opens mailto (free) -->
             <button
                 v-if="contact && showForm"
                 type="button"
-                class="flex-1 inline-flex items-center justify-center gap-2 rounded-full border-2 px-5 py-3 text-sm font-semibold transition-colors hover:bg-gray-50 focus:outline-none focus-visible:ring-2 sm:flex-none sm:py-2"
+                class="w-full inline-flex items-center justify-center gap-2 rounded-full border-2 px-5 py-3 text-sm font-semibold transition-colors hover:bg-gray-50 focus:outline-none focus-visible:ring-2 sm:flex-none sm:py-2"
                 style="border-color: var(--site-primary); color: var(--site-primary)"
                 @click="scrollToContactForm"
             >
@@ -70,7 +70,7 @@ const mailtoUrl = computed(() =>
             <a
                 v-else-if="contact && mailtoUrl"
                 :href="mailtoUrl"
-                class="flex-1 inline-flex items-center justify-center gap-2 rounded-full border-2 px-5 py-3 text-sm font-semibold transition-colors hover:bg-gray-50 focus:outline-none focus-visible:ring-2 sm:flex-none sm:py-2"
+                class="w-full inline-flex items-center justify-center gap-2 rounded-full border-2 px-5 py-3 text-sm font-semibold transition-colors hover:bg-gray-50 focus:outline-none focus-visible:ring-2 sm:flex-none sm:py-2"
                 style="border-color: var(--site-primary); color: var(--site-primary)"
             >
                 <Mail class="h-4 w-4" />
@@ -83,7 +83,7 @@ const mailtoUrl = computed(() =>
                 :href="whatsappUrl"
                 target="_blank"
                 rel="noopener noreferrer"
-                class="flex-1 inline-flex items-center justify-center gap-2 rounded-full px-5 py-3 text-sm font-semibold shadow-sm transition-opacity hover:opacity-90 sm:flex-none sm:py-2.5"
+                class="w-full inline-flex items-center justify-center gap-2 rounded-full px-5 py-3 text-sm font-semibold shadow-sm transition-opacity hover:opacity-90 sm:flex-none sm:py-2.5"
                 style="background-color: #25D366; color: #fff"
             >
                 <MessageCircle class="h-4 w-4" />
@@ -98,7 +98,7 @@ const mailtoUrl = computed(() =>
                 target="_blank"
                 rel="noopener noreferrer"
                 :style="quickLinkStyle(link.link)"
-                class="flex-1 inline-flex items-center justify-center gap-2 rounded-full px-5 py-3 text-sm font-semibold shadow-sm transition-opacity hover:opacity-90 sm:flex-none sm:py-2.5"
+                class="w-full inline-flex items-center justify-center gap-2 rounded-full px-5 py-3 text-sm font-semibold shadow-sm transition-opacity hover:opacity-90 sm:flex-none sm:py-2.5"
             >
                 {{ link.label }}
                 <img

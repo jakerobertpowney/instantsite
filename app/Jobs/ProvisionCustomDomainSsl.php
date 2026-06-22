@@ -46,18 +46,25 @@ class ProvisionCustomDomainSsl implements ShouldQueue
         $apex    = preg_replace('/^www\./i', '', strtolower($site->custom_domain));
         $domains = [$apex, 'www.' . $apex];
 
-        // 1. Add the domain (+www) as aliases so nginx serves it.
-        $aliasResponse = $ploi->addAliases($domains);
+        // 1. Add the domain (+www) as aliases so nginx serves it — but only the
+        // ones not already present, so we don't pile up duplicate server_name
+        // entries on repeat runs.
+        $existing = $this->existingAliases($ploi);
+        $missing  = array_values(array_diff($domains, $existing));
 
-        // 422 here typically means the alias already exists — safe to continue.
-        if ($aliasResponse->failed() && $aliasResponse->status() !== 422) {
-            Log::warning('Ploi addAliases failed.', [
-                'site_id' => $site->id,
-                'domain'  => $apex,
-                'status'  => $aliasResponse->status(),
-                'body'    => $aliasResponse->body(),
-            ]);
-            $aliasResponse->throw(); // trigger a retry
+        if ($missing !== []) {
+            $aliasResponse = $ploi->addAliases($missing);
+
+            // 422 here typically means the alias already exists — safe to continue.
+            if ($aliasResponse->failed() && $aliasResponse->status() !== 422) {
+                Log::warning('Ploi addAliases failed.', [
+                    'site_id' => $site->id,
+                    'domain'  => $apex,
+                    'status'  => $aliasResponse->status(),
+                    'body'    => $aliasResponse->body(),
+                ]);
+                $aliasResponse->throw(); // trigger a retry
+            }
         }
 
         // 2. Request the Let's Encrypt certificate for apex + www.
@@ -77,5 +84,33 @@ class ProvisionCustomDomainSsl implements ShouldQueue
             'site_id' => $site->id,
             'domain'  => $apex,
         ]);
+    }
+
+    /**
+     * Best-effort list of aliases already on the site (lower-cased). Returns an
+     * empty array if Ploi's response can't be read, in which case the caller
+     * falls back to adding the full set.
+     *
+     * @return array<int, string>
+     */
+    private function existingAliases(PloiService $ploi): array
+    {
+        try {
+            $response = $ploi->getAliases();
+
+            if ($response->failed()) {
+                return [];
+            }
+
+            return collect($response->json('data') ?? [])
+                ->map(fn ($alias) => strtolower(
+                    is_array($alias) ? ($alias['domain'] ?? $alias['alias'] ?? '') : (string) $alias
+                ))
+                ->filter()
+                ->values()
+                ->all();
+        } catch (\Throwable) {
+            return [];
+        }
     }
 }

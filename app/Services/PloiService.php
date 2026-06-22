@@ -47,6 +47,14 @@ class PloiService
     }
 
     /**
+     * List the aliases currently registered on the site.
+     */
+    public function getAliases(): Response
+    {
+        return $this->client()->get($this->sitePath('aliases'));
+    }
+
+    /**
      * Request a Let's Encrypt certificate for the given domains.
      * Pass multiple domains comma-separated, e.g. "example.com,www.example.com".
      */
