@@ -196,8 +196,11 @@ XML;
 
     private function findSiteForDomain(string $domain): ?Site
     {
+        $bare = preg_replace('/^www\./i', '', $domain);
+
         return Site::where('subdomain', $domain)->latest()->first()
-            ?? Site::where('custom_domain', $domain)->where('domain_verified', true)->latest()->first();
+            ?? Site::where('custom_domain', $domain)->where('domain_verified', true)->latest()->first()
+            ?? Site::where('custom_domain', $bare)->where('domain_verified', true)->latest()->first();
     }
 
     private function canonicalUrlForSite(Site $site, string $fallbackSiteUrl): string

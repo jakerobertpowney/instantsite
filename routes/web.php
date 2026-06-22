@@ -11,9 +11,23 @@ use App\Http\Controllers\HelpController;
 use App\Http\Controllers\PreviewController;
 use App\Http\Controllers\SiteController;
 use App\Models\Site;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
+
+/**
+ * Whether the given request host is the app's own domain (apex or www) rather
+ * than a customer custom domain. Subdomains of the app domain are matched by
+ * the Route::domain group below (registered first), so they never reach the
+ * host-aware routes.
+ */
+$isAppHost = static function (Request $request): bool {
+    $host      = $request->getHost();
+    $appDomain = config('app.domain');
+
+    return $host === $appDomain || $host === 'www.' . $appDomain;
+};
 
 Route::domain('{domain}.' . config('app.domain'))->group(function () {
    Route::get('/', [SiteController::class, 'index'])->name('site.index');
@@ -21,7 +35,13 @@ Route::domain('{domain}.' . config('app.domain'))->group(function () {
    Route::post('/contact', [SiteController::class, 'contact'])->name('site.contact');
 })->where('domain', '[A-Za-z0-9]([A-Za-z0-9-]*[A-Za-z0-9])?');
 
-Route::get('/', function () {
+Route::get('/', function (Request $request) use ($isAppHost) {
+    // A request arriving on a customer custom domain renders that site;
+    // the app's own domain shows the marketing homepage.
+    if (! $isAppHost($request)) {
+        return app(SiteController::class)->index($request, $request->getHost());
+    }
+
     return Inertia::render('Welcome');
 })->name('home');
 
@@ -29,7 +49,13 @@ Route::get('/', function () {
 // The demo route renders site/Index with :preview="false" on the bottom Contact
 // component, so the form POSTs to /contact on the main domain. This route
 // returns 200 JSON so the component shows the success state instead of an error.
-Route::post('contact', function () {
+Route::post('contact', function (Request $request) use ($isAppHost) {
+    // On a custom domain this is the real contact form; on the app domain it's
+    // the marketing demo sink that just reports success.
+    if (! $isAppHost($request)) {
+        return app(SiteController::class)->contact($request->getHost(), $request);
+    }
+
     return response()->json(['ok' => true]);
 })->name('demo.contact');
 
@@ -180,7 +206,13 @@ Route::get('privacy', function () {
 Route::get('help', [HelpController::class, 'index'])->name('help');
 Route::get('help/{slug}', [HelpController::class, 'show'])->name('help.article');
 
-Route::get('sitemap.xml', function () {
+Route::get('sitemap.xml', function (Request $request) use ($isAppHost) {
+    // On a custom domain, serve that single site's sitemap; on the app domain,
+    // serve the aggregate sitemap of all published sites below.
+    if (! $isAppHost($request)) {
+        return app(SiteController::class)->sitemap($request, $request->getHost());
+    }
+
     $appDomain = config('app.domain', parse_url(config('app.url'), PHP_URL_HOST));
 
     $urls = Site::query()
