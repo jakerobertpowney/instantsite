@@ -301,7 +301,7 @@ const features = [
                             <div v-if="!showSearch && searchPhase === 'idle'" class="flex flex-col gap-3">
                                 <div class="flex flex-col sm:flex-row gap-3">
                                     <button
-                                        class="flex-1 inline-flex items-center justify-center gap-2 h-14 px-6 rounded-lg font-bold text-base cursor-pointer border border-brand-blue transition-opacity bg-brand-blue text-white hover:opacity-90"
+                                        class="w-full sm:w-auto sm:flex-1 inline-flex items-center justify-center gap-2 h-14 px-6 rounded-lg font-bold text-base cursor-pointer border border-brand-blue transition-opacity bg-brand-blue text-white hover:opacity-90"
                                         @click="openSearch"
                                     >
                                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
@@ -309,7 +309,7 @@ const features = [
                                     </button>
                                     <Link
                                         href="/setup/new"
-                                        class="flex-1 inline-flex items-center justify-center gap-2 h-14 px-6 rounded-lg font-bold text-base no-underline border-2 border-brand-line bg-white text-brand-ink transition-colors hover:bg-brand-panel"
+                                        class="w-full sm:w-auto sm:flex-1 inline-flex items-center justify-center gap-2 h-14 px-6 rounded-lg font-bold text-base no-underline border-2 border-brand-line bg-white text-brand-ink transition-colors hover:bg-brand-panel"
                                     >
                                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
                                         Start from scratch

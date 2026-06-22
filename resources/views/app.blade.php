@@ -13,6 +13,7 @@
 
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="csrf-token" content="{{ csrf_token() }}">
 
         {{-- Light-only by default: only apply dark mode when explicitly chosen.
              We intentionally do NOT follow the OS 'system' preference, as the

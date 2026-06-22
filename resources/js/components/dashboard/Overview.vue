@@ -163,7 +163,7 @@ const allDone = computed(() =>
                     <button
                         v-if="!hasLogo"
                         class="flex items-center gap-3.5 p-3.5 border-[1.5px] border-brand-line rounded-[12px] bg-brand-surface cursor-pointer font-inherit text-left transition-colors hover:bg-brand-panel"
-                        @click="emit('navigate', 'edit')"
+                        @click="emit('navigate', 'edit', 'header')"
                     >
                         <span class="w-[42px] h-[42px] rounded-[10px] bg-brand-panel text-brand-ink flex items-center justify-center flex-shrink-0">
                             <Image :size="22" />
@@ -179,7 +179,7 @@ const allDone = computed(() =>
                     <button
                         v-if="!hasDescription"
                         class="flex items-center gap-3.5 p-3.5 border-[1.5px] border-brand-line rounded-[12px] bg-brand-surface cursor-pointer font-inherit text-left transition-colors hover:bg-brand-panel"
-                        @click="emit('navigate', 'edit')"
+                        @click="emit('navigate', 'edit', 'about')"
                     >
                         <span class="w-[42px] h-[42px] rounded-[10px] bg-brand-panel text-brand-ink flex items-center justify-center flex-shrink-0">
                             <Pencil :size="22" />
@@ -227,7 +227,7 @@ const allDone = computed(() =>
                     <button
                         v-if="!hasContactForm"
                         class="flex items-center gap-3.5 p-3.5 border-[1.5px] border-brand-line rounded-[12px] bg-brand-surface cursor-pointer font-inherit text-left transition-colors hover:bg-brand-panel"
-                        @click="emit('navigate', 'edit')"
+                        @click="emit('navigate', 'edit', 'contact')"
                     >
                         <span class="w-[42px] h-[42px] rounded-[10px] bg-brand-panel text-brand-ink flex items-center justify-center flex-shrink-0">
                             <MessageSquare :size="22" />

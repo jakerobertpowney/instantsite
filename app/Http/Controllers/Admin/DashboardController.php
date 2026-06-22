@@ -46,7 +46,7 @@ class DashboardController extends Controller
 
         return Inertia::render('Dashboard', [
             'site'        => $site,
-            'appDomain'   => env('APP_DOMAIN', '321sites.test'),
+            'appDomain'   => config('app.domain'),
             'isPremium'   => auth()->user()->subscribed('default'),
             'serverIp'    => $serverIp,
             'submissions' => $submissions,

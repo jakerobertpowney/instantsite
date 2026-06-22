@@ -56,6 +56,20 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Application Domain
+    |--------------------------------------------------------------------------
+    |
+    | The root domain used to build customer site subdomains (e.g.
+    | "mybusiness.321sites.com"). Resolved through config so the value
+    | survives `config:cache` — reading env() directly outside of config
+    | files returns null once the config is cached.
+    |
+    */
+
+    'domain' => env('APP_DOMAIN', '321sites.com'),
+
+    /*
+    |--------------------------------------------------------------------------
     | Application Timezone
     |--------------------------------------------------------------------------
     |

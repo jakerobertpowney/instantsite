@@ -15,7 +15,7 @@ use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
-Route::domain('{domain}.' . env('APP_DOMAIN'))->group(function () {
+Route::domain('{domain}.' . config('app.domain'))->group(function () {
    Route::get('/', [SiteController::class, 'index'])->name('site.index');
    Route::get('/sitemap.xml', [SiteController::class, 'sitemap'])->name('site.sitemap');
    Route::post('/contact', [SiteController::class, 'contact'])->name('site.contact');
@@ -181,7 +181,7 @@ Route::get('help', [HelpController::class, 'index'])->name('help');
 Route::get('help/{slug}', [HelpController::class, 'show'])->name('help.article');
 
 Route::get('sitemap.xml', function () {
-    $appDomain = env('APP_DOMAIN', parse_url(config('app.url'), PHP_URL_HOST));
+    $appDomain = config('app.domain', parse_url(config('app.url'), PHP_URL_HOST));
 
     $urls = Site::query()
         ->where('domain_type', '!=', 'draft')

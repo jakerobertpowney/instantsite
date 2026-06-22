@@ -434,6 +434,12 @@ const providerLabel = computed(() => {
                                             }}
                                         </button>
                                         <p class="text-xs text-brand-ink-soft m-0 leading-[1.5]">You'll be taken to your domain provider's website to approve the setup. Takes a few seconds.</p>
+                                        <div class="flex items-center gap-2 pt-1 border-t border-brand-line-soft mt-1">
+                                            <span class="text-xs text-brand-ink-soft">Prefer to set it up yourself?</span>
+                                            <button type="button" class="inline-flex items-center gap-1 bg-transparent border-none p-0 font-family-inherit text-xs font-semibold text-brand-blue cursor-pointer underline-transparent hover:underline" @click="showManualDns = !showManualDns">
+                                                {{ showManualDns ? 'Hide DNS settings' : 'See the DNS settings' }}
+                                            </button>
+                                        </div>
                                     </template>
 
                                     <!-- Unsupported — show DNS records -->
