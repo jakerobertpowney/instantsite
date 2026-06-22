@@ -556,7 +556,7 @@ function saveReviews() {
 
 function saveContact() {
     postSection({
-        components:        { contact: form.components.contact },
+        components:        { contact: form.components.contact, contact_form: form.components.contact_form },
         formatted_address: form.formatted_address,
         opening_hours:     form.opening_hours,
         socials:           form.socials,
