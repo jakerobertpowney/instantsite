@@ -27,15 +27,19 @@ const generate = async () => {
     isGenerating.value = true;
     generateError.value = null;
     try {
+        // Always send the details the user has typed into the wizard. The backend
+        // prefers these over any saved record, so generation uses the latest input
+        // and works even when the business was never linked to Google.
+        const payload = {
+            business_name:     form.business_name,
+            business_type:     form.business_type,
+            formatted_address: form.formatted_address,
+            phone:             form.phone,
+            description:       form.description,
+        };
         const response = siteId
-            ? await axios.post(generateDescriptionRoute.url(siteId))
-            : await axios.post('/api/setup/generate-description', {
-                  business_name:     form.business_name,
-                  business_type:     form.business_type,
-                  formatted_address: form.formatted_address,
-                  phone:             form.phone,
-                  description:       form.description,
-              });
+            ? await axios.post(generateDescriptionRoute.url(siteId), payload)
+            : await axios.post('/api/setup/generate-description', payload);
         form.description = response.data.description ?? '';
     } catch (err: any) {
         generateError.value =

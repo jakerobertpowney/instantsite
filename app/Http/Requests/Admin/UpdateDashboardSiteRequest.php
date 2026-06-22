@@ -24,7 +24,14 @@ class UpdateDashboardSiteRequest extends FormRequest
         return [
             'domain_type' => [
                 'required',
-                'in:subdomain,custom,draft'
+                'in:subdomain,custom,draft',
+                // A custom domain is a paid-plan feature — reject it for users
+                // who aren't subscribed, regardless of what the UI allows.
+                function (string $attribute, mixed $value, \Closure $fail): void {
+                    if ($value === 'custom' && ! auth()->user()?->subscribed('default')) {
+                        $fail('A custom domain is only available on the paid plan. Please upgrade to continue.');
+                    }
+                },
             ],
             'subdomain' => [
                 'required_if:domain_type,subdomain',

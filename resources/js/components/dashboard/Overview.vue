@@ -73,8 +73,14 @@ const hasButtons = computed(() => (site?.quick_links?.length ?? 0) > 0);
 // SEO: both meta fields filled in (top-level columns)
 const hasSeo = computed(() => !!(site?.meta_title?.trim() && site?.meta_description?.trim()));
 
-// Contact form: the contact_form component has been explicitly enabled
-const hasContactForm = computed(() => site?.components?.contact_form?.enabled === true);
+// Contact form: the contact_form component has been explicitly enabled.
+// The enabled flag may arrive as a string ("1"/"true") because the editor form
+// posts via multipart FormData, so normalise rather than strict-compare to true.
+const isEnabled = (v: unknown): boolean => {
+    if (typeof v === 'string') return !['', '0', 'false', 'off', 'no'].includes(v.trim().toLowerCase());
+    return Boolean(v);
+};
+const hasContactForm = computed(() => isEnabled(site?.components?.contact_form?.enabled));
 
 // Custom domain: domain type is 'custom' and a domain has been entered
 const hasCustomDomain = computed(() => site?.domain_type === 'custom' && !!site?.custom_domain);

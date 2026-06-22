@@ -24,9 +24,9 @@ class DashboardController extends Controller
             return redirect()->route('home');
         }
 
-        // Resolve the server's public IP for the DNS records instructions.
-        $appHost  = parse_url(config('app.url'), PHP_URL_HOST);
-        $serverIp = gethostbyname($appHost);
+        // The server's public IP for the DNS records instructions. Prefer the
+        // configured SERVER_IP; only resolve from the app host as a fallback.
+        $serverIp = config('app.server_ip') ?: gethostbyname(parse_url(config('app.url'), PHP_URL_HOST));
 
         // Load contact form submissions for the Messages panel
         $submissions = $site->submissions()
@@ -138,8 +138,7 @@ class DashboardController extends Controller
         }
 
         $domain   = $site->custom_domain;
-        $appHost  = parse_url(config('app.url'), PHP_URL_HOST);
-        $serverIp = gethostbyname($appHost);
+        $serverIp = config('app.server_ip') ?: gethostbyname(parse_url(config('app.url'), PHP_URL_HOST));
 
         $aRecords = dns_get_record($domain, DNS_A);
         $apexOk   = collect($aRecords)->contains(fn($r) => ($r['ip'] ?? '') === $serverIp);

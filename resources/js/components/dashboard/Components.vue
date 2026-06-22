@@ -593,7 +593,14 @@ const generateDescription = async () => {
     isGeneratingDescription.value = true;
     generateDescriptionError.value = null;
     try {
-        const response = await axios.post('/dashboard/generate-description');
+        // Send the details currently typed into the form (which may be unsaved) so
+        // the AI generates from the latest input, even with no Google link.
+        const response = await axios.post('/dashboard/generate-description', {
+            business_name:     form.business_name,
+            business_type:     form.business_type,
+            formatted_address: [form.city, form.region].filter(Boolean).join(', '),
+            phone:             form.phone,
+        });
         form.overrides.description = response.data.description ?? '';
     } catch (err: any) {
         generateDescriptionError.value =

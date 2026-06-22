@@ -19,11 +19,15 @@ class GenerateDashboardDescriptionController extends Controller
             return response()->json(['error' => 'Site not found'], 404);
         }
 
-        $name       = $site->business_name;
-        $type       = $site->business_type;
-        $address    = $site->formatted_address;
-        $googleDesc = $site->description;
-        $phone      = $site->phone;
+        // Prefer details the user has typed into the dashboard form (which may not
+        // be saved yet), falling back to the stored site columns. This means the AI
+        // uses the latest inputted data and works even when the site was never
+        // linked to Google.
+        $name       = $request->input('business_name')     ?: $site->business_name;
+        $type       = $request->input('business_type')     ?: $site->business_type;
+        $address    = $request->input('formatted_address') ?: $site->formatted_address;
+        $googleDesc = $request->input('description')        ?: $site->description;
+        $phone      = $request->input('phone')             ?: $site->phone;
 
         $contextParts = array_filter([
             $name       ? "Business name: {$name}"            : null,

@@ -18,13 +18,15 @@ class GenerateDescriptionController extends Controller
         // fall back to the business details the user has typed into the wizard.
         $site = $id ? TemporarySite::where('places_id', $id)->latest()->first() : null;
 
-        // Build a context string from the temp site columns, falling back to the
-        // request body so generation also works before any record exists.
-        $name        = $site->business_name     ?? $request->input('business_name');
-        $type        = $site->business_type     ?? $request->input('business_type');
-        $address     = $site->formatted_address ?? $request->input('formatted_address');
-        $googleDesc  = $site->description        ?? $request->input('description');
-        $phone       = $site->phone             ?? $request->input('phone');
+        // Build a context string from whatever the user has typed into the wizard,
+        // falling back to the saved temporary site columns. Preferring the request
+        // body means generation uses the latest inputted data and works even when
+        // the business was never linked to Google (no saved record / empty columns).
+        $name        = $request->input('business_name')     ?: $site?->business_name;
+        $type        = $request->input('business_type')     ?: $site?->business_type;
+        $address     = $request->input('formatted_address') ?: $site?->formatted_address;
+        $googleDesc  = $request->input('description')        ?: $site?->description;
+        $phone       = $request->input('phone')             ?: $site?->phone;
 
         if (!$name && !$type) {
             return response()->json(['error' => 'Add your business name first, then try again.'], 422);

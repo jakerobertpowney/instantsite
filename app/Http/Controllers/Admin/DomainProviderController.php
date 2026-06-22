@@ -88,7 +88,7 @@ class DomainProviderController extends Controller
             }
 
             // Push A records
-            $serverIp = gethostbyname(parse_url(config('app.url'), PHP_URL_HOST));
+            $serverIp = (config('app.server_ip') ?: gethostbyname(parse_url(config('app.url'), PHP_URL_HOST)));
             $apex     = preg_replace('/^www\./i', '', $site->custom_domain);
 
             $apexOk = $cf->upsertARecord($zone['id'], $apex,        $serverIp);
@@ -155,7 +155,7 @@ class DomainProviderController extends Controller
         }
 
         // Push A records
-        $serverIp = gethostbyname(parse_url(config('app.url'), PHP_URL_HOST));
+        $serverIp = (config('app.server_ip') ?: gethostbyname(parse_url(config('app.url'), PHP_URL_HOST)));
         $ok       = $godaddy->configureARecords($site->custom_domain, $serverIp);
 
         if (!$ok) {
@@ -222,7 +222,7 @@ class DomainProviderController extends Controller
         //           can do window.location = url (avoids CORS issues with a
         //           direct server redirect on a JSON endpoint).
         $state       = Str::random(40);
-        $serverIp    = gethostbyname(parse_url(config('app.url'), PHP_URL_HOST));
+        $serverIp    = (config('app.server_ip') ?: gethostbyname(parse_url(config('app.url'), PHP_URL_HOST)));
         $redirectUri = url('/dashboard/domain/connect/callback');
 
         $request->session()->put([
@@ -272,7 +272,7 @@ class DomainProviderController extends Controller
         // The registrar applied the records — mark as configured.
         // We also run our standard DNS check to set domain_verified if records
         // have already propagated (Domain Connect providers are usually instant).
-        $serverIp   = gethostbyname(parse_url(config('app.url'), PHP_URL_HOST));
+        $serverIp   = (config('app.server_ip') ?: gethostbyname(parse_url(config('app.url'), PHP_URL_HOST)));
         $apex       = preg_replace('/^www\./i', '', $domain ?? $site->custom_domain);
         $aRecords   = @dns_get_record($apex, DNS_A) ?: [];
         $verified   = collect($aRecords)->contains(fn($r) => ($r['ip'] ?? '') === $serverIp);

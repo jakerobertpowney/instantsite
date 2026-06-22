@@ -70,6 +70,21 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Server IP
+    |--------------------------------------------------------------------------
+    |
+    | The public IP address customers should point their custom-domain A records
+    | at. Set this explicitly because resolving it from the app host
+    | (gethostbyname) is unreliable — it returns 127.0.0.1 in local dev and a
+    | proxy/CDN address (e.g. Cloudflare) rather than the origin in production.
+    | When left null the code falls back to resolving the app host.
+    |
+    */
+
+    'server_ip' => env('SERVER_IP'),
+
+    /*
+    |--------------------------------------------------------------------------
     | Application Timezone
     |--------------------------------------------------------------------------
     |

@@ -310,7 +310,7 @@ const providerLabel = computed(() => {
                                 <span v-if="form.domain_type === 'subdomain'" class="w-2 h-2 rounded-full bg-white" />
                             </span>
                             <div>
-                                <div class="text-base font-semibold text-brand-ink leading-[1.3]">A free 321Sites address <span class="text-brand-ink-soft font-medium">(recommended)</span></div>
+                                <div class="text-base font-semibold text-brand-ink leading-[1.3]">A free 321Sites address</div>
                                 <div class="text-sm text-brand-ink-soft mt-1 leading-[1.4]">Looks like: yourname.321sites.com — free, works straight away, no setup.</div>
                             </div>
                         </div>
@@ -345,7 +345,7 @@ const providerLabel = computed(() => {
                             </span>
                             <div>
                                 <div class="text-base font-semibold text-brand-ink leading-[1.3]">
-                                    Your own web address (e.g. yourbusiness.co.uk)
+                                    Your own web address (e.g. yourbusiness.co.uk) <span class="text-brand-ink-soft font-medium">(recommended)</span>
                                     <span v-if="!isPremium" class="inline-flex items-center gap-1 ml-2 px-2 py-0.5 rounded-full bg-yellow-100 text-amber-900 text-xs font-bold">
                                         <Sparkles :size="11" /> Premium
                                     </span>
